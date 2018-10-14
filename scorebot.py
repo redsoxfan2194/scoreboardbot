@@ -89,124 +89,137 @@ def getFlair(team):
     
     return "[{}](#f/{}){}".format(team,flairFormat,team)    
 # instantiate the parser and fed it some HTML
-parser = MyHTMLParser()
+   
+def generateScoreboard():
+    global gameDate
+    parser = MyHTMLParser()
 
-url = "http://collegehockeystats.net/"
-f=urllib2.urlopen(url)
-html = f.read()
-f.close()
-parser.feed(html)
-gameData=parser.return_data()
-days = gameData.split('\n\n')
-games = days[0].split('\n')
-mtagLookup = {}
-wtagLookup = {}
-leagues=set()
-gameList = []
-tag = ''
-for game in games:
-    game = game.split('!')
-    if(len(game)==1):
-        continue
-    if(game[0]==''):
-        game.pop(0)
-    if(game[-1]==''):
-        game.pop()
-        if(game[-1][0]=='('):
-            game.pop()
-    if(len(game)==2):
-       if(game[0][0]=='('):
-           
-           if(m_w=='Men'):
-               mtagLookup[game[0]]=game[1]
-           elif(m_w=='Women'):
-               wtagLookup[game[0]]=game[1]
-       else:
-           m_w = game[1][:-1]
-    if(len(game)>2):
-        if(game[0][0]=='('):
-            tag=game[0]
+    url = "http://collegehockeystats.net/"
+    f=urllib2.urlopen(url)
+    html = f.read()
+    f.close()
+    parser.feed(html)
+    gameData=parser.return_data()
+    days = gameData.split('\n\n')
+    games = days[0].split('\n')
+    mtagLookup = {}
+    wtagLookup = {}
+    leagues=set()
+    gameList = []
+    tag = ''
+    for game in games:
+        game = game.split('!')
+        if(len(game)==1):
+            continue
+        if(game[0]==''):
             game.pop(0)
+        if(game[-1]==''):
+            game.pop()
+            if(game[-1][0]=='('):
+                game.pop()
+        if(len(game)==2):
+           if(game[0][0]=='('):
+               
+               if(m_w=='Men'):
+                   mtagLookup[game[0]]=game[1]
+               elif(m_w=='Women'):
+                   wtagLookup[game[0]]=game[1]
+           else:
+               m_w = game[1][:-1]
+               gameDate = game[0][:-3]
+               gameDate=gameDate.replace(",","")
+               
+        if(len(game)>2):
+            if(game[0][0]=='('):
+                tag=game[0]
+                game.pop(0)
+        
+        if(game.count('OT')>0):
+            game.pop(5)
+            game[7]='Final (OT)'
+        if(len(game)==8):
+            if(game[5]=='EC,IV'):
+               game[5] = 'EC'
+            if(m_w == 'Women' and game[5]=='NH'):
+              game[5] = 'NW'           
+            gameDict = {'awayTeam' : game[0],
+                        'awayScore': game[1],
+                        'homeTeam' : game[3],
+                        'homeScore': game[4],
+                        'league' : game[5],
+                        'startTime': game[6],
+                        'status' : game[7],
+                        'm_w': m_w}
+            leagues.add(game[5])
+            gameList.append(gameDict)
+        if(len(game)==9):
+          if(game[5]=='EC,IV'):
+            game[5] = 'EC'
+          if(m_w == 'Women' and game[5]=='NH'):
+              game[5] = 'NW'
+          if(tag):
+            if(m_w=='Men' and tag in mtagLookup.keys()):
+              game[5]=mtagLookup[tag]
+            if(m_w=='Women' and tag in wtagLookup.keys()):
+               game[5]=wtagLookup[tag]
+          time = game[8] + ' ' + game[7]
+          gameDict = {  'awayTeam' : game[0],
+                        'awayScore': game[1],
+                        'homeTeam' : game[3],
+                        'homeScore': game[4],
+                        'league' : game[5],
+                        'startTime': game[6],
+                        'status' : time,
+                        'm_w' : m_w}
+          leagues.add(game[5])
+          gameList.append(gameDict)
+        if(len(game)==5):
+            if(game[3]=='EC,IV'):
+              game[3] = 'EC'
+            if(m_w == 'Women' and game[3]=='NH'):
+              game[3] = 'NW'
+            gameDict = {'awayTeam' : game[0],
+                        'awayScore': "",
+                        'homeTeam' : game[2],
+                        'homeScore': "",
+                        'league' : game[3],
+                        'startTime': "",
+                        'status' : game[4],
+                        'm_w': m_w}
+            leagues.add(game[3])
+            gameList.append(gameDict)
+
+    mGamesByLeague = {}
+    wGamesByLeague = {}
+    for game in gameList:
+        if game['m_w'] == 'Men':
+            if(game['league'] not in mGamesByLeague):
+                mGamesByLeague[game['league']]=[]
+            mGamesByLeague[game['league']].append(game)
+        if game['m_w'] == 'Women':
+            if(game['league'] not in wGamesByLeague):
+                wGamesByLeague[game['league']]=[]
+            wGamesByLeague[game['league']].append(game)
+    scoreboard = ''
+    scoreboard += "#Men's Scores\n"
+    for league in sorted(mGamesByLeague.keys()):
+        scoreboard += "**{}**\n".format(getLeagueName(league))
+        scoreboard += "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|\n"
+        for game in mGamesByLeague[league]:
+            if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
+                scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])     
     
-    if(game.count('OT')>0):
-        game.pop(5)
-        game[7]='Final (OT)'
-    if(len(game)==8):
-        if(game[5]=='EC,IV'):
-           game[5] = 'EC'
-        if(m_w == 'Women' and game[5]=='NH'):
-          game[5] = 'NW'           
-        gameDict = {'awayTeam' : game[0],
-                    'awayScore': game[1],
-                    'homeTeam' : game[3],
-                    'homeScore': game[4],
-                    'league' : game[5],
-                    'startTime': game[6],
-                    'status' : game[7],
-                    'm_w': m_w}
-        leagues.add(game[5])
-        gameList.append(gameDict)
-    if(len(game)==9):
-      if(game[5]=='EC,IV'):
-        game[5] = 'EC'
-      if(m_w == 'Women' and game[5]=='NH'):
-          game[5] = 'NW'
-      if(tag):
-        if(m_w=='Men' and tag in mtagLookup.keys()):
-          game[5]=mtagLookup[tag]
-        if(m_w=='Women' and tag in wtagLookup.keys()):
-           game[5]=wtagLookup[tag]
-      time = game[8] + ' ' + game[7]
-      gameDict = {  'awayTeam' : game[0],
-                    'awayScore': game[1],
-                    'homeTeam' : game[3],
-                    'homeScore': game[4],
-                    'league' : game[5],
-                    'startTime': game[6],
-                    'status' : time,
-                    'm_w' : m_w}
-      leagues.add(game[5])
-      gameList.append(gameDict)
-    if(len(game)==5):
-        if(game[3]=='EC,IV'):
-          game[3] = 'EC'
-        if(m_w == 'Women' and game[3]=='NH'):
-          game[3] = 'NW'
-        gameDict = {'awayTeam' : game[0],
-                    'awayScore': "",
-                    'homeTeam' : game[2],
-                    'homeScore': "",
-                    'league' : game[3],
-                    'startTime': "",
-                    'status' : game[4],
-                    'm_w': m_w}
-        leagues.add(game[3])
-        gameList.append(gameDict)
+    scoreboard += "#Women's Scores\n"
+    for league in sorted(wGamesByLeague.keys()):
+        scoreboard += "**{}**\n".format(getLeagueName(league))
+        scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|\n"
+        for game in wGamesByLeague[league]:
+          if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
+            scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])        
 
-mGamesByLeague = {}
-wGamesByLeague = {}
-for game in gameList:
-    if game['m_w'] == 'Men':
-        if(game['league'] not in mGamesByLeague):
-            mGamesByLeague[game['league']]=[]
-        mGamesByLeague[game['league']].append(game)
-    if game['m_w'] == 'Women':
-        if(game['league'] not in wGamesByLeague):
-            wGamesByLeague[game['league']]=[]
-        wGamesByLeague[game['league']].append(game)
-
-print "#Men's Scores"
-for league in sorted(mGamesByLeague.keys()):
-    print "**{}**".format(getLeagueName(league))
-    print "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|"
-    for game in mGamesByLeague[league]:
-        if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-            print "{}|{}|{}|{}|{}|".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])     
-
-print "#Women's Scores"
-for league in sorted(wGamesByLeague.keys()):
-    print "**{}**".format(getLeagueName(league))
-    print "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|"
-    for game in wGamesByLeague[league]:
-      if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-        print "{}|{}|{}|{}|{}|".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])        
+    return scoreboard
+    
+if __name__ == '__main__':
+    global gameDate
+    scoreboard=generateScoreboard()
+    print scoreboard
