@@ -12,18 +12,24 @@ day = sDate[0]
 isTodayScores = False
 if(day == calendar.day_name[date.today().weekday()]):
     isTodayScores=True
-    
+
+if(scoreboard == "No Games Scheduled"):
+    exit()
 updateTime =  datetime.now()
 updateTime = updateTime.strftime("%Y-%m-%d %H:%M:%S ET")
 
 for submission in subreddit.hot(limit=10):
     if(submission.title.find("[Game Thread]")>=0 and (scoreDate in submission.title or ("Week of" in submission.title and isTodayScores))):
+        scoreboard = "##" + day + "'s Scores: \n" + scoreboard
         scoreboard += "\n\nLast Updated: " + str(updateTime)
         isFound = False
         for comment in submission.comments:
             if(comment.author== 'ch_scorebot'):
                    isFound=True
-                   comment.edit(scoreboard)
+                   if(day in comment.body):
+                    comment.edit(scoreboard)
+                   else:
+                    comment.reply(scoreboard)
         if(not isFound):
             submission.reply(scoreboard)
 

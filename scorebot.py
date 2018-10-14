@@ -87,7 +87,7 @@ def getFlair(team):
     if team == "Massachusetts":
         team = "UMass"
     
-    return "[{}](#f/{}){}".format(team,flairFormat,team)    
+    return "[](#f/{}){}".format(flairFormat,team)    
 # instantiate the parser and fed it some HTML
    
 def generateScoreboard():
@@ -191,6 +191,8 @@ def generateScoreboard():
 
     mGamesByLeague = {}
     wGamesByLeague = {}
+    if(not gameList):
+        return "No Games Scheduled"
     for game in gameList:
         if game['m_w'] == 'Men':
             if(game['league'] not in mGamesByLeague):
