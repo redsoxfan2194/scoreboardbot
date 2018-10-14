@@ -13,7 +13,7 @@ isTodayScores = False
 if(day == calendar.day_name[date.today().weekday()]):
     isTodayScores=True
 
-if(scoreboard == "No Games Scheduled"):
+if(scoreboard == ""):
     exit()
 updateTime =  datetime.now()
 updateTime = updateTime.strftime("%Y-%m-%d %H:%M:%S ET")

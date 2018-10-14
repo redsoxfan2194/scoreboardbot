@@ -191,8 +191,6 @@ def generateScoreboard():
 
     mGamesByLeague = {}
     wGamesByLeague = {}
-    if(not gameList):
-        return "No Games Scheduled"
     for game in gameList:
         if game['m_w'] == 'Men':
             if(game['league'] not in mGamesByLeague):
@@ -204,13 +202,18 @@ def generateScoreboard():
             wGamesByLeague[game['league']].append(game)
     scoreboard = ''
     scoreboard += "#Men's Scores\n"
+    numGames = 0
     for league in sorted(mGamesByLeague.keys()):
         scoreboard += "**{}**\n".format(getLeagueName(league))
         scoreboard += "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|\n"
         for game in mGamesByLeague[league]:
             if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-                scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])     
+                scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])
+                numGames +=1
+    if(numGames==0):
+        scoreboard=scoreboard.replace("#Men's Scores\n","")
     
+    numGames = 0
     scoreboard += "#Women's Scores\n"
     for league in sorted(wGamesByLeague.keys()):
         scoreboard += "**{}**\n".format(getLeagueName(league))
@@ -218,6 +221,9 @@ def generateScoreboard():
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
             scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])        
+            numGames += 1
+    if(numGames == 0):
+        scoreboard=scoreboard.replace("#Women's Scores\n","")
 
     return scoreboard
     
