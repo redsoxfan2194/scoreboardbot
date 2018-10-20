@@ -16,13 +16,11 @@ class MyHTMLParser(HTMLParser):
             if(attr[1]=='chsschedreg'):
                 startParse=True;
         pass
-       # print "Encountered a start tag:", tag
 
     def handle_endtag(self, tag):
         global d
         if(startParse and tag=='tr'):
             d+='\n'
-        #print "Encountered an end tag :", tag
 
     def handle_data(self, data):
         global d,startParse
@@ -33,7 +31,7 @@ class MyHTMLParser(HTMLParser):
                     d += 'Final!'
                 else:
                     d += data + '!'
-        #print "Encountered some data  :", data
+
     def return_data(self):
         global d
         return d
@@ -76,7 +74,9 @@ def getFlair(team):
          "UMass Lowell": "massachusettslowell",
          "UConn": "connecticut",
          "Omaha": "nebraskaomaha",
-         "Army West Point": "army"
+         "Army West Point": "army",
+         "Saint Anselm" : "stanselm",
+         "Saint Michael's" : "stmichaels"
          }
     if team in dict:
         flairFormat = dict[team]
@@ -113,10 +113,15 @@ def generateScoreboard():
             continue
         if(game[0]==''):
             game.pop(0)
+            
         if(game[-1]==''):
             game.pop()
+            
+            if(game==[]):
+                break
             if(game[-1][0]=='('):
                 game.pop()
+                
         if(len(game)==2):
            if(game[0][0]=='('):
                
@@ -192,6 +197,8 @@ def generateScoreboard():
     mGamesByLeague = {}
     wGamesByLeague = {}
     for game in gameList:
+        if(not isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
+            continue
         if game['m_w'] == 'Men':
             if(game['league'] not in mGamesByLeague):
                 mGamesByLeague[game['league']]=[]
@@ -200,6 +207,7 @@ def generateScoreboard():
             if(game['league'] not in wGamesByLeague):
                 wGamesByLeague[game['league']]=[]
             wGamesByLeague[game['league']].append(game)
+            
     scoreboard = ''
     scoreboard += "#Men's Scores\n"
     numGames = 0
