@@ -35,7 +35,7 @@ for submission in subreddit.hot(limit=20):
      
                     comment.reply(scoreboard)
                     exit()
-                elif(scoreDate in submission.title):
+                elif(day in submission.title):
                    comment.edit(scoreboard)
                    exit()
                 
