@@ -47,6 +47,8 @@ def getLeagueName(name):
                  'CH': "College Hockey America",
                  'EX': "Exhibition",
                  'NW': "NEWHA"}
+    if name not in leagueNames.keys():
+        return 'N/A'
     return leagueNames[name]
 def isD1(team1,team2,m_w):
     validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
@@ -90,8 +92,8 @@ def getFlair(team):
     return "[](#f/{}){}".format(flairFormat,team)    
 # instantiate the parser and fed it some HTML
    
-def generateScoreboard():
-    global gameDate
+def getScores():
+    global gameDate,gameList
     parser = MyHTMLParser()
 
     url = "http://collegehockeystats.net/"
@@ -113,15 +115,16 @@ def generateScoreboard():
             continue
         if(game[0]==''):
             game.pop(0)
-            
+
         if(game[-1]==''):
             game.pop()
-            
             if(game==[]):
                 break
-            if(game[-1][0]=='('):
-                game.pop()
-                
+            try:
+                if(game[-1][0]=='('):
+                    game.pop()
+            except IndexError:
+                pass
         if(len(game)==2):
            if(game[0][0]=='('):
                
@@ -141,7 +144,8 @@ def generateScoreboard():
         
         if(game.count('OT')>0):
             game.pop(5)
-            game[7]='Final (OT)'
+            if(game.count('Final')>0):
+                game[7]='Final (OT)'
         if(len(game)==8):
             if(game[5]=='EC,IV'):
                game[5] = 'EC'
@@ -193,7 +197,9 @@ def generateScoreboard():
                         'm_w': m_w}
             leagues.add(game[3])
             gameList.append(gameDict)
-
+def generateScoreboard():
+    global gameList
+    getScores()
     mGamesByLeague = {}
     wGamesByLeague = {}
     for game in gameList:
@@ -238,4 +244,5 @@ def generateScoreboard():
 if __name__ == '__main__':
     global gameDate
     scoreboard=generateScoreboard()
+    getScores()
     print scoreboard
