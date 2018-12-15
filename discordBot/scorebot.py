@@ -1,7 +1,7 @@
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import pytz
 from datetime import datetime
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
@@ -25,6 +25,7 @@ class MyHTMLParser(HTMLParser):
     def handle_data(self, data):
         global d,startParse
         if(startParse):
+            data=data.replace("\xa0","")
             data=data.lstrip('\n')
             if(data != 'Box' and data != 'Text' and data !=' / ' and data != 'Live - '):
                 if(data == 'Sheet'):
@@ -47,12 +48,12 @@ def getLeagueName(name):
                  'CH': "College Hockey America",
                  'EX': "Exhibition",
                  'NW': "NEWHA"}
-    if name not in leagueNames.keys():
+    if name not in list(leagueNames.keys()):
         return 'N/A'
     return leagueNames[name]
 def isD1(team1,team2,m_w):
-    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
-    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
+    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","UConn","Arizona State","Army","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
+    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut","UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
     if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams)):
         return True
     if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams)):
@@ -97,10 +98,10 @@ def getScores():
     parser = MyHTMLParser()
 
     url = "http://collegehockeystats.net/"
-    f=urllib2.urlopen(url)
+    f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
-    parser.feed(html)
+    parser.feed(html.decode("utf-8"))
     gameData=parser.return_data()
     days = gameData.split('\n\n')
     games = days[0].split('\n')
@@ -110,7 +111,10 @@ def getScores():
     gameList = []
     tag = ''
     for game in games:
+    
         game = game.split('!')
+        #print(game)
+        
         if(len(game)==1):
             continue
         if(game[0]==''):
@@ -138,10 +142,11 @@ def getScores():
                gameDate=gameDate.replace(",","")
                
         if(len(game)>2):
+            if(game[0]==''):
+                continue            
             if(game[0][0]=='('):
                 tag=game[0]
-                game.pop(0)
-        
+                game.pop(0)                
         if(game.count('OT')>0):
             game.pop(5)
             if(game.count('Final')>0):
@@ -167,9 +172,9 @@ def getScores():
           if(m_w == 'Women' and game[5]=='NH'):
               game[5] = 'NW'
           if(tag):
-            if(m_w=='Men' and tag in mtagLookup.keys()):
+            if(m_w=='Men' and tag in list(mtagLookup.keys())):
               game[5]=mtagLookup[tag]
-            if(m_w=='Women' and tag in wtagLookup.keys()):
+            if(m_w=='Women' and tag in list(wtagLookup.keys())):
                game[5]=wtagLookup[tag]
           time = game[8] + ' ' + game[7]
           gameDict = {  'awayTeam' : game[0],
@@ -245,4 +250,4 @@ if __name__ == '__main__':
     global gameDate
     scoreboard=generateScoreboard()
     getScores()
-    print scoreboard
+    print(scoreboard)
