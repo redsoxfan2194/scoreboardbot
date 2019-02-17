@@ -101,6 +101,14 @@ def getScores():
     html = f.read()
     f.close()
     parser.feed(html)
+    
+    if("<meta HTTP-EQUIV=\"REFRESH\"" in html):
+        url=html.split("url=")
+        url=url[1].split("\"")[0]
+        f=urllib2.urlopen(url)
+        html = f.read()
+        f.close()
+        parser.feed(html)
     gameData=parser.return_data()
     days = gameData.split('\n\n')
     games = days[0].split('\n')
@@ -109,6 +117,7 @@ def getScores():
     leagues=set()
     gameList = []
     tag = ''
+    #print gameData
     for game in games:
         game = game.split('!')
         if(len(game)==1):
@@ -244,5 +253,5 @@ def generateScoreboard():
 if __name__ == '__main__':
     global gameDate
     scoreboard=generateScoreboard()
-    getScores()
+    #getScores()
     print scoreboard
