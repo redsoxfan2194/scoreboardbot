@@ -58,17 +58,18 @@ def displayHelp():
 ?[mstand / wstand] [conference name] - current standings for conference entered
 ?[cheer / jeer / boo] [team name] - sends random cheers for / jeers against team entered (Suggestions welcome in #suggestion-box)
 ?[cheer] - cheers for team of user's flair color
-?[pwr] - displays current Top 16 Pairwise Ranking
-?[pwr] top - displays current Top 4 Pairwise Ranking
-?[pwr] bottom - displays current Bottom 5 Pairwise Ranking
-?[pwr] bubble - displays the Pairwise Ranking Bubble
-?[pwr] <number> - displays Top <number> Pairwise Ranking
+?[pwr / krach] - displays current Top 16 Pairwise Ranking / KRACH
+?[pwr / krach] top - displays current Top 4 Pairwise Ranking / KRACH
+?[pwr / krach] bottom - displays current Bottom 5 Pairwise Ranking / KRACH
+?[pwr / krach] bubble - displays the Pairwise Ranking Bubble / KRACH
+?[pwr / krach] <number> - displays Top <number> Pairwise Ranking / KRACH
 ?[wpwr] - displays current Top 8 Pairwise Ranking
 ?[wpwr] top - displays current Top 4 Pairwise Ranking
 ?[wpwr] bottom - displays current Bottom 5 Pairwise Ranking
 ?[wpwr] bubble - displays the Pairwise Ranking Bubble
 ?[wpwr] <number> - displays Top <number> Pairwise Ranking
 ?[wpwr] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
+?[odds] [team1],[team2] - KRACH computed odds of winning the matchup
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
 
@@ -273,7 +274,119 @@ def getPairwise(opt):
         rankings+="{}. {}\n".format(i+1,pairwise[i])
     rankings += "```"
     return rankings
+def getKRACH(opt):
+    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    krach = []
+    for i in soup.findChildren('tr'):
+        cells = i.findChildren('td')
+        line = ""
+        for cell in cells:
+         value = cell.string
+         if(value != None):
+            line +=value + "!"
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+            line=line.rstrip('!')
+            krach.append(line.split("!")[1])       
+
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "Omaha" : "Nebraska-Omaha",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut"}
+    teams = []
+    start = 0
+    decodedTeam = decodeTeam(opt)
+    if(opt.isnumeric()):
+        end = int(opt)
+    elif(opt.lower()=='full'):
+        end = 60
+    elif(scorebot.isD1(decodedTeam,decodedTeam,'Men') or decodedTeam in chnDiffs.keys()):
+        if(decodedTeam in chnDiffs.keys()):        
+            teamIdx=krach.index(chnDiffs[decodedTeam])
+        else:
+            teamIdx=krach.index(decodedTeam)
+        if(teamIdx-2<0):
+            start=0
+        else:
+            start = teamIdx-2
+        if(teamIdx+3>60):
+            end=60
+        else:
+            end = teamIdx+3
+    elif(opt.lower() == 'bubble'):
+        start = 12
+        end = 20
+    elif(opt.lower() == 'top'):
+        end = 4
+    elif(opt.lower() == 'bottom'):
+        start = 55
+        end = 60
+    else:
+        end = 16
+
+    rankings = "```"
+    for i in range(start,end):
+        rankings+="{}. {}\n".format(i+1,krach[i])
+    rankings += "```"
+    return rankings
+def getKOdds(team1,team2):
+    if(team1 == '' or team2 == ''):
+        return "Enter Two Teams!"
     
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "Omaha" : "Nebraska-Omaha",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut"}
+        
+    team1 = decodeTeam(team1)
+    team2 = decodeTeam(team2)
+    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+        if(team1 in chnDiffs.keys()):       
+            team1=chnDiffs[team1]
+    else:
+        return "Team 1 Not Found"
+    
+    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+        if(team2 in chnDiffs.keys()):       
+            team2=chnDiffs[team2]
+    else:
+        return "Team 2 Not Found"
+    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    krach = {}
+    for i in soup.findChildren('tr'):
+        cells = i.findChildren('td')
+        line = ""
+        for cell in cells:
+         value = cell.string
+         if(value != None):
+            line +=value + "!"
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+            line=line.rstrip('!')
+            line=line.split("!")
+            krach[line[1]]=float(line[2])
+    
+    team1Odds = krach[team1]/(krach[team1]+krach[team2])
+    team2Odds = krach[team2]/(krach[team1]+krach[team2])
+    
+    return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,3), team2, round(team2Odds*100,3))
+       
 def getStandings(conf, m_w):
     conf=conf.lower()
     conf=conf.replace(" ","")
@@ -828,6 +941,7 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await client.send_message(message.channel, msg)
+                
     if(message.content.startswith('?wpwr')):
         opt = message.content.split('?wpwr ')
         if(len(opt)==1):
@@ -841,7 +955,22 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getWPairwise, opt[1])
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)            
+                await client.send_message(message.channel, msg) 
+                
+    if(message.content.startswith('?krach')):
+        opt = message.content.split('?krach ')
+        if(len(opt)==1):
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getKRACH, '')
+                p.shutdown()
+            if(len(msg)>0):
+                await client.send_message(message.channel, msg)
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getKRACH, opt[1])
+                p.shutdown()
+            if(len(msg)>0):
+                await client.send_message(message.channel, msg)                
     if(message.content.startswith('?mstand')):
         conf = message.content.split('?mstand ')
         if(len(conf)>1):
@@ -871,7 +1000,23 @@ async def on_message(message):
             await client.send_message(message.channel, msg)
         else:
              await client.send_message(message.channel, "No Games on TV Today")
-            
+    if(message.content.startswith('?odds')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?odds ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+                
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getKOdds,  team1, team2)
+                p.shutdown()
+            if(len(msg)>0):
+                await client.send_message(message.channel, msg)
+        else:
+             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")
 @client.event
 async def on_ready():
     print('Logged in as')
