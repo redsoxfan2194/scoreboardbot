@@ -2,7 +2,7 @@ import urllib2
 import pytz
 from datetime import datetime
 from HTMLParser import HTMLParser
-
+gameDate=''
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -51,7 +51,7 @@ def getLeagueName(name):
         return 'N/A'
     return leagueNames[name]
 def isD1(team1,team2,m_w):
-    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
+    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
     validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
     if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams)):
         return True
@@ -144,17 +144,26 @@ def getScores():
            else:
                m_w = game[1][:-1]
                gameDate = game[0][:-3]
-               gameDate=gameDate.replace(",","")
-               
+               gameDate=gameDate.replace(",","")     
         if(len(game)>2):
-            if(game[0][0]=='('):
+            if(game[0]==''):
+                pass
+            elif(game[0][0]=='('):
                 tag=game[0]
                 game.pop(0)
         
         if(game.count('OT')>0):
+            numOT = 'OT'
+            if(game.count('2OT')>0):
+                numOT = '2OT'
+            elif(game.count('3OT')>0):
+                numOT = '3OT'
+            elif(game.count('4OT')>0):
+                numOT = '4OT'
             game.pop(5)
             if(game.count('Final')>0):
-                game[7]='Final (OT)'
+                game[7]='Final ({})'.format(numOT)
+            
         if(len(game)==8):
             if(game[5]=='EC,IV'):
                game[5] = 'EC'

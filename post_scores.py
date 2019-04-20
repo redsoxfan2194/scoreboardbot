@@ -6,6 +6,8 @@ import calendar
 reddit = praw.Reddit("bot1")
 subreddit = reddit.subreddit('collegehockey')
 scoreboard  = scorebot.generateScoreboard()
+if(scorebot.gameDate  == ''):
+    exit()
 scoreDate = scorebot.gameDate
 sDate = scoreDate.split(' ')
 day = sDate[0]

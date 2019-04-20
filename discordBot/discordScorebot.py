@@ -12,7 +12,28 @@ import random
 from bs4 import BeautifulSoup
 import operator
 import itertools
-TOKEN = 'XXXXXXXXXXXXXXXXXX'
+TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
+season = '1819'
+invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
+flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
+"Minnesota Duluth" : "<:umd:416037206801514496>",
+"Minnesota State" : "<:minnstate:502254436694097930>",
+"Massachusetts" : "<:umass:509877606628196362>",
+"Clarkson" : "<:clarkson:509874830208925706>",
+"Northeastern" : "<:northeastern:509874830183628831>",
+"Denver" : "<:denver:410963404149358603>",
+"Quinnipiac" : "<:quinnipiac:515202909604937748>",
+"Ohio State" : "<:ohiostate:410963403952226305>",
+"Notre Dame" : "<:notredame:559234890311270453>",
+"Cornell" : "<:cornell:509874829927645215>",
+"Arizona State" : "<:asu:543115914082516992>",
+"Harvard" : "<:harvard:559234780118515712>",
+"Providence" : "<:providence:559234548093812736>",
+"Bowling Green" : "<:bgsu:559234454120431626>",
+"American International" : "<:mrbee:559232704722239489>",
+"Wisconsin" : "<:wisconsin:509875125810888705>",
+"Minnesota" : "<:minnesota:499717465396477953>"}
+
     #scorebot.getScores()
     #games=scorebot.gameList
 # create a subclass and override the handler methods
@@ -69,9 +90,14 @@ def displayHelp():
 ?[wpwr] bubble - displays the Pairwise Ranking Bubble
 ?[wpwr] <number> - displays Top <number> Pairwise Ranking
 ?[wpwr] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
-?[odds] [team1],[team2] - KRACH computed odds of winning the matchup
+?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
+?[odds] [team1],[team2] - displays KRACH computed odds of winning the matchup
+?[odds3] [team1],[team2] - displays KRACH computed odds of winning best of three matchup
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
+?[roles] - display list of availible roles
+?[roles] [role/team name] - adds role to user
+?[rroles] [role/team name] - removes role from user
 
 Scores/Standings/TV Listings courtesy of collegehockeystats.net
 Pairwise Rankings courtesy of collegehockeynews.com
@@ -92,7 +118,7 @@ def convertTeamtoDisRole(team):
                 "Bentley" : "Bentley Falcons",
                 "Boston College" : "Boston College Eagles",
                 "Boston University" : "Boston University Terriers",
-                "Bowling" : "Bowling Green Falcons",
+                "Bowling Green" : "Bowling Green Falcons",
                 "Brown" : "Brown Bears",
                 "Canisius" : "Canisius Golden Griffins",
                 "Clarkson" : "Clarkson Golden Knights",
@@ -151,7 +177,11 @@ def convertTeamtoDisRole(team):
                 "Yale" : "Yale Bulldogs",
                 "UL Lafayette" : "Louisiana Ragin' Cajuns",
                 "LSU" : "Louisiana State University Tigers",
-                "Ref" : "Ref"}
+                "Ref" : "Ref",
+                "Meteor" : "Meteor",
+                "Portal" : "Portal",
+                "Red Sox" : "Red Sox",
+                "Yankees" : "Yankees"}
     if team in teams:
         return teams[team]
     else:
@@ -171,14 +201,30 @@ def getCheer(role):
     "Harvard Crimson" : ["Go Harvard!", "Fuck Harvard!"],
     "New Hampshire Wildcats" : ["I Believe in UNH!","Go Wildcats!"],
     "Boston College Eagles" : ["Go BC!", "BC Sucks!", "Go Eagles!", "Sucks to BU!"],
+    "UMass Minutemen" : ["Go Amherst!", "Go U Mass!"],
     "Michigan Tech Huskies" : ["Go Huskies!"],
     "UMass Lowell River Hawks" : ["Go River Hawks!"],
     "Clarkson Golden Knights" : ["Let's Go Tech!"],
     "Vermont Catamounts" : ["Go Catamounts!"],
     "Penn State Nittany Lions" : ["We Are!"],
     "Minnesota Golden Gophers" : ["Go Gophers!"],
+    "Michigan State Spartans" : ["Go Sparty!", "Go Green!"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "RPI Engineers" : ["Let's Go Red!", "Go Red!\nGo White!"],
+    "Notre Dame Fighting Irish" : ["Go Irish!"],
+    "Providence Friars" : ["Go Friars!"],
+    "St. Cloud State Huskies" : ["Go Huskies!"],
+    "Minnesota State Mavericks" : ["Go Mavericks!"],
+    "Minnesota Duluth Bulldogs" : ["Go Bulldogs!"],
+    "Quinnipiac Bobcats" : ["Go Bobcats!", "Meowwww"],
+    "Denver Pioneers" : ["Let's Go DU!", "Go Pios!"],
+    "Ohio State Buckeyes" : ["Go Buckeyes!"],
+    "Arizona State Sun Devils" : ["Forks Up!","Go Sparky!"],
+    "Bowling Green Falcons" : ["Ay Ziggy", "Go Ziggy!"],
+    "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
+    "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
+    "Red Sox" : ["Go Red Sox!", "Yankees Suck!"],
+    "Portal" : ["PRAISE PORTAL"],
     "Louisiana Ragin' Cajuns": ["Geaux Cajuns!"]}
     if role in cheerList:   
             return random.choice(cheerList[role])
@@ -194,23 +240,37 @@ def getJeer(role):
         role = "Princeton Tigers"
     elif(role == "color vermont"):
         role = "Vermont Catamounts"
-    jeerList = { "Boston College Eagles" : ["BC Sucks!", "Fuck 'Em Up! Fuck 'Em Up! BC Sucks!", "Sunday School!", "Not From Boston!"],
+    jeerList = { "Boston College Eagles" : ["BC Sucks!", "Fuck 'Em Up! Fuck 'Em Up! BC Sucks!", "Sunday School!", "Not From Boston!" ,"```For Newton, For Newton\nThe Outhouse on the hill!\nFor Newton, For Newton\nBC sucks and always will!\nSo here’s to the outhouse on the hill,\nCause Boston College sucks and they always will,\nFor Newton, For Newton,\nThe outhouse on the hill!```"],
     "Harvard Crimson" : ["Fuck Harvard!", "Gimme an A! Gimme another A! Gimme another A! Grade Inflation!", "UMass Rejects!"],
     "Yale Bulldogs" : ["UConn Rejects!"],
     "Dartmouth Big Green" : ["UNH Rejects!"],
-    "Brown Bears" : ["URI Rejects!"],
+    "Brown Bears" : ["URI Rejects!", "Brown is Shit! Shit is Brown!", "Around the bowl, down the hole, flush, flush, flush", "if it's brown, flush it down!"],
     "Princeton Tigers" : ["Rutgers Rejects!"],
+    "Providence Friars" : ["https://widget.campusexplorer.com/media/original/media-7CA07320.jpg"],
     "UMass Lowell River Hawks" : ["What's a River Hawk?","Low\nLower\nLowest\nLowell"],
-    "UMass Minutemen" : ["Please Don't Riot!"],
+    "UMass Minutemen" : ["Please Don't Riot!", "We Last Longer!","Think of those couches...they have family", "Embarrassment of the Commonwealth"],
     "Boston University Terriers" : ["Sucks to BU!", "Screw BU!"],
-    "Northeastern Huskies" : ["Northleastern", "North! Eastern! Sucks!", "No! Relevance!"],
+    "Northeastern Huskies" : ["Northleastern", "North! Eastern! Sucks!"],
     "Colgate Raiders" : ["Crest is Best!"],
+    "Cornell Big Red" : ["Harvard Rejects!", "```Up above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
     "Maine Black Bears" : ["M-A-I-N-E ~~Go Blue~~ MAAAAAIIINNNE SUCKS"],
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies"],
     "Michigan State Spartans" : ["Poor Sparty"],
-    "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!"],
+    "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!"],
+    "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!"],
     "RPI Engineers" : ["KRACH is Better!"],
+    "Minnesota State Mavericks" : ["Mankatno", "Mankato Sucks!"],
+    "Minnesota Duluth Bulldogs" : ["Duluth Sucks!"],
+    "Quinnipiac Bobcats" : ["QU PU!"],
+    "Denver Pioneers" : ["Sucks to DU!"],
+    "Ohio State Buckeyes" : ["An Ohio State University"],
+    "Arizona State Sun Devils" : ["Forked", "Fork You!", "Poor Sparky"],
+    "Bowling Green Falcons" : ["Boo Ziggy"],
+    "American International Yellow Jackets" : ["NO ONE JEERS MR. FUCKING. BEE."],
+    "Clarkson Golden Knights" : ["It's the NCAAs and Clarkson still sucks!"],
+    "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
+    "Yankees" : ["Yankees Suck!"],
     "Ref": ["I'm Blind! I'm Deaf! I wanna be a ref!", "Hey Ref, check your phone, you missed a few calls.", "BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", ":regional_indicator_b: :regional_indicator_u: :regional_indicator_l: :regional_indicator_l: :regional_indicator_s: :regional_indicator_h: :regional_indicator_i: :regional_indicator_t:"]}
     if role in jeerList:
             return random.choice(jeerList[role])
@@ -385,9 +445,140 @@ def getKOdds(team1,team2):
     team1Odds = krach[team1]/(krach[team1]+krach[team2])
     team2Odds = krach[team2]/(krach[team1]+krach[team2])
     
-    return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,3), team2, round(team2Odds*100,3))
-       
+    return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,1), team2, round(team2Odds*100,1))
+
+def getKOdds3(team1,team2):
+    if(team1 == '' or team2 == ''):
+        return "Enter Two Teams!"
+    
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "Omaha" : "Nebraska-Omaha",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut"}
+        
+    team1 = decodeTeam(team1)
+    team2 = decodeTeam(team2)
+    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+        if(team1 in chnDiffs.keys()):       
+            team1=chnDiffs[team1]
+    else:
+        return "Team 1 Not Found"
+    
+    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+        if(team2 in chnDiffs.keys()):       
+            team2=chnDiffs[team2]
+    else:
+        return "Team 2 Not Found"
+    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    krach = {}
+    for i in soup.findChildren('tr'):
+        cells = i.findChildren('td')
+        line = ""
+        for cell in cells:
+         value = cell.string
+         if(value != None):
+            line +=value + "!"
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+            line=line.rstrip('!')
+            line=line.split("!")
+            krach[line[1]]=float(line[2])
+    
+    team1Odds = (krach[team1]**2 * (krach[team1] + 3 * krach[team2]))/((krach[team1] + krach[team2])**3)
+    team2Odds = (krach[team2]**2 * (krach[team2] + 3 * krach[team1]))/((krach[team2] + krach[team1])**3)
+    
+    
+    return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,1), team2, round(team2Odds*100,1))
+
+def getPWRComp(team1,team2):
+    if(team1 == '' or team2 == ''):
+        return "Enter Two Teams!"
+        
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "Omaha" : "Nebraska-Omaha",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut"}
+        
+    team1 = decodeTeam(team1)
+    team2 = decodeTeam(team2)
+    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+        if(team1 in chnDiffs.keys()):       
+            team1=chnDiffs[team1]
+    else:
+        return "Team 1 Not Found"
+    
+    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+        if(team2 in chnDiffs.keys()):       
+            team2=chnDiffs[team2]
+    else:
+        return "Team 2 Not Found"
+    if(team1 == team2):
+        return "Enter Two Different Teams!"
+    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    pairwise = []
+    hrefDict = {}
+    for link in soup.find_all('a'):
+        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
+            idNum=re.search('.*=(.*)',link['href'])
+            idNum=idNum.group(1)
+            hrefDict[link.get_text()]=[idNum,[]]
+
+    url = "https://www.collegehockeynews.com/ratings/m/comparison.php?td={}&od={}".format(hrefDict[team1][0],hrefDict[team2][0])
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    compList=[]
+    for i in soup.find_all('tr'):
+        line = ''
+        for d in i.find_all('td'):
+            d=d.get_text()
+            d=d.replace(u'\u2011',u'-')
+            d=d.replace(u'\xa0',u'')
+            line+=d + "!"
+        if(line != '' and line != team1):
+            comp=line.split("!")
+            comp.pop()
+            if(len(comp)==5):
+                compList.append(comp)
+            
+        if(i.find('th')):
+            if(i.find('th').get_text()!=team1 and i.find('th').get_text()!=""):
+                comp.insert(3,i.find('th').get_text())
+                if('H2H' in comp):
+                    temp=comp[0]
+                    comp[1]=temp
+                    comp[0]=''
+                    temp=comp[-1]
+                    comp[-2]=temp
+                    comp[-1]=''
+                compList.append(comp)
+    pwrComp = '```'
+    for i in compList:
+        for d in i:
+            pwrComp+= d + '\t'
+        pwrComp += '\n'
+    pwrComp+='```'
+    return pwrComp
 def getStandings(conf, m_w):
+    global season
     conf=conf.lower()
     conf=conf.replace(" ","")
     if(m_w == "Men"):
@@ -427,7 +618,7 @@ def getStandings(conf, m_w):
     else:
         return "I don't know that conference."
 
-    url = "http://www.collegehockeystats.net/1819/standings/{}".format(conference)
+    url = "http://www.collegehockeystats.net/{}/standings/{}".format(season,conference)
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -442,7 +633,7 @@ def getStandings(conf, m_w):
 def getGamesOnTV():
     parser = MyHTMLParser()
     url = "http://collegehockeystats.net/"
-    f=urllib.request.urlopen(url,timeout=1)
+    f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
     f.close()
     parser.feed(html.decode("utf-8"))
@@ -451,7 +642,7 @@ def getGamesOnTV():
         html = html.decode("utf-8")
         url=html.split("url=")
         url=url[1].split("\"")[0]
-        f=urllib.request.urlopen(url,timeout = 1)
+        f=urllib.request.urlopen(url,timeout = 10)
         html = f.read()
         f.close()
         parser.feed(html.decode("utf-8"))
@@ -505,10 +696,17 @@ def getGamesOnTV():
             if(game[0][0]=='('):
                 tag=game[0]
                 game.pop(0)                
-        if(game.count('OT')>0):           
+        if(game.count('OT')>0):
+            numOT = 'OT'
+            if(game.count('2OT')>0):
+                numOT = '2OT'
+            elif(game.count('3OT')>0):
+                numOT = '3OT'
+            elif(game.count('4OT')>0):
+                numOT = '4OT'
             game.pop(5)
             if(game.count('Final')>0):
-                game[7]='Final (OT)'
+                game[7]='Final ({})'.format(numOT)
         if(len(game)==8):
             game[5]=game[5].replace(' ',"")
             if(game[5]=='EC,IV'):
@@ -693,12 +891,12 @@ def compareTeams(team1,team2):
     return [sumTeam1,sumTeam2]
     
 def getWPairwise(opt):
-    global teamDict,newha
+    global teamDict,newha,season
     newha =['Saint Anselm','Franklin Pierce',"Saint Michael's"]      
-    url = "http://www.collegehockeystats.net/1819/schedules/ncw"
+    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
     parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=1)
+    f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
     f.close()
     parser.feed(html.decode("latin1"))
@@ -740,10 +938,17 @@ def getWPairwise(opt):
                 if(game[0][0]=='('):
                     tag=game[0]
                     game.pop(0)                
-            if(game.count('OT')>0):           
+            if(game.count('OT')>0):
+                numOT = 'OT'
+                if(game.count('2OT')>0):
+                    numOT = '2OT'
+                elif(game.count('3OT')>0):
+                    numOT = '3OT'
+                elif(game.count('4OT')>0):
+                    numOT = '4OT'
                 game.pop(5)
                 if(game.count('Final')>0):
-                    game[7]='Final (OT)'
+                    game[7]='Final ({})'.format(numOT)
             if(len(game)==8):
                 game[5]=game[5].replace(' ',"")
                 if(game[5]=='EC,IV'):
@@ -840,9 +1045,11 @@ def getWPairwise(opt):
 
 @client.event
 async def on_message(message):
+    global invalidRoles
     # we do not want the bot to reply to itself
     if message.author == client.user:
         return
+
     if message.content.startswith('!help'):
        await client.send_message(message.author, displayHelp())
     if not message.content.startswith('?'):
@@ -1000,7 +1207,7 @@ async def on_message(message):
             await client.send_message(message.channel, msg)
         else:
              await client.send_message(message.channel, "No Games on TV Today")
-    if(message.content.startswith('?odds')):
+    if(message.content.startswith('?odds ')):
         team1= ''
         team2= ''
         teams = message.content.split('?odds ')
@@ -1017,6 +1224,108 @@ async def on_message(message):
                 await client.send_message(message.channel, msg)
         else:
              await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")
+    if(message.content.startswith('?odds3 ')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?odds3 ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+                
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getKOdds3,  team1, team2)
+                p.shutdown()
+            if(len(msg)>0):
+                await client.send_message(message.channel, msg)
+        else:
+             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")
+             
+    if(message.content.startswith('?pwc ')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?pwc ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+                
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getPWRComp,  team1, team2)
+                p.shutdown()
+            if(len(msg)>0):
+                await client.send_message(message.channel, msg)
+        else:
+             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")   
+    
+    if(message.content.startswith('?roles')):
+        roleChoice = message.content.split('?roles ')
+        if(len(roleChoice)==1):
+                
+            roles = "```"
+            
+            for i in message.server.roles:
+                if(i.name not in invalidRoles):
+                    roles+= i.name + "\n"
+            if(roles != "```"):
+                roles += '```'
+                await client.send_message(message.author, roles) 
+        else:
+            team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
+            if(team==''):
+                team=roleChoice[1]
+            if(team not in invalidRoles):
+                roleFound=False
+                for i in message.server.roles:
+                    if(team == i.name):   
+                        user=message.author
+                        role=discord.utils.get(message.server.roles, name=team)
+                        await client.add_roles(user,role)
+                        await client.send_message(message.channel, "{} added to {}".format(team, message.author.mention))
+                        roleFound=True
+                        break
+                if(not roleFound):
+                    await client.send_message(message.channel, "Invalid Role")
+            else:
+                await client.send_message(message.channel, "Invalid Role")
+                    
+    if(message.content.startswith('?rroles')):
+        roleChoice = message.content.split('?rroles ')
+        if(len(roleChoice)==1):
+            await client.send_message(message.channel, "Enter a Role to Remove")
+        else:
+            team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
+            if(team==''):
+                team=roleChoice[1]
+            if(team not in invalidRoles):
+                roleFound=False
+                for i in message.server.roles:
+                    if(team == i.name):   
+                        user=message.author
+                        role=discord.utils.get(message.server.roles, name=team)
+                        await client.remove_roles(user,role)
+                        await client.send_message(message.channel, "{} removed from {}".format(team, message.author.mention))
+                        roleFound=True
+                        break
+                if(not roleFound):
+                    await client.send_message(message.channel, "Invalid Role")
+            else:
+                await client.send_message(message.channel, "Invalid Role")
+    if(message.content.startswith('?bu')):
+            await client.send_message(message.channel, "https://media.giphy.com/media/348tsqqVM1dCvT4zoY/source.mp4")
+            
+    if(message.content.startswith('?goodgoal')):
+            await client.send_message(message.channel, "https://gfycat.com/lastingcomplexblackbuck")
+            
+    if(message.content.startswith('?nogoal')):
+            await client.send_message(message.channel, "https://media.giphy.com/media/MTuCbbIEKUOxMiCp2z/source.gif")  
+
+    if(message.content.startswith('?uml')):
+            await client.send_message(message.channel, "https://media.giphy.com/media/LqhaCKCh7E4WJrHZEE/source.mp4")
+
+    
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -1145,8 +1454,10 @@ def decodeTeam(team):
         "usma" : "Army West Point",
         "uvm" : "Vermont",
         "uw" : "Wisconsin",
+        "wisco" : "Wisconsin",
         "wmu" : "Western Michigan",
         "ziggy" : "Bowling Green",
+        "zoomass" : "Massachusetts",
         "good": "Boston University",
         "bad" : "Boston College",
         "ugly" : "Harvard",
@@ -1156,7 +1467,11 @@ def decodeTeam(team):
         "louisiana" : "UL Lafayette",
         "lsu" : "LSU",
         "ref" : "Ref",
+        "refs" : "Ref",
         "stripes" : "Ref",
+        "portal" : "Portal",
+        "redsox" : "Red Sox",
+        "yankees" : "Yankees",
         "meteor" : "Meteor"}
 
     if team in dict:
@@ -1170,9 +1485,10 @@ def decodeTeam(team):
                 teamName+=' '
         return teamName
 def generateScoreline(team, gender):
+    global flairlist
     parser = MyHTMLParser()
     url = "http://collegehockeystats.net/"
-    f=urllib.request.urlopen(url,timeout=1)
+    f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
     f.close()
     parser.feed(html.decode("utf-8"))
@@ -1181,7 +1497,7 @@ def generateScoreline(team, gender):
         html = html.decode("utf-8")
         url=html.split("url=")
         url=url[1].split("\"")[0]
-        f=urllib.request.urlopen(url,timeout = 1)
+        f=urllib.request.urlopen(url,timeout = 10)
         html = f.read()
         f.close()
         parser.feed(html.decode("utf-8"))
@@ -1232,10 +1548,17 @@ def generateScoreline(team, gender):
             if(game[0][0]=='('):
                 tag=game[0]
                 game.pop(0)                
-        if(game.count('OT')>0):           
+        if(game.count('OT')>0):
+            numOT = 'OT'
+            if(game.count('2OT')>0):
+                numOT = '2OT'
+            elif(game.count('3OT')>0):
+                numOT = '3OT'
+            elif(game.count('4OT')>0):
+                numOT = '4OT'
             game.pop(5)
             if(game.count('Final')>0):
-                game[7]='Final (OT)'
+                game[7]='Final ({})'.format(numOT)
         if(len(game)==8):
             game[5]=game[5].replace(' ',"")
             if(game[5]=='EC,IV'):
@@ -1293,12 +1616,24 @@ def generateScoreline(team, gender):
     games=gameList
     if scorebot.isD1(team,team,gender):
         for game in games:
-            if((game['homeTeam'] == team or game['awayTeam'] == team) and game['m_w']==gender):
+            if((game['homeTeam'] == team or game['awayTeam'] == team) and game['m_w']==gender):            
                 if("OT" in game['homeScore']):
-                    game['status']="Final (OT)"
-                    game['homeScore']=game['homeScore'].replace("OT","")
+                    if(game['homeScore'].count('OT')>0):
+                        numOT = 'OT'
+                        if(game['homeScore'].count('2OT')>0):
+                            numOT = '2OT'
+                        elif(game['homeScore'].count('3OT')>0):
+                            numOT = '3OT'
+                        elif(game['homeScore'].count('4OT')>0):
+                            numOT = '4OT'
+                    game['status']="Final ({})".format(numOT)
+                    game['homeScore']=game['homeScore'].replace(numOT,"")
                 if("TV-" in game['status']):
                     game['status']=re.sub(" \(TV-.*\) ","", game['status'])
+                if(game['awayTeam'] in flairlist):
+                    game['awayTeam'] = flairlist[game['awayTeam']] + " " + game['awayTeam']
+                if(game['homeTeam'] in flairlist):
+                    game['homeTeam'] = flairlist[game['homeTeam']] + " " + game['homeTeam']
                 return "{} {}\n{} {}\n{}".format(game['awayTeam'],game['awayScore'],game['homeTeam'],game['homeScore'],game['status'])
         return "No game scheduled for {} {}".format(team,gender)
     return ":regional_indicator_x: Team Not Found"
