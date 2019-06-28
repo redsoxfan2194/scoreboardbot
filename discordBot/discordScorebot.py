@@ -12,7 +12,7 @@ import random
 from bs4 import BeautifulSoup
 import operator
 import itertools
-TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
+TOKEN = 'xxxxxxxxxxx'
 season = '1819'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
@@ -134,6 +134,7 @@ def convertTeamtoDisRole(team):
                 "Holy Cross" : "Holy Cross Crusaders",
                 "Lake Superior State" : "Lake Superior State Lakers",
                 "Lindenwood" : "Lindenwood Lions",
+                "Long Island" : "LIU Sharks",
                 "Maine" : "Maine Black Bears",
                 "Mercyhurst" : "Mercyhurst Lakers",
                 "Merrimack" : "Merrimack Warriors",
@@ -177,11 +178,14 @@ def convertTeamtoDisRole(team):
                 "Yale" : "Yale Bulldogs",
                 "UL Lafayette" : "Louisiana Ragin' Cajuns",
                 "LSU" : "Louisiana State University Tigers",
+                "Georgia Tech" : "Georgia Tech Yellow Jackets",
                 "Ref" : "Ref",
                 "Meteor" : "Meteor",
                 "Portal" : "Portal",
                 "Red Sox" : "Red Sox",
-                "Yankees" : "Yankees"}
+                "Yankees" : "Yankees",
+                "Jackbox" : "Jackbox Game Night",
+                "Chaos" : "TEAM CHAOS"}
     if team in teams:
         return teams[team]
     else:
@@ -195,6 +199,8 @@ def getCheer(role):
         role = "Princeton Tigers"
     elif(role == "color vermont"):
         role = "Vermont Catamounts"
+    elif(role == "color maine"):
+        role = "Maine Black Bears"
     cheerList = { "Boston University Terriers" : ["Go BU!", "Let's Go Terriers!", "BC Sucks!"],
     "Northeastern Huskies" : ["Go NU!", "#HowlinHuskies", "Go Huskies!"],
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
@@ -1051,7 +1057,7 @@ async def on_message(message):
         return
 
     if message.content.startswith('!help'):
-       await client.send_message(message.author, displayHelp())
+       await message.author.send(displayHelp())
     if not message.content.startswith('?'):
         return
     loop = asyncio.get_event_loop()
@@ -1061,7 +1067,7 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generateScoreline, team, "Men")
             p.shutdown()
         if(len(msg)>0):
-            await client.send_message(message.channel, msg)
+            await message.channel.send(msg)
             
     if message.content.startswith('?mscore '):
         team = decodeTeam(message.content.split('?mscore ')[1])
@@ -1069,7 +1075,7 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generateScoreline, team, "Men")
             p.shutdown()
         if(len(msg)>0):
-            await client.send_message(message.channel, msg)
+            await message.channel.send(msg)
        
             
     if message.content.startswith('?wscore '):
@@ -1078,7 +1084,7 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generateScoreline, team, "Women")
             p.shutdown()
         if(len(msg)>0):
-            await client.send_message(message.channel, msg)
+            await message.channel.send(msg)
     
     if message.content.startswith('?thanksbot'):
         msg = "You're Welcome {0.author.mention}!".format(message)
@@ -1089,7 +1095,7 @@ async def on_message(message):
       
         if(cheer!=""):
             msg+="\n{}".format(cheer)
-        await client.send_message(message.channel, msg)
+        await message.channel.send(msg)
     
     if message.content.startswith('?cheer'):
         team = message.content.split('?cheer ')
@@ -1107,7 +1113,7 @@ async def on_message(message):
             msg="{}".format(cheer)
         else:
             msg = "I don't know that cheer."
-        await client.send_message(message.channel, msg)
+        await message.channel.send(msg)
         
     if message.content.startswith('?jeer '):
         team = message.content.split('?jeer ')
@@ -1120,7 +1126,7 @@ async def on_message(message):
             msg="{}".format(jeer)
         else:
             msg = "I don't know that jeer."
-        await client.send_message(message.channel, msg)
+        await message.channel.send(msg)
     if message.content.startswith('?boo '):
         team = message.content.split('?boo ')
         jeer = ""
@@ -1132,7 +1138,7 @@ async def on_message(message):
             msg="{}".format(jeer)
         else:
             msg = "I don't know that jeer."
-        await client.send_message(message.channel, msg)
+        await message.channel.send(msg)
        
     if(message.content.startswith('?pwr')):
         opt = message.content.split('?pwr ')
@@ -1141,13 +1147,13 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getPairwise, '')
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
             with cf.ProcessPoolExecutor(1) as p:
                 msg = await loop.run_in_executor(p, getPairwise, opt[1])
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
                 
     if(message.content.startswith('?wpwr')):
         opt = message.content.split('?wpwr ')
@@ -1156,13 +1162,13 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getWPairwise, '')
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
             with cf.ProcessPoolExecutor(1) as p:
                 msg = await loop.run_in_executor(p, getWPairwise, opt[1])
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg) 
+                await message.channel.send(msg) 
                 
     if(message.content.startswith('?krach')):
         opt = message.content.split('?krach ')
@@ -1171,13 +1177,13 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getKRACH, '')
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
             with cf.ProcessPoolExecutor(1) as p:
                 msg = await loop.run_in_executor(p, getKRACH, opt[1])
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)                
+                await message.channel.send(msg)                
     if(message.content.startswith('?mstand')):
         conf = message.content.split('?mstand ')
         if(len(conf)>1):
@@ -1185,9 +1191,9 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
-                await client.send_message(message.channel, "I don't know that conference.")
+                await message.channel.send("I don't know that conference.")
                 
     if(message.content.startswith('?wstand')):
         conf = message.content.split('?wstand ')
@@ -1196,17 +1202,17 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getStandings, conf[1], "Women")
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
-                await client.send_message(message.channel, "I don't know that conference.")
+                await message.channel.send("I don't know that conference.")
     if(message.content.startswith('?whatsontv')):
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getGamesOnTV)
             p.shutdown()
         if(len(msg)>0):
-            await client.send_message(message.channel, msg)
+            await message.channel.send(msg)
         else:
-             await client.send_message(message.channel, "No Games on TV Today")
+             await message.channel.send("No Games on TV Today")
     if(message.content.startswith('?odds ')):
         team1= ''
         team2= ''
@@ -1221,9 +1227,9 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getKOdds,  team1, team2)
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
-             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")
     if(message.content.startswith('?odds3 ')):
         team1= ''
         team2= ''
@@ -1238,9 +1244,9 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getKOdds3,  team1, team2)
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
-             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")
              
     if(message.content.startswith('?pwc ')):
         team1= ''
@@ -1256,75 +1262,81 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getPWRComp,  team1, team2)
                 p.shutdown()
             if(len(msg)>0):
-                await client.send_message(message.channel, msg)
+                await message.channel.send(msg)
         else:
-             await client.send_message(message.channel, "Invalid number of teams, enter two comma separated teams")   
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")   
     
     if(message.content.startswith('?roles')):
-        roleChoice = message.content.split('?roles ')
-        if(len(roleChoice)==1):
-                
-            roles = "```"
-            
-            for i in message.server.roles:
-                if(i.name not in invalidRoles):
-                    roles+= i.name + "\n"
-            if(roles != "```"):
-                roles += '```'
-                await client.send_message(message.author, roles) 
-        else:
-            team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
-            if(team==''):
-                team=roleChoice[1]
-            if(team not in invalidRoles):
-                roleFound=False
-                for i in message.server.roles:
-                    if(team == i.name):   
-                        user=message.author
-                        role=discord.utils.get(message.server.roles, name=team)
-                        await client.add_roles(user,role)
-                        await client.send_message(message.channel, "{} added to {}".format(team, message.author.mention))
-                        roleFound=True
-                        break
-                if(not roleFound):
-                    await client.send_message(message.channel, "Invalid Role")
-            else:
-                await client.send_message(message.channel, "Invalid Role")
+        try:
+            roleChoice = message.content.split('?roles ')
+            if(len(roleChoice)==1):
                     
+                roles = "```"
+                
+                for i in message.guild.roles:
+                    if(i.name not in invalidRoles):
+                        roles+= i.name + "\n"
+                if(roles != "```"):
+                    roles += '```'
+                    await message.author.send(roles) 
+            else:
+                team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
+                if(team==''):
+                    team=roleChoice[1]
+                if(team not in invalidRoles):
+                    roleFound=False
+                    for i in message.guild.roles:
+                        if(team == i.name):   
+                            user=message.author
+                            await user.add_roles(i)
+                            await message.channel.send("{} added to {}".format(team, message.author.mention))
+                            roleFound=True
+                            break
+                    if(not roleFound):
+                        await message.channel.send("Invalid Role")
+                else:
+                    await message.channel.send("Invalid Role")
+        except discord.errors.Forbidden:
+            await message.channel.send("Invalid Role")         
     if(message.content.startswith('?rroles')):
         roleChoice = message.content.split('?rroles ')
-        if(len(roleChoice)==1):
-            await client.send_message(message.channel, "Enter a Role to Remove")
-        else:
-            team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
-            if(team==''):
-                team=roleChoice[1]
-            if(team not in invalidRoles):
-                roleFound=False
-                for i in message.server.roles:
-                    if(team == i.name):   
-                        user=message.author
-                        role=discord.utils.get(message.server.roles, name=team)
-                        await client.remove_roles(user,role)
-                        await client.send_message(message.channel, "{} removed from {}".format(team, message.author.mention))
-                        roleFound=True
-                        break
-                if(not roleFound):
-                    await client.send_message(message.channel, "Invalid Role")
+        try:
+            if(len(roleChoice)==1):
+                await message.channel.send("Enter a Role to Remove")
             else:
-                await client.send_message(message.channel, "Invalid Role")
+                team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
+                if(team==''):
+                    team=roleChoice[1]
+                if(team not in invalidRoles):
+                    roleFound=False
+                    for i in message.guild.roles:
+                        print(i)
+                        if(team == i.name):   
+                            user=message.author
+                            await user.remove_roles(i)
+                            await message.channel.send("{} removed from {}".format(team, message.author.mention))
+                            roleFound=True
+                            break
+                    if(not roleFound):
+                        await message.channel.send("Invalid Role")
+                else:
+                    await message.channel.send("Invalid Role")
+        except discord.errors.Forbidden:
+            await message.channel.send("Invalid Role")
     if(message.content.startswith('?bu')):
-            await client.send_message(message.channel, "https://media.giphy.com/media/348tsqqVM1dCvT4zoY/source.mp4")
+            await message.channel.send("https://media.giphy.com/media/348tsqqVM1dCvT4zoY/source.mp4")
             
     if(message.content.startswith('?goodgoal')):
-            await client.send_message(message.channel, "https://gfycat.com/lastingcomplexblackbuck")
+            await message.channel.send("https://gfycat.com/lastingcomplexblackbuck")
             
     if(message.content.startswith('?nogoal')):
-            await client.send_message(message.channel, "https://media.giphy.com/media/MTuCbbIEKUOxMiCp2z/source.gif")  
+            await message.channel.send("https://media.giphy.com/media/MTuCbbIEKUOxMiCp2z/source.gif")  
 
     if(message.content.startswith('?uml')):
-            await client.send_message(message.channel, "https://media.giphy.com/media/LqhaCKCh7E4WJrHZEE/source.mp4")
-
+            await message.channel.send("https://media.giphy.com/media/LqhaCKCh7E4WJrHZEE/source.mp4")
+    
+    if(message.content.startswith('?lowellbu')):
+            await message.channel.send("https://media.giphy.com/media/Ss6tcZjgYgIpGMWKtS/giphy.gif")
     
 @client.event
 async def on_ready():
@@ -1332,6 +1344,7 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    
 
 def decodeTeam(team):
     origTeam = team
@@ -1392,6 +1405,7 @@ def decodeTeam(team):
         "ulowell" : "Umass Lowell",
         "lssu" : "Lake Superior State",
         "lu" : "Lindenwood",
+        "liu" : "Long Island",
         "mack" : "Merrimack",
         "mankato" : "Minnesota State",
         "mc" : "Merrimack",
@@ -1465,6 +1479,8 @@ def decodeTeam(team):
         "ull" : "UL Lafayette",
         "ul" : "UL Lafayette",
         "louisiana" : "UL Lafayette",
+        "georgiatech" : "Georgia Tech",
+        "gt" : "Georgia Tech",
         "lsu" : "LSU",
         "ref" : "Ref",
         "refs" : "Ref",
@@ -1472,7 +1488,9 @@ def decodeTeam(team):
         "portal" : "Portal",
         "redsox" : "Red Sox",
         "yankees" : "Yankees",
-        "meteor" : "Meteor"}
+        "meteor" : "Meteor",
+        "jackbox" : "Jackbox",
+        "chaos" : "Chaos"}
 
     if team in dict:
         return dict[team]
