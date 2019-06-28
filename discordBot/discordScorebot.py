@@ -12,7 +12,7 @@ import random
 from bs4 import BeautifulSoup
 import operator
 import itertools
-TOKEN = 'xxxxxxxxxxx'
+TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 season = '1819'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
@@ -1323,6 +1323,8 @@ async def on_message(message):
                     await message.channel.send("Invalid Role")
         except discord.errors.Forbidden:
             await message.channel.send("Invalid Role")
+            
+    # gifs and stuff
     if(message.content.startswith('?bu')):
             await message.channel.send("https://media.giphy.com/media/348tsqqVM1dCvT4zoY/source.mp4")
             
@@ -1337,7 +1339,79 @@ async def on_message(message):
     
     if(message.content.startswith('?lowellbu')):
             await message.channel.send("https://media.giphy.com/media/Ss6tcZjgYgIpGMWKtS/giphy.gif")
-    
+            
+    if(message.content.startswith('?harvard')):
+            await message.channel.send("FUCK HARVARD")
+        
+    if(message.content.startswith('?boston')):
+            await message.channel.send("https://m.imgur.com/ZPZUGW0")
+            
+    if(message.content.startswith('?lowell') and not message.content.startswith('?lowellbu')):
+            await message.channel.send("https://imgur.com/a/C9aSorC")
+            
+    if(message.content.startswith('?northdakota')):
+            await message.channel.send("F'IN HAWKS")
+            
+    if(message.content.startswith('?bc')):
+            await message.channel.send("https://imgur.com/a/mejC6E2")
+            
+    if(message.content.startswith('?uconn')):
+            await message.channel.send("https://imgur.com/a/gWy8Ifj")
+            
+    if(message.content.startswith('?unh')):
+            await message.channel.send("https://imgur.com/a/mq8brow")
+            
+    if(message.content.startswith('?mankato')):
+            await message.channel.send("https://i.imgur.com/2B2iSkt.jpg")
+            
+    if(message.content.startswith('?ivyleague')):
+            await message.channel.send("This command has to wait another couple weeks to start playing")
+            
+    if(message.content.startswith('?union')):
+            await message.channel.send("https://imgur.com/a/ez3Pi5Q")
+            
+    if(message.content.startswith('?northeasternwins')):
+            await message.channel.send("https://www.youtube.com/watch?v=RRVPTeL5udc")
+            
+    if(message.content.startswith('?michigantech')):
+            await message.channel.send("http://www.johnsonsjerseys.net/temp/ncaa-2018.jpg")
+            
+    if(message.content.startswith('?nanooks')):
+            await message.channel.send("https://www.youtube.com/watch?v=K9cYcRotufU")
+            
+    if(message.content.startswith('?lssu')):
+            await message.channel.send("https://www.youtube.com/watch?v=HowMoUOhQSs")
+            
+    if(message.content.startswith('?gophers')):
+            await message.channel.send("https://www.youtube.com/watch?v=X1_x1oo35L0")
+            
+    if(message.content.startswith('?miami')):
+            await message.channel.send("https://youtu.be/_-mBI7jEfVU?t=81")
+            
+    if(message.content.startswith('?dartmouth')):
+            await message.channel.send("https://www.youtube.com/watch?v=Qe3iNZjenvI")
+            
+    if(message.content.startswith('?pennstate')):
+            await message.channel.send("https://imgur.com/a/uhqlM9S")
+            
+    if(message.content.startswith('?rpi')):
+            await message.channel.send("https://imgur.com/uAndWDQ")
+            
+    if(message.content.startswith('?umass')):
+            await message.channel.send("When they beat Providence tonight it will be legitimate proof that UMass deserves all of the recognition that it has received. They are 6-1 on the season and 3-0 in the conference which is an extremely impressive feat considering 2 years ago the team was not even ranked nationally.")
+            
+    if(message.content.startswith('?maine')):
+            await message.channel.send("https://streamable.com/o1xmn")
+            
+    if(message.content.startswith('?bemidji')):
+            await message.channel.send("https://www.youtube.com/watch?v=CW_B4KB0wYs")
+            
+    if(message.content.startswith('?nodak')):
+            await message.channel.send("https://www.youtube.com/watch?v=-B2vE1Yl2_c")
+            
+    if(message.content.startswith('?mtu')):
+            await message.channel.send("https://www.youtube.com/watch?v=FZQ6VNWvmOc")
+            
 @client.event
 async def on_ready():
     print('Logged in as')
