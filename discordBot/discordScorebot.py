@@ -15,7 +15,7 @@ import operator
 import itertools
 import json
 from winprobdata import *
-TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 season = '1920'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
@@ -95,6 +95,8 @@ def displayHelp():
 ?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
 ?[odds] [team1],[team2] - displays KRACH computed odds of winning the matchup
 ?[odds3] [team1],[team2] - displays KRACH computed odds of winning best of three matchup
+?[msched / wsched] [team name] - displays next N games of the team entered
+?[mres / wres / mform / wform] [team name] - displays previous N games of the team entered
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of availible roles
@@ -189,6 +191,7 @@ def convertTeamtoDisRole(team):
                 "Red Sox" : "Red Sox",
                 "Yankees" : "Yankees",
                 "Jackbox" : "Jackbox Game Night",
+                "USA" : "USA",
                 "Chaos" : "TEAM CHAOS"}
     if team in teams:
         return teams[team]
@@ -235,8 +238,10 @@ def getCheer(role):
     "Bowling Green Falcons" : ["Ay Ziggy", "Go Ziggy!"],
     "Brown Bears" : ["Go Bruno!"],
     "Yale Bulldogs" : ["Boola Boola"],
+    "Wisconsin Badgers" : ["On Wisconsin!"],
     "Merrimack Warriors" : ["Macktion!", "Go Warriors!", "Go Mack!"],
-    "Colgate Red Raiders" : ["Go Gate!"],
+    "Colgate Raiders" : ["Go Gate!"],
+    "Colorado College Tigers" : ["Go Tigers! DU still sucks!"],
     "Holy Cross Crusaders" : ["Go Cross Go"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
@@ -274,7 +279,7 @@ def getJeer(role):
     "Cornell Big Red" : ["Harvard Rejects!", "```Up above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
     "Maine Black Bears" : ["M-A-I-N-E ~~Go Blue~~ MAAAAAIIINNNE SUCKS"],
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
-    "Wisconsin Badgers" : ["Dirty Sconnies"],
+    "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
     "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
@@ -426,7 +431,7 @@ def getWinProb(aTeam, aScore, hTeam, hScore, status):
     if('Final' in status):
         return ''
       
-    
+    return ''
     chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
         "Lake Superior State" : "Lake Superior",
         "UMass Lowell" : "Mass.-Lowell",
@@ -451,8 +456,9 @@ def getWinProb(aTeam, aScore, hTeam, hScore, status):
         if(aTeam in chnDiffs.keys()):
             origATeam = aTeam        
             aTeam=chnDiffs[aTeam]
-            
+    krach = {}       
     url = "https://www.collegehockeynews.com/ratings/krach.php"
+    url = "https://www.collegehockeynews.com/ratings/krach/2019" #TODO Remove when KRACH works
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1217,7 +1223,89 @@ async def on_message(message):
             p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
+            
+            
+    if message.content.startswith('?msched '):
+        team = decodeTeam(message.content.split('?msched ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?sched '):
+        team = decodeTeam(message.content.split('?sched ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
     
+    if message.content.startswith('?wsched '):
+        team = decodeTeam(message.content.split('?wsched ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getSchedule, team, opt,"Women")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+          
+    if message.content.startswith('?mres '):
+        team = decodeTeam(message.content.split('?mres ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?res '):
+        team = decodeTeam(message.content.split('?res ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+    
+    if message.content.startswith('?wres '):
+        team = decodeTeam(message.content.split('?wres ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg) 
+
+    if message.content.startswith('?mform '):
+        team = decodeTeam(message.content.split('?mform ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?form '):
+        team = decodeTeam(message.content.split('?form ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+    
+    if message.content.startswith('?wform '):
+        team = decodeTeam(message.content.split('?wform ')[1])
+        opt='5'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)              
+            
     if message.content.startswith('?thanksbot'):
         msg = "You're Welcome {0.author.mention}!".format(message)
         for i in range(len(message.author.roles)):
@@ -1559,6 +1647,9 @@ async def on_message(message):
                 await message.channel.send(getDog(opt[0]))
     if(message.content.startswith('?cat') or message.content.startswith('?kitty')):         
         await message.channel.send(getCat())
+        
+    if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
+        await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
             
 @client.event
 async def on_ready():
@@ -1712,6 +1803,7 @@ def decodeTeam(team):
         "yankees" : "Yankees",
         "meteor" : "Meteor",
         "jackbox" : "Jackbox",
+        "usa" : "USA",
         "chaos" : "Chaos"}
 
     if team in dict:
@@ -1905,6 +1997,215 @@ def getCat():
     j = json.load(urllib.request.urlopen(url))
     return j[0]['url']
 
-
+def getSchedule(team,opt,gender):
+    global season
+    teamDict = {"Air Force" : "schedules/afa",
+        "Alabama Huntsville" : "schedules/alh",
+        "Alaska Anchorage" : "schedules/aka",
+        "Alaska" : "schedules/akf",
+        "American International" : "schedules/aic",
+        "Arizona State" : "schedules/asu",
+        "Army West Point" : "schedules/arm",
+        "Bemidji State" : "schedules/bmj",
+        "Bentley" : "schedules/ben",
+        "Boston College" : "schedules/bc_",
+        "Boston University" : "schedules/bu_",
+        "Bowling Green" : "schedules/bgs",
+        "Brown" : "schedules/brn",
+        "Canisius" : "schedules/cns",
+        "Clarkson" : "schedules/clk",
+        "Colgate" : "schedules/clg",
+        "Colorado College" : "schedules/cc_",
+        "Cornell" : "schedules/cor",
+        "Dartmouth" : "schedules/dar",
+        "Denver" : "schedules/den",
+        "Ferris State" : "schedules/fsu",
+        "Franklin Pierce" : "schedules/fpu",
+        "Harvard" : "schedules/har",
+        "Holy Cross" : "schedules/hcr",
+        "Lake Superior State" : "schedules/lss",
+        "Lindenwood" : "schedules/lin",
+        "Long Island University" : "schedules/liu",
+        "Maine" : "schedules/mne",
+        "Massachusetts" : "schedules/uma",
+        "Mercyhurst" : "schedules/mrc",
+        "Merrimack" : "schedules/mer",
+        "Miami" : "schedules/mia",
+        "Michigan State" : "schedules/msu",
+        "Michigan Tech" : "schedules/mtu",
+        "Michigan" : "schedules/mic",
+        "Minnesota Duluth" : "schedules/mnd",
+        "Minnesota State" : "schedules/mns",
+        "Minnesota" : "schedules/min",
+        "New Hampshire" : "schedules/unh",
+        "Niagara" : "schedules/nia",
+        "North Dakota" : "schedules/ndk",
+        "Northeastern" : "schedules/noe",
+        "Northern Michigan" : "schedules/nmu",
+        "Notre Dame" : "schedules/ndm",
+        "Ohio State" : "schedules/osu",
+        "Omaha" : "schedules/uno",
+        "Penn State" : "schedules/psu",
+        "Post" : "schedules/pst",
+        "Princeton" : "schedules/prn",
+        "Providence" : "schedules/prv",
+        "Quinnipiac" : "schedules/qui",
+        "RIT" : "schedules/rit",
+        "Rensselaer" : "schedules/ren",
+        "Robert Morris" : "schedules/rmu",
+        "Sacred Heart" : "schedules/sac",
+        "Saint Anselm" : "schedules/sta",
+        "Saint Michael's" : "schedules/stm",
+        "St. Cloud State" : "schedules/stc",
+        "St. Lawrence" : "schedules/stl",
+        "Syracuse" : "schedules/syr",
+        "UConn" : "schedules/con",
+        "UMass Lowell" : "schedules/uml",
+        "Union" : "schedules/uni",
+        "Vermont" : "schedules/ver",
+        "Western Michigan" : "schedules/wmu",
+        "Wisconsin" : "schedules/wis",
+        "Yale" : "schedules/yal"}
+              
+    decTeam = decodeTeam(team)
+    if(scorebot.isD1(decTeam,decTeam,gender)):
+        url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    else:
+        return ":regional_indicator_x: Team Not Found"
+    if(opt.isnumeric()):
+        numGames = int(opt)
+    else:
+        numGames = 5
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find_all('table')[1]
+    gameLine = '```'
+    counter=0
+    for i in table.find_all('tr'):
+        game=i.find_all('td')
+        if(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
+            counter+=1
+            date=game[1].get_text()  
+            opp=game[3].get_text()
+            time=game[6].get_text()
+            gameLine+="{} {} {}\n".format(date,opp,time)
+        if(numGames<=counter):
+            break
+            
+    gameLine +='```'
+    if(gameLine=='``````'):
+        return 'No Schedule Found'
+    return gameLine
+    
+def getResults(team,opt,gender):
+    teamDict = {"Air Force" : "schedules/afa",
+        "Alabama Huntsville" : "schedules/alh",
+        "Alaska Anchorage" : "schedules/aka",
+        "Alaska" : "schedules/akf",
+        "American International" : "schedules/aic",
+        "Arizona State" : "schedules/asu",
+        "Army West Point" : "schedules/arm",
+        "Bemidji State" : "schedules/bmj",
+        "Bentley" : "schedules/ben",
+        "Boston College" : "schedules/bc_",
+        "Boston University" : "schedules/bu_",
+        "Bowling Green" : "schedules/bgs",
+        "Brown" : "schedules/brn",
+        "Canisius" : "schedules/cns",
+        "Clarkson" : "schedules/clk",
+        "Colgate" : "schedules/clg",
+        "Colorado College" : "schedules/cc_",
+        "Cornell" : "schedules/cor",
+        "Dartmouth" : "schedules/dar",
+        "Denver" : "schedules/den",
+        "Ferris State" : "schedules/fsu",
+        "Franklin Pierce" : "schedules/fpu",
+        "Harvard" : "schedules/har",
+        "Holy Cross" : "schedules/hcr",
+        "Lake Superior State" : "schedules/lss",
+        "Lindenwood" : "schedules/lin",
+        "Long Island University" : "schedules/liu",
+        "Maine" : "schedules/mne",
+        "Massachusetts" : "schedules/uma",
+        "Mercyhurst" : "schedules/mrc",
+        "Merrimack" : "schedules/mer",
+        "Miami" : "schedules/mia",
+        "Michigan State" : "schedules/msu",
+        "Michigan Tech" : "schedules/mtu",
+        "Michigan" : "schedules/mic",
+        "Minnesota Duluth" : "schedules/mnd",
+        "Minnesota State" : "schedules/mns",
+        "Minnesota" : "schedules/min",
+        "New Hampshire" : "schedules/unh",
+        "Niagara" : "schedules/nia",
+        "North Dakota" : "schedules/ndk",
+        "Northeastern" : "schedules/noe",
+        "Northern Michigan" : "schedules/nmu",
+        "Notre Dame" : "schedules/ndm",
+        "Ohio State" : "schedules/osu",
+        "Omaha" : "schedules/uno",
+        "Penn State" : "schedules/psu",
+        "Post" : "schedules/pst",
+        "Princeton" : "schedules/prn",
+        "Providence" : "schedules/prv",
+        "Quinnipiac" : "schedules/qui",
+        "RIT" : "schedules/rit",
+        "Rensselaer" : "schedules/ren",
+        "Robert Morris" : "schedules/rmu",
+        "Sacred Heart" : "schedules/sac",
+        "Saint Anselm" : "schedules/sta",
+        "Saint Michael's" : "schedules/stm",
+        "St. Cloud State" : "schedules/stc",
+        "St. Lawrence" : "schedules/stl",
+        "Syracuse" : "schedules/syr",
+        "UConn" : "schedules/con",
+        "UMass Lowell" : "schedules/uml",
+        "Union" : "schedules/uni",
+        "Vermont" : "schedules/ver",
+        "Western Michigan" : "schedules/wmu",
+        "Wisconsin" : "schedules/wis",
+        "Yale" : "schedules/yal"}
+              
+    decTeam = decodeTeam(team)
+    if(scorebot.isD1(decTeam,decTeam,gender)):
+       url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    else:
+        return ":regional_indicator_x: Team Not Found"
+    if(opt.isnumeric()):
+        numGames = int(opt)
+    else:
+        numGames = 5
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find_all('table')[1]
+    gameLine = '```'
+    counter=0
+    games = []
+    for i in table.find_all('tr'):
+        game=i.find_all('td')
+        if(len(game)>=7 and "Overall" in game[-1].get_text() or "Sheet" in game[-1].get_text()):
+            counter+=1
+            date=game[1].get_text()  
+            opp=game[3].get_text()
+            time=game[6].get_text()
+            result=''
+            for i in range(5,11):
+                result+=game[i].get_text()
+            gamesData = "{} {} {}\n".format(date,opp,result)
+            games.append(gamesData)
+            
+    numGames *= -1
+    gamesToReport = games[numGames:]
+    for i in gamesToReport:
+        gameLine+= i
+            
+    gameLine +='```'
+    if(gameLine=='``````'):
+        return 'No Results Found'
+    return gameLine
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
