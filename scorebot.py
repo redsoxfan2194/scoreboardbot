@@ -2,6 +2,8 @@ import urllib2
 import pytz
 from datetime import datetime
 from HTMLParser import HTMLParser
+
+global gameDate
 gameDate=''
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
@@ -52,7 +54,7 @@ def getLeagueName(name):
     return leagueNames[name]
 def isD1(team1,team2,m_w):
     validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
-    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
+    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood", "Long Island University","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
     if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams)):
         return True
     if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams)):
@@ -119,6 +121,7 @@ def getScores():
     tag = ''
     #print gameData
     for game in games:
+        game = game.replace('(TV-AT!)','(TV-AT)')
         game = game.split('!')
         if(len(game)==1):
             continue
@@ -263,4 +266,4 @@ if __name__ == '__main__':
     global gameDate
     scoreboard=generateScoreboard()
     #getScores()
-    print scoreboard
+    print( scoreboard)

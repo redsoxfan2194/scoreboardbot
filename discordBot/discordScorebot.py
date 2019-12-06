@@ -15,7 +15,7 @@ import operator
 import itertools
 import json
 from winprobdata import *
-TOKEN = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '1920'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
@@ -76,7 +76,7 @@ class MyHTMLParser(HTMLParser):
 
 client = discord.Client()
 def displayHelp():
-    helpStr = '''
+    helpStr = ['''
 ?[mscore / wscore] [team name] - current scoreline for Current Men's/Women's game of team entered
 ?[mstand / wstand] [conference name] - current standings for conference entered
 ?[cheer / jeer / boo] [team name] - sends random cheers for / jeers against team entered (Suggestions welcome in #suggestion-box)
@@ -93,10 +93,15 @@ def displayHelp():
 ?[wpwr] <number> - displays Top <number> Pairwise Ranking
 ?[wpwr] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
 ?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
+    ''',
+    '''
 ?[odds] [team1],[team2] - displays KRACH computed odds of winning the matchup
 ?[odds3] [team1],[team2] - displays KRACH computed odds of winning best of three matchup
-?[msched / wsched] [team name] - displays next N games of the team entered
-?[mres / wres / mform / wform] [team name] - displays previous N games of the team entered
+?[msched / wsched] [team] - displays next 5 games of the team entered (All Caps denotes [team] is home)
+?[msched / wsched] [team],<number> - displays next <number> games of the team entered (All Caps denotes [team] is home)
+?[msched / wsched] [team],[team2] - displays results and head to head schedule of teams entered (All Caps denotes [team] is home)
+?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
+?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of availible roles
@@ -110,7 +115,7 @@ Pairwise Rankings courtesy of collegehockeynews.com
 Women's Pairwise Rankings calculated using scores from collegehockeystats.net
 Cheers/Jeers courtesy of Student Sections across America
 Bot courtesy of redsoxfan2194
-    '''
+    ''']
     return helpStr
 def convertTeamtoDisRole(team):
     teams = {   "Air Force" : "Air Force Falcons",
@@ -281,7 +286,7 @@ def getJeer(role):
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
-    "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!"],
+    "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!", "https://youtu.be/OCbuRA_D3KU"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
     "RPI Engineers" : ["KRACH is Better!"],
     "Minnesota State Mavericks" : ["Mankatno", "Mankato Sucks!"],
@@ -583,6 +588,8 @@ def getKOdds(team1,team2):
         if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
             line=line.rstrip('!')
             line=line.split("!")
+            if(line[2]=='∞'):
+                line[2] = "inf"
             krach[line[1]]=float(line[2])
     
     team1Odds = krach[team1]/(krach[team1]+krach[team2])
@@ -633,6 +640,8 @@ def getKOdds3(team1,team2):
         if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
             line=line.rstrip('!')
             line=line.split("!")
+            if(line[2]=='∞'):
+                line[2] = "inf"
             krach[line[1]]=float(line[2])
     
     team1Odds = (krach[team1]**2 * (krach[team1] + 3 * krach[team2]))/((krach[team1] + krach[team2])**3)
@@ -1112,11 +1121,11 @@ def getWPairwise(opt):
                 if(pwrGameDict['awayTeam'] not in teamDict):
                     teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB' : 0, 'cWins': 0}})
                 
-                if(pwrGameDict['homeScore'] > pwrGameDict['awayScore']):
+                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
                     teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
                     teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
                     
-                elif(pwrGameDict['homeScore'] == pwrGameDict['awayScore']):
+                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
                     teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
                     teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
                 else:
@@ -1159,7 +1168,7 @@ def getWPairwise(opt):
     if(opt.isnumeric()):
         end = int(opt)
     elif(opt.lower()=='full'):
-        end = 40
+        end = 41
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
 
         teamIdx=pwr.index(decodedTeam)
@@ -1167,8 +1176,8 @@ def getWPairwise(opt):
             start=0
         else:
             start = teamIdx-2
-        if(teamIdx+3>40):
-            end=40
+        if(teamIdx+3>41):
+            end=41
         else:
             end = teamIdx+3
     elif(opt.lower() == 'bubble'):
@@ -1178,7 +1187,7 @@ def getWPairwise(opt):
         end = 4
     elif(opt.lower() == 'bottom'):
         start = 35
-        end = 40
+        end = 41
     else:
         end = 8
     rankings = "```"
@@ -1194,8 +1203,10 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('!help'):
-       await message.author.send(displayHelp())
+    if message.content.startswith('!help') or message.content.startswith('?help'):
+       helpStr =displayHelp()
+       await message.author.send(helpStr[0])
+       await message.author.send(helpStr[1])
     if not message.content.startswith('?'):
         return
     loop = asyncio.get_event_loop()
@@ -1226,8 +1237,14 @@ async def on_message(message):
             
             
     if message.content.startswith('?msched '):
-        team = decodeTeam(message.content.split('?msched ')[1])
-        opt='5'
+        team = message.content.split('?msched ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
             p.shutdown()
@@ -1235,8 +1252,14 @@ async def on_message(message):
             await message.channel.send(msg)
             
     if message.content.startswith('?sched '):
-        team = decodeTeam(message.content.split('?sched ')[1])
-        opt='5'
+        team = message.content.split('?sched ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
             p.shutdown()
@@ -1244,8 +1267,14 @@ async def on_message(message):
             await message.channel.send(msg)
     
     if message.content.startswith('?wsched '):
-        team = decodeTeam(message.content.split('?wsched ')[1])
-        opt='5'
+        team = message.content.split('?wsched ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt,"Women")
             p.shutdown()
@@ -1253,8 +1282,14 @@ async def on_message(message):
             await message.channel.send(msg)
           
     if message.content.startswith('?mres '):
-        team = decodeTeam(message.content.split('?mres ')[1])
-        opt='5'
+        team = message.content.split('?mres ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
             p.shutdown()
@@ -1262,8 +1297,14 @@ async def on_message(message):
             await message.channel.send(msg)
             
     if message.content.startswith('?res '):
-        team = decodeTeam(message.content.split('?res ')[1])
-        opt='5'
+        team = message.content.split('?res ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
             p.shutdown()
@@ -1271,8 +1312,14 @@ async def on_message(message):
             await message.channel.send(msg)
     
     if message.content.startswith('?wres '):
-        team = decodeTeam(message.content.split('?wres ')[1])
-        opt='5'
+        team = message.content.split('?wres ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
             p.shutdown()
@@ -1280,8 +1327,14 @@ async def on_message(message):
             await message.channel.send(msg) 
 
     if message.content.startswith('?mform '):
-        team = decodeTeam(message.content.split('?mform ')[1])
-        opt='5'
+        team = message.content.split('?mform ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
             p.shutdown()
@@ -1289,8 +1342,14 @@ async def on_message(message):
             await message.channel.send(msg)
             
     if message.content.startswith('?form '):
-        team = decodeTeam(message.content.split('?form ')[1])
-        opt='5'
+        team = message.content.split('?form ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
             p.shutdown()
@@ -1298,8 +1357,14 @@ async def on_message(message):
             await message.channel.send(msg)
     
     if message.content.startswith('?wform '):
-        team = decodeTeam(message.content.split('?wform ')[1])
-        opt='5'
+        team = message.content.split('?wform ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            opt=split[1]
+            opt=opt.lstrip(' ')
+            team=split[0]
+        else:
+            opt = '5'
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
             p.shutdown()
@@ -1405,26 +1470,32 @@ async def on_message(message):
             if(len(msg)>0):
                 await message.channel.send(msg)                
     if(message.content.startswith('?mstand')):
-        conf = message.content.split('?mstand ')
-        if(len(conf)>1):
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
         else:
-                await message.channel.send("I don't know that conference.")
+            conf = message.content.split('?mstand ')
+            if(len(conf)>1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                    await message.channel.send("I don't know that conference.")
                 
     if(message.content.startswith('?wstand')):
-        conf = message.content.split('?wstand ')
-        if(len(conf)>1):
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getStandings, conf[1], "Women")
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
+        if(message.channel == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
         else:
-                await message.channel.send("I don't know that conference.")
+            conf = message.content.split('?wstand ')
+            if(len(conf)>1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, getStandings, conf[1], "Women")
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                    await message.channel.send("I don't know that conference.")
     if(message.content.startswith('?whatsontv')):
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getGamesOnTV)
@@ -1545,28 +1616,28 @@ async def on_message(message):
             
     # gifs and stuff
     if(message.content.startswith('?bu')):
-            await message.channel.send("https://media.giphy.com/media/348tsqqVM1dCvT4zoY/source.mp4")
+            await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
             
     if(message.content.startswith('?goodgoal')):
             await message.channel.send("https://gfycat.com/lastingcomplexblackbuck")
             
     if(message.content.startswith('?nogoal')):
-            await message.channel.send("https://media.giphy.com/media/MTuCbbIEKUOxMiCp2z/source.gif")  
+            await message.channel.send("https://media.giphy.com/media/q01IxfTXuoP4Y/giphy.mp4")  
 
     if(message.content.startswith('?uml')):
-            await message.channel.send("https://media.giphy.com/media/LqhaCKCh7E4WJrHZEE/source.mp4")
+            await message.channel.send("https://media.giphy.com/media/ejDkNiozRxVwUtbbpN/giphy.mp4")
     
     if(message.content.startswith('?lowellbu')):
-            await message.channel.send("https://media.giphy.com/media/Ss6tcZjgYgIpGMWKtS/giphy.gif")
+            await message.channel.send("https://media.giphy.com/media/J5jccTVhlkKhogi6DP/giphy.mp4")
             
     if(message.content.startswith('?harvard')):
             await message.channel.send("FUCK HARVARD")
         
     if(message.content.startswith('?boston')):
             gif="https://m.imgur.com/ZPZUGW0"
-            random.seed(datetime.datetime.now())
-            if(random.randint(0,100)<=10):
-                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
+#            random.seed(datetime.datetime.now())
+#            if(random.randint(0,100)<=10):
+#                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
             
             await message.channel.send(gif)
             
@@ -1636,8 +1707,10 @@ async def on_message(message):
     if(message.content.startswith('?mtu')):
             await message.channel.send("https://www.youtube.com/watch?v=FZQ6VNWvmOc")
     
-    if(message.content.startswith('?denver')):
-            await message.channel.send("https://media.giphy.com/media/XG7glHKnoBnTg57Sml/giphy.gif")
+    if(message.content.startswith('?russia')):
+            await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
+    #if(message.content.startswith('?denver')):
+    #        await message.channel.send("https://media.giphy.com/media/XG7glHKnoBnTg57Sml/giphy.gif")
             
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
@@ -2068,6 +2141,7 @@ def getSchedule(team,opt,gender):
         "Yale" : "schedules/yal"}
               
     decTeam = decodeTeam(team)
+    decTeam2 = ''
     if(scorebot.isD1(decTeam,decTeam,gender)):
         url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
     else:
@@ -2075,7 +2149,9 @@ def getSchedule(team,opt,gender):
     if(opt.isnumeric()):
         numGames = int(opt)
     else:
-        numGames = 5
+        decTeam2 = decodeTeam(opt)
+        numGames=10
+            
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -2083,14 +2159,65 @@ def getSchedule(team,opt,gender):
     table = soup.find_all('table')[1]
     gameLine = '```'
     counter=0
+    format = "%A, %B %d %y"
+    firstHalf = ["September", "October", "November", "December"]
+    secHalf = ["January", "February", "March", "April"]
     for i in table.find_all('tr'):
         game=i.find_all('td')
-        if(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
-            counter+=1
+        if(decTeam2 != ''):
+            if(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
+                date=game[1].get_text()  
+                opp=game[3].get_text()
+                time=game[6].get_text()
+                date = date.replace('\xa0','')
+                month = date.split(' ')[1]
+                if(month in firstHalf):
+                    date+=" " + season[:2]
+                elif(month in secHalf):
+                    date+=" " + season[-2:]
+               
+                dt = datetime.datetime.strptime(date,format)
+                date=dt.strftime('%a, %b %-d')
+                if(opp.lower() == decTeam2.lower()):
+                    gameLine+="{} {} {}\n".format(date,opp,time)
+            elif(len(game)>=7 and "Overall" in game[-1].get_text() or "Sheet" in game[-1].get_text()):
+                date=game[1].get_text()  
+                opp=game[3].get_text()
+                time=game[6].get_text()
+                date = date.replace('\xa0','')
+                month = date.split(' ')[1]
+                if(month in firstHalf):
+                    date+=" " + season[:2]
+                elif(month in secHalf):
+                    date+=" " + season[-2:]
+               
+                dt = datetime.datetime.strptime(date,format)
+                date=dt.strftime('%a, %b %-d')
+                result=''
+                if(opp.lower() == decTeam2.lower()):
+                    for i in range(5,11):
+                        result+=game[i].get_text()
+                    gameLine += "{} {} {}\n".format(date,opp,result)
+            
+        elif(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
+            
             date=game[1].get_text()  
             opp=game[3].get_text()
             time=game[6].get_text()
+            date = date.replace('\xa0','')
+            month = date.split(' ')[1]
+            if(month in firstHalf):
+                date+=" " + season[:2]
+            elif(month in secHalf):
+                date+=" " + season[-2:]
+               
+            dt = datetime.datetime.strptime(date,format)
+            date=dt.strftime('%a, %b %-d')
+            
+            if(dt.date()<datetime.datetime.now().date()):
+                continue
             gameLine+="{} {} {}\n".format(date,opp,time)
+            counter+=1
         if(numGames<=counter):
             break
             
@@ -2185,6 +2312,9 @@ def getResults(team,opt,gender):
     gameLine = '```'
     counter=0
     games = []
+    format = "%A, %B %d %y"
+    firstHalf = ["September", "October", "November", "December"]
+    secHalf = ["January", "February", "March", "April"]
     for i in table.find_all('tr'):
         game=i.find_all('td')
         if(len(game)>=7 and "Overall" in game[-1].get_text() or "Sheet" in game[-1].get_text()):
@@ -2193,6 +2323,15 @@ def getResults(team,opt,gender):
             opp=game[3].get_text()
             time=game[6].get_text()
             result=''
+            date = date.replace('\xa0','')
+            month = date.split(' ')[1]
+            if(month in firstHalf):
+                date+=" " + season[:2]
+            elif(month in secHalf):
+                date+=" " + season[-2:]
+               
+            dt = datetime.datetime.strptime(date,format)
+            date=dt.strftime('%a, %b %-d')
             for i in range(5,11):
                 result+=game[i].get_text()
             gamesData = "{} {} {}\n".format(date,opp,result)
