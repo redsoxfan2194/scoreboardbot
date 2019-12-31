@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import operator
 import itertools
 import json
-from winprobdata import *
+#from winprobdata import *
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '1920'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
@@ -2503,6 +2503,9 @@ async def on_message(message):
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
+    
+    if(message.content.startswith('?beanpot')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
             
 @client.event
 async def on_ready():
