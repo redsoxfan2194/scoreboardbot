@@ -15,7 +15,7 @@ import operator
 import itertools
 import json
 #from winprobdata import *
-TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '1920'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
@@ -86,11 +86,13 @@ def displayHelp():
 ?[pwr / krach] bottom - displays current Bottom 5 Pairwise Ranking / KRACH
 ?[pwr / krach] bubble - displays the Pairwise Ranking Bubble / KRACH
 ?[pwr / krach] <number> - displays Top <number\> Pairwise Ranking / KRACH
-?[wpwr / wkrach] - displays current Top 8 Pairwise Ranking
-?[wpwr / wkrach] top - displays current Top 4 Pairwise Ranking
-?[wpwr / wkrach] bottom - displays current Bottom 5 Pairwise Ranking
-?[wpwr / wkrach] bubble - displays the Pairwise Ranking Bubble
-?[wpwr / wkrach] <number> - displays Top <number> Pairwise Ranking
+?[pwr / krach] <number>,<number2> - displays <number\> to <number2\> Pairwise Ranking / KRACH
+?[wpwr / wkrach] - displays current Top 8 Pairwise Ranking / KRACH
+?[wpwr / wkrach] top - displays current Top 4 Pairwise Ranking / KRACH
+?[wpwr / wkrach] bottom - displays current Bottom 5 Pairwise Ranking / KRACH
+?[wpwr / wkrach] bubble - displays the Pairwise Ranking Bubble / KRACH
+?[wpwr / wkrach] <number> - displays Top <number> Pairwise Ranking / KRACH
+?[wpwr / wkrach] <number>,<number2> - displays <number\> to <number2\> Pairwise Ranking / KRACH
 ?[wpwr / wkrach] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
 ?[ckrach / dkrach] [top / bottom / bubble / <number> / team name] same as above but combines Men's and Women's games (ckrach includes Men's and Women's dkrach is only schools with both)
 ?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
@@ -250,6 +252,7 @@ def getCheer(role):
     "Colgate Raiders" : ["Go Gate!"],
     "Colorado College Tigers" : ["Go Tigers! DU still sucks!"],
     "Holy Cross Crusaders" : ["Go Cross Go"],
+    "Army Black Knights" : ["Go Army! Beat Navy!"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
@@ -305,6 +308,9 @@ def getJeer(role):
     "UConn Huskies" : ["Slush Bus", "U-Cons"],
     "New Hampshire Wildcats" : ["Bad Kitty"],
     "Holy Cross Crusaders" : ["Boo Cross Boo", "Holy Cow"],
+    "Army Black Knights" : ["Woops", "Ring Knockers", "https://www.dictionary.com/e/slang/circle-game/"],
+    "Air Force Falcons" : ["Ring Knockers", "Chair Force"],
+    "Michigan Wolverines" : ["Ann Arbor is a whore!"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "Yankees" : ["Yankees Suck!"],
     "Ref": ["I'm Blind! I'm Deaf! I wanna be a ref!", "Hey Ref, check your phone, you missed a few calls.", "BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", ":regional_indicator_b: :regional_indicator_u: :regional_indicator_l: :regional_indicator_l: :regional_indicator_s: :regional_indicator_h: :regional_indicator_i: :regional_indicator_t:"]}
@@ -336,6 +342,8 @@ def getPairwise(opt):
         "UConn" : "Connecticut"}
     teams = []
     start = 0
+    splitopt = opt.split(',')
+
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
@@ -362,6 +370,26 @@ def getPairwise(opt):
     elif(opt.lower() == 'bottom'):
         start = 55
         end = 60
+        
+    elif(len(splitopt)==2):
+        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+            sOpt=int(splitopt[0])
+            eOpt=int(splitopt[1])
+            if(sOpt>0):
+                start=sOpt-1
+            else:
+                start=0
+                
+            if(eOpt<=60):
+                end = eOpt
+            else:
+                end=60
+            
+            if(sOpt>eOpt):
+                swap=start
+                start=end-1
+                end=swap+1
+            
     else:
         end = 16
 
@@ -399,6 +427,7 @@ def getKRACH(opt):
         "UConn" : "Connecticut"}
     teams = []
     start = 0
+    splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
@@ -425,6 +454,24 @@ def getKRACH(opt):
     elif(opt.lower() == 'bottom'):
         start = 55
         end = 60
+    elif(len(splitopt)==2):
+        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+            sOpt=int(splitopt[0])
+            eOpt=int(splitopt[1])
+            if(sOpt>0):
+                start=sOpt-1
+            else:
+                start=0
+                
+            if(eOpt<=60):
+                end = eOpt
+            else:
+                end=60
+            
+            if(sOpt>eOpt):
+                swap=start
+                start=end-1
+                end=swap+1
     else:
         end = 16
 
@@ -1166,6 +1213,7 @@ def getWPairwise(opt):
     for i in sorted_pwr:
         pwr.append(i[0])
     start = 0
+    splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
@@ -1190,6 +1238,24 @@ def getWPairwise(opt):
     elif(opt.lower() == 'bottom'):
         start = 35
         end = 41
+    elif(len(splitopt)==2):
+        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+            sOpt=int(splitopt[0])
+            eOpt=int(splitopt[1])
+            if(sOpt>0):
+                start=sOpt-1
+            else:
+                start=0
+                
+            if(eOpt<=41):
+                end = eOpt
+            else:
+                end=41
+            
+            if(sOpt>eOpt):
+                swap=start
+                start=end-1
+                end=swap+1
     else:
         end = 8
     rankings = "```"
@@ -1329,6 +1395,7 @@ def getWKRACH(opt):
     for i in sorted_krach:
         krach.append(i[0])
     start = 0
+    splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
@@ -1353,6 +1420,24 @@ def getWKRACH(opt):
     elif(opt.lower() == 'bottom'):
         start = 35
         end = 41
+    elif(len(splitopt)==2):
+        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+            sOpt=int(splitopt[0])
+            eOpt=int(splitopt[1])
+            if(sOpt>0):
+                start=sOpt-1
+            else:
+                start=0
+                
+            if(eOpt<=41):
+                end = eOpt
+            else:
+                end=41
+            
+            if(sOpt>eOpt):
+                swap=start
+                start=end-1
+                end=swap+1   
     else:
         end = 8
     rankings = "```"
@@ -2487,6 +2572,16 @@ async def on_message(message):
     if(message.content.startswith('?mtu')):
             await message.channel.send("https://www.youtube.com/watch?v=FZQ6VNWvmOc")
     
+    if(message.content.startswith('?northeastern') and not message.content.startswith('?northeasternwins')):
+            await message.channel.send("https://media.giphy.com/media/jt8C9VdM1Xo6SY2Yib/giphy.gif")
+
+    if(message.content.startswith('?rit')):
+            await message.channel.send("https://j.gifs.com/q75jR0.gif")
+            
+    if(message.content.startswith('?almostchaos')):
+            await message.channel.send("https://media.giphy.com/media/26ybwvTX4DTkwst6U/giphy.gif")
+
+
     if(message.content.startswith('?russia')):
             await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
     #if(message.content.startswith('?denver')):
