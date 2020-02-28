@@ -18,24 +18,33 @@ import json
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '1920'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
-flairlist = {"St. Cloud State": "<:stcloud:410963404166135809>",
-"Minnesota Duluth" : "<:umd:416037206801514496>",
-"Minnesota State" : "<:minnstate:502254436694097930>",
-"Massachusetts" : "<:umass:509877606628196362>",
-"Clarkson" : "<:clarkson:509874830208925706>",
-"Northeastern" : "<:northeastern:509874830183628831>",
-"Denver" : "<:denver:410963404149358603>",
-"Quinnipiac" : "<:quinnipiac:515202909604937748>",
-"Ohio State" : "<:ohiostate:410963403952226305>",
-"Notre Dame" : "<:notredame:559234890311270453>",
-"Cornell" : "<:cornell:509874829927645215>",
-"Arizona State" : "<:asu:543115914082516992>",
-"Harvard" : "<:harvard:559234780118515712>",
-"Providence" : "<:providence:559234548093812736>",
-"Bowling Green" : "<:bgsu:559234454120431626>",
-"American International" : "<:mrbee:559232704722239489>",
-"Wisconsin" : "<:wisconsin:509875125810888705>",
-"Minnesota" : "<:minnesota:499717465396477953>"}
+
+
+flairlist = { "American International" : "<:mrbee:559232704722239489>",
+"Boston College" : "<:bc:666831654727188481>",
+"Boston University" : "<:bu:666832026095321088>",
+"Massachusetts" : "<:umass:666832224783695879>",
+"Cornell" : "<:cornell:666832546033827892>",
+"Ohio State" : "<:ohiostate:666832702661459968>",
+"Minnesota State" : "<:mankato:666832880475045900>",
+"Denver" : "<:denver:666833535616679967>",
+"Clarkson" : "<:clarkson:666834128834134017>",
+"Harvard" : "<:harvard:666834657681342474>",
+"Minnesota" : "<:minnesota:666834959142617088>",
+"Wisconsin" : "<:wisconsin:666834959897722900>",
+"Princeton" : "<:princeton:666835295194316810>",
+"Minnesota Duluth" : "<:umd:666836078019215360>",
+"North Dakota" : "<:northdakota:666836576675823628>",
+"Northeastern" : "<:northeastern:666837132488474675>",
+"Providence" : "<:providence:666837749428387850>",
+"Penn State" : "<:pennstate:666838035400491012>"}
+
+
+flairlist = { "Boston College" : "<:bc:666831654727188481>",
+"Boston University" : "<:bu:666832026095321088>",
+"Harvard" : "<:harvard:666834657681342474>",
+"Northeastern" : "<:northeastern:666837132488474675>"}
+
 flairlist = {}
     #scorebot.getScores()
     #games=scorebot.gameList
@@ -73,6 +82,7 @@ class MyHTMLParser(HTMLParser):
     def return_data(self):
         global d
         return d
+
 
 client = discord.Client()
 def displayHelp():
@@ -178,6 +188,7 @@ def convertTeamtoDisRole(team):
                 "Robert Morris" : "Robert Morris Colonials",
                 "Sacred Heart" : "Sacred Heart Pioneers",
                 "Sieve" : "Sieve",
+                "Craig" : "Craig",
                 "St. Anselm" : "St. Anselm Hawks",
                 "St. Cloud State" : "St. Cloud State Huskies",
                 "St. Lawrence" : "St. Lawrence Saints",
@@ -222,6 +233,7 @@ def getCheer(role):
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
     "Harvard Crimson" : ["Go Harvard!", "Fuck Harvard!"],
     "New Hampshire Wildcats" : ["I Believe in UNH!","Go Wildcats!"],
+    "Maine Black Bears" : ["Let's go Black Bears!", "Fill the steins to Dear Ol' Maine!"],
     "Boston College Eagles" : ["Go BC!", "BC Sucks!", "Go Eagles!", "Sucks to BU!"],
     "UMass Minutemen" : ["Go Amherst!", "Go U Mass!"],
     "UConn Huskies" : ["Go Huskies!", "U-C-O-N-N UCONN UCONN UCONN", "Ice Bus"],
@@ -310,8 +322,8 @@ def getJeer(role):
     "Holy Cross Crusaders" : ["Boo Cross Boo", "Holy Cow"],
     "Army Black Knights" : ["Woops", "Ring Knockers", "https://www.dictionary.com/e/slang/circle-game/"],
     "Air Force Falcons" : ["Ring Knockers", "Chair Force"],
-    "Michigan Wolverines" : ["Ann Arbor is a whore!"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
+    "Craig" : ["Imagine being named Craig"],
     "Yankees" : ["Yankees Suck!"],
     "Ref": ["I'm Blind! I'm Deaf! I wanna be a ref!", "Hey Ref, check your phone, you missed a few calls.", "BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", ":regional_indicator_b: :regional_indicator_u: :regional_indicator_l: :regional_indicator_l: :regional_indicator_s: :regional_indicator_h: :regional_indicator_i: :regional_indicator_t:"]}
     if role in jeerList:
@@ -779,6 +791,7 @@ def getPWRComp(team1,team2):
     pwrComp+='```'
     return pwrComp
 def getStandings(conf, m_w):
+    
     global season
     conf=conf.lower()
     conf=conf.replace(" ","")
@@ -832,6 +845,7 @@ def getStandings(conf, m_w):
         return standings
         
 def getGamesOnTV():
+    
     parser = MyHTMLParser()
     url = "http://collegehockeystats.net/"
     f=urllib.request.urlopen(url,timeout=10)
@@ -906,6 +920,8 @@ def getGamesOnTV():
                 numOT = '3OT'
             elif(game.count('4OT')>0):
                 numOT = '4OT'
+            elif(game.count('5OT')>0):
+                numOT = '5OT'
             game.pop(5)
             if(game.count('Final')>0):
                 game[7]='Final ({})'.format(numOT)
@@ -1093,6 +1109,7 @@ def compareTeams(team1,team2):
     return [sumTeam1,sumTeam2]
     
 def getWPairwise(opt):
+    
     global teamDict,newha,season
     #newha =['Saint Anselm','Franklin Pierce',"Saint Michael's"]   
     newha = []
@@ -1149,6 +1166,8 @@ def getWPairwise(opt):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1159,6 +1178,10 @@ def getWPairwise(opt):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -1265,6 +1288,7 @@ def getWPairwise(opt):
     return rankings
     
 def getWKRACH(opt):
+    
     global teamDict,season
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
@@ -1319,6 +1343,8 @@ def getWKRACH(opt):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1329,6 +1355,10 @@ def getWKRACH(opt):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -1447,6 +1477,7 @@ def getWKRACH(opt):
     return rankings
 
 def getComboKRACH(type,opt):
+    
     global teamDict,season
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
@@ -1501,6 +1532,8 @@ def getComboKRACH(type,opt):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1511,6 +1544,10 @@ def getComboKRACH(type,opt):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -1589,6 +1626,8 @@ def getComboKRACH(type,opt):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1599,6 +1638,10 @@ def getComboKRACH(type,opt):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -1708,6 +1751,7 @@ def getComboKRACH(type,opt):
     return rankings
 
 def getWOdds(team1,team2):
+    
     global teamDict,season
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
     if(team1 == '' or team2 == ''):
@@ -1771,6 +1815,8 @@ def getWOdds(team1,team2):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1781,6 +1827,10 @@ def getWOdds(team1,team2):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -1843,6 +1893,7 @@ def getWOdds(team1,team2):
     return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,1), team2, round(team2Odds*100,1))  
 
 def getWOdds3(team1,team2):
+    
     global teamDict,season
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
     if(team1 == '' or team2 == ''):
@@ -1906,6 +1957,8 @@ def getWOdds3(team1,team2):
                     numOT = '3OT'
                 elif(game.count('4OT')>0):
                     numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
                 game.pop(5)
                 if(game.count('Final')>0):
                     game[7]='Final ({})'.format(numOT)
@@ -1916,6 +1969,10 @@ def getWOdds3(team1,team2):
                 if(game[5]=='NH'):
                   game[5] = 'NW' 
                 game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
                 pwrGameDict = {'awayTeam' : game[0],
                             'awayScore': game[1],
                             'homeTeam' : game[3],
@@ -2155,7 +2212,7 @@ async def on_message(message):
     if message.content.startswith('?thanksbot'):
         msg = "You're Welcome {0.author.mention}!".format(message)
         for i in range(len(message.author.roles)):
-            if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch"):
+            if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
                 cheer = getCheer(message.author.roles[-1-i].name)
                 break
       
@@ -2169,7 +2226,7 @@ async def on_message(message):
             team=decodeTeam(team[1])
         if(len(team)==1):
             for i in range(len(message.author.roles)):
-                if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch"):
+                if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
                     cheer = getCheer(message.author.roles[-1-i].name)
                     break
         else:
@@ -2296,6 +2353,20 @@ async def on_message(message):
             if(len(msg)>0):
                 await message.channel.send(msg)  
                 
+    if(message.content.startswith('?stand')):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            conf = message.content.split('?stand ')
+            if(len(conf)>1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                    await message.channel.send("I don't know that conference.")    
+    
     if(message.content.startswith('?mstand')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
@@ -2311,7 +2382,7 @@ async def on_message(message):
                     await message.channel.send("I don't know that conference.")
                 
     if(message.content.startswith('?wstand')):
-        if(message.channel == 'game-night'):
+        if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
             conf = message.content.split('?wstand ')
@@ -2498,7 +2569,7 @@ async def on_message(message):
     if(message.content.startswith('?harvard')):
             await message.channel.send("FUCK HARVARD")
         
-    if(message.content.startswith('?boston')):
+    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
             gif="https://m.imgur.com/ZPZUGW0"
 #            random.seed(datetime.datetime.now())
 #            if(random.randint(0,100)<=10):
@@ -2506,6 +2577,12 @@ async def on_message(message):
             
             await message.channel.send(gif)
             
+    if(message.content.startswith('?nuboston')):
+            await message.channel.send("https://media.giphy.com/media/WU0oTNSciD83BUDfYR/giphy.gif")
+            
+    if(message.content.startswith('?redjd')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/680861939047333971/3pzph6.png")
+    
     if(message.content.startswith('?lowell') and not message.content.startswith('?lowellbu')):
             await message.channel.send("https://imgur.com/a/C9aSorC")
             
@@ -2597,11 +2674,16 @@ async def on_message(message):
         await message.channel.send(getCat())
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
+       # for i in message.guild.emojis:
+       #    print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
     
     if(message.content.startswith('?beanpot')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
-            
+        
+    if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege')):
+        await message.channel.send("https://media.giphy.com/media/cnEz7n3MhAIbESshGd/giphy.gif")
+           
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -2645,6 +2727,7 @@ def decodeTeam(team):
         "chestnuthillcommunitycollege" : "Boston College",
         "chestnuthilluniversity" : "Boston College",
         "clarky" : "Clarkson",
+        "cct" : "Clarkson",
         "connecticut" : "UConn",
         "cor" : "Cornell",
         "cuse" : "Syracuse",
@@ -2720,12 +2803,15 @@ def decodeTeam(team):
         "uah" : "Alabama Huntsville",
         "uconn" : "UConn",
         "umass" : "Massachusetts",
+        "uma" : "Massachusetts",
         "umassamherst" : "Massachusetts",
         "umasslowell" : "UMass Lowell",
         "umd" : "Minnesota Duluth",
         "uml" : "UMass Lowell",
         "umo" : "Maine",
+        "umaine" : "Maine",
         "umtc" : "Minnesota",
+        "umn" : "Minnesota",
         "und" : "North Dakota",
         "unh" : "New Hampshire",
         "uno" : "Omaha",
@@ -2768,6 +2854,7 @@ def decodeTeam(team):
                 teamName+=' '
         return teamName
 def generateScoreline(team, gender):
+    
     global flairlist
     parser = MyHTMLParser()
     url = "http://collegehockeystats.net/"
@@ -2839,6 +2926,8 @@ def generateScoreline(team, gender):
                 numOT = '3OT'
             elif(game.count('4OT')>0):
                 numOT = '4OT'
+            elif(game.count('5OT')>0):
+                numOT = '5OT'
             game.pop(5)
             if(game.count('Final')>0):
                 game[7]='Final ({})'.format(numOT)
@@ -2909,6 +2998,8 @@ def generateScoreline(team, gender):
                             numOT = '3OT'
                         elif(game['homeScore'].count('4OT')>0):
                             numOT = '4OT'
+                        elif(game['homeScore'].count('5OT')>0):
+                            numOT = '5OT'
                     game['status']="Final ({})".format(numOT)
                     game['homeScore']=game['homeScore'].replace(numOT,"")
                 if("TV-" in game['status']):
@@ -2949,6 +3040,7 @@ def getCat():
     return j[0]['url']
 
 def getSchedule(team,opt,gender):
+    
     global season
     teamDict = {"Air Force" : "schedules/afa",
         "Alabama Huntsville" : "schedules/alh",
@@ -3105,6 +3197,7 @@ def getSchedule(team,opt,gender):
     return gameLine
     
 def getResults(team,opt,gender):
+    
     teamDict = {"Air Force" : "schedules/afa",
         "Alabama Huntsville" : "schedules/alh",
         "Alaska Anchorage" : "schedules/aka",
