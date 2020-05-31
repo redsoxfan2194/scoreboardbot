@@ -115,6 +115,8 @@ def displayHelp():
 ?[msched / wsched] [team],[team2] - displays results and head to head schedule of teams entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
+?[history] [team1],[team2] - displays Matchup history and recent results
+?[history] [team1],[team2],<number> - displays Matchup history and recent results
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of availible roles
@@ -237,6 +239,7 @@ def getCheer(role):
     "Boston College Eagles" : ["Go BC!", "BC Sucks!", "Go Eagles!", "Sucks to BU!"],
     "UMass Minutemen" : ["Go Amherst!", "Go U Mass!"],
     "UConn Huskies" : ["Go Huskies!", "U-C-O-N-N UCONN UCONN UCONN", "Ice Bus"],
+    "Union Dutchmen/Dutchwomen" : ["Let's Go U!"],
     "Michigan Tech Huskies" : ["Go Huskies!"],
     "UMass Lowell River Hawks" : ["Go River Hawks!"],
     "Clarkson Golden Knights" : ["Let's Go Tech!"],
@@ -265,6 +268,7 @@ def getCheer(role):
     "Colorado College Tigers" : ["Go Tigers! DU still sucks!"],
     "Holy Cross Crusaders" : ["Go Cross Go"],
     "Army Black Knights" : ["Go Army! Beat Navy!"],
+    "Alabama Huntsville Chargers" : ["STAN HORSIES!!", "Go Chargers!", "Go Big Blue!"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
@@ -299,7 +303,7 @@ def getJeer(role):
     "Northeastern Huskies" : ["Northleastern", "North! Eastern! Sucks!"],
     "Colgate Raiders" : ["Crest is Best!"],
     "Cornell Big Red" : ["Harvard Rejects!", "```Up above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
-    "Maine Black Bears" : ["M-A-I-N-E ~~Go Blue~~ MAAAAAIIINNNE SUCKS"],
+    "Maine Black Bears" : ["M-A-I-N-E ~~Go Blue~~ MAAAAAIIINNNE SUCKS", "UMOwO"],
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
@@ -492,6 +496,140 @@ def getKRACH(opt):
         rankings+="{}. {}\n".format(i+1,krach[i])
     rankings += "```"
     return rankings
+    
+def getMatchupHistory(team,opp,numGames):
+          
+    minSeason=19001901
+    maxSeason=20202021
+    if(numGames.isnumeric()):
+        numGames=int(numGames)
+        if(numGames>15):
+            numGames=5
+    else:
+        numGames=5
+    if(team == '' or opp == ''):
+        
+        return "Enter Two Teams!"
+        
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "Omaha" : "Nebraska-Omaha",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut"}
+        
+    team = decodeTeam(team)
+    opp = decodeTeam(opp)
+    if(scorebot.isD1(team,team,'Men') or team in chnDiffs.keys()):
+        if(team in chnDiffs.keys()):       
+            team=chnDiffs[team]
+    else:
+        
+        return "Team 1 Not Found"
+
+    if(scorebot.isD1(opp,opp,'Men') or opp in chnDiffs.keys()):
+        if(opp in chnDiffs.keys()):       
+            opp=chnDiffs[opp]
+    else:
+        
+        return "Team 2 Not Found"
+    if(team == opp):
+        
+        return "Enter Two Different Teams!"
+
+    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    pairwise = []
+    hrefDict = {}
+    for link in soup.find_all('a'):
+        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
+            idNum=re.search('.*=(.*)',link['href'])
+            idNum=idNum.group(1)
+            hrefDict[link.get_text()]=idNum
+    #print(hrefDict)
+
+    url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    tab = soup.find("table",{"class":"data schedule full"})
+    games=tab.findChildren('tr');
+    matchupData = {};
+    gNum = 0
+    
+
+    for game in games:
+        gameStr=game.findChildren('td')[0].get_text()
+        gameStr=gameStr.replace(u'\xa0',u'')
+        gameStr=gameStr.replace('*',u'')
+        gameStr=gameStr.replace('Box',u'')
+        gameStr=gameStr.replace('\n',u'!')
+        gameStr=gameStr.replace('\t',u'!')
+        gameStr=gameStr.replace('!!!',u'')
+        gameStr=gameStr.replace('!!',u'!')
+        
+        gameData=gameStr.split('!')
+       # print(gameData)
+        gameData.pop()
+
+        if(gameData!=[]):
+            date=gameData[0]
+            aTeam=gameData[1]
+            aScore=int(gameData[2])
+            hTeam=gameData[4]
+            hScoreTemp = gameData[5].split(' ')
+            hScore=int(hScoreTemp[0])
+            if(len(gameData)>=7):
+                if('ot' in gameData[6]):
+                    loc=gameData[6]
+                else:
+                    loc=''
+            else:
+                loc=''
+            if(aScore>hScore):
+              winner=aTeam
+            elif(hScore>aScore):
+              winner=hTeam
+            else:
+              winner='Tie'
+            gNum+=1
+            matchupData[gNum]={'Date': date, 'awayTeam':aTeam, 'awayScore': aScore, 'homeTeam':hTeam,'homeScore':hScore, 'Location':loc,'Winner': winner}
+           
+            if(gNum<=numGames):
+                #return
+                gameHistory+="{} {} {} {} {} {}\n".format(matchupData[gNum]['Date'],matchupData[gNum]['awayTeam'],matchupData[gNum]['awayScore'],matchupData[gNum]['homeTeam'],matchupData[gNum]['homeScore'],matchupData[gNum]['Location'])
+    
+    if(gNum>0):
+        gameHistory = "Recent Results:\n"
+    else:
+        gameHistory = ""   
+    teamWins=0
+    oppWins=0
+    ties=0
+    leader='Tied'
+    for i in matchupData.keys():
+        if(matchupData[i]['Winner']==team):
+            teamWins+=1
+        elif(matchupData[i]['Winner']==opp):
+            oppWins+=1
+        else:
+            ties+=1
+    if(teamWins>oppWins):
+       leader = '{} Leads'.format(team)
+    elif(oppWins>teamWins):
+       leader = '{} Leads'.format(opp)
+       
+    allTimeRecord = "All-Time Series: \n{} {}-{}-{}".format(leader, teamWins,oppWins,ties)
+    historyData = "```\n{} v {}\n\n{}\n\n{}```".format(team,opp,allTimeRecord,gameHistory)
+    
+    return historyData
     
 def getWinProb(aTeam, aScore, hTeam, hScore, status):
     if('Final' in status):
@@ -2420,6 +2558,38 @@ async def on_message(message):
         else:
              await message.channel.send("Invalid number of teams, enter two comma separated teams")
              
+    if(message.content.startswith('?history ')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?history ')
+        
+        if(len(teams)>1): 
+            if(teams[1].count(',')==1):
+                team1,team2 = teams[1].split(",")
+                team1=team1.rstrip(" ")
+                team2=team2.lstrip(' ')
+                numGames='5'
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+                
+            elif(teams[1].count(',')==2):
+                team1,team2,numGames = teams[1].split(",")
+                team1=team1.rstrip(" ")
+                team2=team2.lstrip(' ')
+
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")
+        else:
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")
+             
     if(message.content.startswith('?wodds ')):
         team1= ''
         team2= ''
@@ -2590,7 +2760,8 @@ async def on_message(message):
             await message.channel.send("F'IN HAWKS")
             
     if(message.content.startswith('?bc')):
-            await message.channel.send("https://imgur.com/a/mejC6E2")
+            #await message.channel.send("https://imgur.com/a/mejC6E2")
+            await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
             
     if(message.content.startswith('?uconn')):
             await message.channel.send("https://imgur.com/a/gWy8Ifj")
@@ -2636,9 +2807,27 @@ async def on_message(message):
             
     if(message.content.startswith('?umass')):
             await message.channel.send("When they beat Providence tonight it will be legitimate proof that UMass deserves all of the recognition that it has received. They are 6-1 on the season and 3-0 in the conference which is an extremely impressive feat considering 2 years ago the team was not even ranked nationally.")
-            
+     
+    if(message.content.startswith('?amherst')):
+            await message.channel.send("If you are being recruited and want to play in a program that wins championships, develops you on and off the ice, invests in your long-term success and prepares you for pro hockey, there’s no better place than @UMassHockey. Believe it.")  
+    if(message.content.startswith('?cornell')):
+            await message.channel.send("I think you should mentally and emotionally prepare yourself that at some point Cornell University will raise two national championship banners for this lost season.\nThe students and alumni base is not going to give a shit about counter-arguments (you're welcome to declare yourselves pairwise champions) and are not going to just shrug off both the best Mens and Womens teams in several decades as a lost cause. It's going to happen, and in a few decades no one will even think it particularly controversial.")
+    
     if(message.content.startswith('?maine')):
-            await message.channel.send("https://streamable.com/o1xmn")
+            await message.channel.send("https://i.imgur.com/4ZTkTXX.gifv")
+            
+    if(message.content.startswith('?newhampshire')):
+            await message.channel.send("https://i.imgur.com/jWX20zw.gifv")
+   
+    if(message.content.startswith('?connecticut')):
+            await message.channel.send("https://imgur.com/a/cJLxgm2")
+        
+    if(message.content.startswith('?eng') or message.content.startswith('?emptynet')):
+            await message.channel.send("https://imgur.com/a/y8w9Y1X")
+            
+    if(message.content.startswith('?bread')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/685911017334767840/unknown.png")        
+              
             
     if(message.content.startswith('?bemidji')):
             await message.channel.send("https://www.youtube.com/watch?v=CW_B4KB0wYs")
@@ -2661,8 +2850,6 @@ async def on_message(message):
 
     if(message.content.startswith('?russia')):
             await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
-    #if(message.content.startswith('?denver')):
-    #        await message.channel.send("https://media.giphy.com/media/XG7glHKnoBnTg57Sml/giphy.gif")
             
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
@@ -2683,6 +2870,10 @@ async def on_message(message):
         
     if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege')):
         await message.channel.send("https://media.giphy.com/media/cnEz7n3MhAIbESshGd/giphy.gif")
+   
+    if(message.content.startswith('?puckman')):
+        await message.channel.send("https://media.discordapp.net/attachments/519719563294801922/716448834703589397/mascotmadness.png")
+    
            
 @client.event
 async def on_ready():
