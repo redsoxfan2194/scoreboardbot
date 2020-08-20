@@ -504,7 +504,7 @@ def getMatchupHistory(team,opp,numGames):
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
-            numGames=5
+            numGames=15
     else:
         numGames=5
     if(team == '' or opp == ''):
@@ -564,7 +564,7 @@ def getMatchupHistory(team,opp,numGames):
     matchupData = {};
     gNum = 0
     
-
+    gameHistory = "" 
     for game in games:
         gameStr=game.findChildren('td')[0].get_text()
         gameStr=gameStr.replace(u'\xa0',u'')
@@ -595,21 +595,27 @@ def getMatchupHistory(team,opp,numGames):
                 loc=''
             if(aScore>hScore):
               winner=aTeam
+              wScore=aScore
+              lScore=hScore
             elif(hScore>aScore):
               winner=hTeam
+              wScore=hScore
+              lScore=aScore
             else:
               winner='Tie'
+              wScore=hScore
+              lScore=aScore
             gNum+=1
-            matchupData[gNum]={'Date': date, 'awayTeam':aTeam, 'awayScore': aScore, 'homeTeam':hTeam,'homeScore':hScore, 'Location':loc,'Winner': winner}
+            matchupData[gNum]={'Date': date, 'awayTeam':aTeam, 'awayScore': aScore, 'homeTeam':hTeam,'homeScore':hScore, 'Location':loc,'Winner': winner,'winnerScore':wScore,'loserScore':lScore}
            
             if(gNum<=numGames):
                 #return
-                gameHistory+="{} {} {} {} {} {}\n".format(matchupData[gNum]['Date'],matchupData[gNum]['awayTeam'],matchupData[gNum]['awayScore'],matchupData[gNum]['homeTeam'],matchupData[gNum]['homeScore'],matchupData[gNum]['Location'])
+               # gameHistory+="{} {} {} {} {} {}\n".format(matchupData[gNum]['Date'],matchupData[gNum]['awayTeam'],matchupData[gNum]['awayScore'],matchupData[gNum]['homeTeam'],matchupData[gNum]['homeScore'],matchupData[gNum]['Location'])
+               gameHistory+="{} {} {}-{} {}\n".format(matchupData[gNum]['Date'],matchupData[gNum]['Winner'],matchupData[gNum]['winnerScore'],matchupData[gNum]['loserScore'],matchupData[gNum]['Location'])
     
     if(gNum>0):
-        gameHistory = "Recent Results:\n"
-    else:
-        gameHistory = ""   
+        gameHistory = "Recent Results:\n" + gameHistory
+        
     teamWins=0
     oppWins=0
     ties=0
@@ -2359,10 +2365,10 @@ async def on_message(message):
         await message.channel.send(msg)
     
     if message.content.startswith('?cheer'):
-        team = message.content.split('?cheer ')
-        if(len(team)>1):
-            team=decodeTeam(team[1])
-        if(len(team)==1):
+        teamChoice = message.content.split('?cheer ')
+        if(len(teamChoice)>1):
+            team=decodeTeam(teamChoice[1])
+        if(len(teamChoice)==1):
             for i in range(len(message.author.roles)):
                 if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
                     cheer = getCheer(message.author.roles[-1-i].name)
@@ -2377,10 +2383,10 @@ async def on_message(message):
         await message.channel.send(msg)
         
     if message.content.startswith('?jeer '):
-        team = message.content.split('?jeer ')
+        teamChoice = message.content.split('?jeer ')
         jeer = ""
-        if(len(team)>1):
-            team=decodeTeam(team[1])
+        if(len(teamChoice)>1):
+            team=decodeTeam(teamChoice[1])
             jeer = getJeer(convertTeamtoDisRole(team))
             
         if(jeer!=""):
@@ -2389,10 +2395,10 @@ async def on_message(message):
             msg = "I don't know that jeer."
         await message.channel.send(msg)
     if message.content.startswith('?boo '):
-        team = message.content.split('?boo ')
+        teamChoice = message.content.split('?boo ')
         jeer = ""
-        if(len(team)>1):
-            team=decodeTeam(team[1])
+        if(len(teamChoice)>1):
+            team = decodeTeam(teamChoice[1])
             jeer = getJeer(convertTeamtoDisRole(team))
             
         if(jeer!=""):
@@ -2873,6 +2879,9 @@ async def on_message(message):
    
     if(message.content.startswith('?puckman')):
         await message.channel.send("https://media.discordapp.net/attachments/519719563294801922/716448834703589397/mascotmadness.png")
+        
+    if(message.content.startswith('?playoffot') or message.content.startswith('?playoffOT') ):
+        await message.channel.send("https://twitter.com/jon_bois/status/456616952153128960")    
     
            
 @client.event
