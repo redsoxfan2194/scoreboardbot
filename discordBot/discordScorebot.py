@@ -14,40 +14,84 @@ from bs4 import BeautifulSoup
 import operator
 import itertools
 import json
-#from winprobdata import *
+
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-season = '1920'
+season = '2021'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
 
-flairlist = { "American International" : "<:mrbee:559232704722239489>",
+flairlist = {"American International" : "<:aic:693220791076126760>",
+"Air Force" : "<:airforce:761701456188538890>",
+"Alaska" : "<:alaska:761701457077600266>",
+"Army West Point" : "<:army:761701458311381003>",
+"Arizona State" : "<:asu:761701459200704532>",
 "Boston College" : "<:bc:666831654727188481>",
+"Bemidji State" : "<:bemidji:684982886956400658>",
+"Bentley" : "<:bentley:761701460143505428>",
+"Brown" : "<:brown:761701499092598817>",
 "Boston University" : "<:bu:666832026095321088>",
-"Massachusetts" : "<:umass:666832224783695879>",
-"Cornell" : "<:cornell:666832546033827892>",
-"Ohio State" : "<:ohiostate:666832702661459968>",
-"Minnesota State" : "<:mankato:666832880475045900>",
-"Denver" : "<:denver:666833535616679967>",
+"Bowling Green" : "<:bgsu:762019455358206002>",
+"Canisius" : "<:canisius:761701535985565747>",
 "Clarkson" : "<:clarkson:666834128834134017>",
+"Colgate" : "<:colgate:761701491051724810>",
+"Colorado College" : "<:coloradocollege:761701485821689858>",
+"Cornell" : "<:cornell:666832546033827892>",
+"Dartmouth" : "<:dartmouth:761701466876280893>",
+"Denver" : "<:denver:666833535616679967>",
+"Ferris State" : "<:ferrisstate:761701516696092702>",
+"Franklin Pierce" : "<:franklinpierce:761701546223599657>",
 "Harvard" : "<:harvard:666834657681342474>",
+"Holy Cross" : "<:holycross:761701495673585705>",
+"Lake Superior State" : "<:lakesuperior:761701538661400616>",
+"Lindenwood" : "<:lindenwood:761701500426649640>",
+"Long Island University" : "<:liu:761701500565061655>",
+"UMass Lowell" : "<:lowell:761701500397158450>",
+"Maine" : "<:maine:761701510668615730>",
+"Minnesota State" : "<:mankato:666832880475045900>",
+"Mercyhurst" : "<:mercyhurst:761701538425995286>",
+"Merrimack" : "<:merrimack:761701513541189692>",
+"Miami" : "<:miami:761701476619386910>",
+"Michigan" : "<:michigan:761701476603002900>",
+"Michigan Tech" : "<:michigantech:761701513663742022>",
+"Michigan State" : "<:michiganstate:761734569871147039>",
 "Minnesota" : "<:minnesota:666834959142617088>",
-"Wisconsin" : "<:wisconsin:666834959897722900>",
-"Princeton" : "<:princeton:666835295194316810>",
-"Minnesota Duluth" : "<:umd:666836078019215360>",
+"Niagara" : "<:niagara:761701505681457162>",
 "North Dakota" : "<:northdakota:666836576675823628>",
 "Northeastern" : "<:northeastern:666837132488474675>",
+"Northern Michigan" : "<:northernmichigan:761701501642866689>",
+"Notre Dame" : "<:notredame:761701477407522846>",
+"Ohio State" : "<:ohiostate:666832702661459968>",
+"Omaha" : "<:omaha:761701489047371807>",
+"Penn State" : "<:pennstate:761701497728794665>",
+"Post" : "<:post:761701537881260043>",
+"Princeton" : "<:princeton:666835295194316810>",
 "Providence" : "<:providence:666837749428387850>",
-"Penn State" : "<:pennstate:666838035400491012>"}
+"Quinnipiac" : "<:quinnipiac:676508163419406357>",
+"RIT" : "<:rit:761701547276632099>",
+"Robert Morris" : "<:robertmorris:761701542360383518>",
+"Rensselaer" : "<:rpi:761701489587912744>",
+"Sacred Heart" : "<:sacredheart:761701502100176908>",
+"St. Cloud State" : "<:scsu:761701498178502689>",
+"Saint Anselm" : "<:stanselm:761701537214889994>",
+"St. Lawrence" : "<:stlawrence:761701547754389514>",
+"Saint Michael's" : "<:stmichaels:761701516331450368>",
+"Stonehill " : "<:stonehill:761701509595136060>",
+"St. Thomas" : "<:stthomas:761701532261154856>",
+"Syracuse" : "<:syracuse:761701481384509460>",
+"Alabama Huntsville" : "<:uaa:761701504376766464>",
+"Alaska Anchorage" : "<:uah:716027231700516895>",
+"UConn" : "<:uconn:761701507782934548>",
+"Massachusetts " : "<:umass:666832224783695879>",
+"Minnesota Duluth" : "<:umd:666836078019215360>",
+"New Hampshire" : "<:unh:761701513236054027>",
+"Union" : "<:union:761701482030039070>",
+"Vermont" : "<:vermont:761701504691339274>",
+"Western Michigan" : "<:westernmichigan:761701511096959006>",
+"Wisconsin" : "<:wisconsin:666834959897722900>",
+"Yale" : "<:yale:761701482352607272>"}
 
-
-flairlist = { "Boston College" : "<:bc:666831654727188481>",
-"Boston University" : "<:bu:666832026095321088>",
-"Harvard" : "<:harvard:666834657681342474>",
-"Northeastern" : "<:northeastern:666837132488474675>"}
-
-flairlist = {}
-    #scorebot.getScores()
-    #games=scorebot.gameList
+    
+    
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -552,7 +596,6 @@ def getMatchupHistory(team,opp,numGames):
             idNum=re.search('.*=(.*)',link['href'])
             idNum=idNum.group(1)
             hrefDict[link.get_text()]=idNum
-    #print(hrefDict)
 
     url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
     f=urllib.request.urlopen(url)
@@ -576,7 +619,6 @@ def getMatchupHistory(team,opp,numGames):
         gameStr=gameStr.replace('!!',u'!')
         
         gameData=gameStr.split('!')
-       # print(gameData)
         gameData.pop()
 
         if(gameData!=[]):
@@ -1008,15 +1050,13 @@ def getGamesOnTV():
     gameData=parser.return_data()
 
     days = gameData.split('\n\n')
-    games = days[0].split('\n')
-    #print(games)    
+    games = days[0].split('\n')   
     mtagLookup = {}
     wtagLookup = {}
     leagues=set()
     gameList = []
     tag = ''
     for game in games:
-        #print(game)
         game = game.split('!')
         channel = ''
         if any("TV" in i for i in game):
@@ -1254,8 +1294,7 @@ def compareTeams(team1,team2):
     
 def getWPairwise(opt):
     
-    global teamDict,newha,season
-    #newha =['Saint Anselm','Franklin Pierce',"Saint Michael's"]   
+    global teamDict,newha,season 
     newha = []
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
@@ -1269,15 +1308,13 @@ def getWPairwise(opt):
     teamDict = {}
     days = gameData.split('\n\n')
     for day in days:
-        games = day.split('\n')
-        #print(games)    
+        games = day.split('\n')   
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1446,15 +1483,13 @@ def getWKRACH(opt):
     teamDict = {}
     days = gameData.split('\n\n')
     for day in days:
-        games = day.split('\n')
-        #print(games)    
+        games = day.split('\n')   
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1636,14 +1671,14 @@ def getComboKRACH(type,opt):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        #print(games)    
+        
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
+            
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1730,14 +1765,14 @@ def getComboKRACH(type,opt):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        #print(games)    
+        
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
+            
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1919,14 +1954,14 @@ def getWOdds(team1,team2):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        #print(games)    
+        
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
+            
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -2061,14 +2096,14 @@ def getWOdds3(team1,team2):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        #print(games)    
+        
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            #print(game)
+            
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -2176,7 +2211,45 @@ def getWOdds3(team1,team2):
     team2Odds = (teamDict[team2]['Rating']**2 * (teamDict[team2]['Rating'] + 3 * teamDict[team1]['Rating']))/((teamDict[team2]['Rating'] + teamDict[team1]['Rating'])**3)
         
     return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,1), team2, round(team2Odds*100,1))  
+ 
+def getGTTitle():
+    text='No Title Set'
+    upGTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingGTTitle.txt'
+    if(os.path.exists(upGTFilePath)):
+        file=open(upGTFilePath,'r')
+        text = file.readline()
+        text=text.rstrip('\n')
+        file.close()
+    return "> "+text
     
+def setGTTitle(title):
+    upGTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingGTTitle.txt'
+    file2=open(upGTFilePath,'w')
+    title = title.replace('"','')
+    print(title,end='',file=file2)
+    file2.close()
+    return "Title Updated: {}".format(title)
+    
+    
+def getTrashTitle():
+    text='No Title Set'
+    upTTTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingTrashTitle.txt'
+    if(os.path.exists(upTTTFilePath)):
+        file=open(upTTTFilePath,'r')
+        text = file.readline()
+        text=text.rstrip('\n')
+        text= "> " + text + " EDITION"
+        file.close()
+    return text
+    
+def setTrashTitle(title):
+    upTTTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingTrashTitle.txt'
+    file2=open(upTTTFilePath,'w')
+    title = title.replace('"','')
+    title = title.upper()
+    print(title,end='',file=file2)
+    file2.close()
+    return "Title Updated: {} EDITION".format(title)
 
 @client.event
 async def on_message(message):
@@ -2186,12 +2259,45 @@ async def on_message(message):
         return
 
     if message.content.startswith('!help') or message.content.startswith('?help'):
-       helpStr =displayHelp()
+       helpStr = displayHelp()
        await message.author.send(helpStr[0])
        await message.author.send(helpStr[1])
     if not message.content.startswith('?'):
         return
+                
     loop = asyncio.get_event_loop()
+    
+    if message.content.startswith('?getgttitle') and message.author.name == 'memmdog':
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getGTTitle)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?setgttitle ') and message.author.name == 'memmdog':
+        title = message.content.split('?setgttitle ')[1]
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, setGTTitle,title)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+    
+    
+    if message.content.startswith('?gettrashtitle') and message.author.name == 'memmdog':
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getTrashTitle)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?settrashtitle ') and message.author.name == 'memmdog':
+        title = message.content.split('?settrashtitle ')[1]
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, setTrashTitle,title)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
     if message.content.startswith('?score '):
         team = decodeTeam(message.content.split('?score ')[1])
         with cf.ProcessPoolExecutor(1) as p:
@@ -2745,13 +2851,8 @@ async def on_message(message):
     if(message.content.startswith('?harvard')):
             await message.channel.send("FUCK HARVARD")
         
-    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
-            gif="https://m.imgur.com/ZPZUGW0"
-#            random.seed(datetime.datetime.now())
-#            if(random.randint(0,100)<=10):
-#                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
-            
-            await message.channel.send(gif)
+    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):         
+            await message.channel.send("https://m.imgur.com/ZPZUGW0")
             
     if(message.content.startswith('?nuboston')):
             await message.channel.send("https://media.giphy.com/media/WU0oTNSciD83BUDfYR/giphy.gif")
@@ -2867,12 +2968,13 @@ async def on_message(message):
         await message.channel.send(getCat())
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
-       # for i in message.guild.emojis:
-       #    print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
     
     if(message.content.startswith('?beanpot')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
+        
+    if(message.content.startswith('?beanpawt')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/761742817025327114/IMG_20201002_201354.jpg")
         
     if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege')):
         await message.channel.send("https://media.giphy.com/media/cnEz7n3MhAIbESshGd/giphy.gif")
@@ -2882,6 +2984,11 @@ async def on_message(message):
         
     if(message.content.startswith('?playoffot') or message.content.startswith('?playoffOT') ):
         await message.channel.send("https://twitter.com/jon_bois/status/456616952153128960")    
+   
+    if(message.content.startswith('?merrimack') or message.content.startswith('?mack') ):
+        await message.channel.send("Is Merrimack College a respectable institution?")   
+
+    
     
            
 @client.event
@@ -3075,14 +3182,14 @@ def generateScoreline(team, gender):
 
     days = gameData.split('\n\n')
     games = days[0].split('\n')
-    #print(games)    
+    
     mtagLookup = {}
     wtagLookup = {}
     leagues=set()
     gameList = []
     tag = ''
     for game in games:
-        #print(game)
+        
         game = game.split('!')
         
         
