@@ -33,7 +33,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Bowling Green" : "<:bgsu:762019455358206002>",
 "Canisius" : "<:canisius:761701535985565747>",
 "Clarkson" : "<:clarkson:666834128834134017>",
-"Colgate" : "<:colgate:761701491051724810>",
+"Colgate" : "<:colgate:791441084420980746>",
 "Colorado College" : "<:coloradocollege:761701485821689858>",
 "Cornell" : "<:cornell:666832546033827892>",
 "Dartmouth" : "<:dartmouth:761701466876280893>",
@@ -78,10 +78,10 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Stonehill " : "<:stonehill:761701509595136060>",
 "St. Thomas" : "<:stthomas:761701532261154856>",
 "Syracuse" : "<:syracuse:761701481384509460>",
-"Alabama Huntsville" : "<:uaa:761701504376766464>",
-"Alaska Anchorage" : "<:uah:716027231700516895>",
+"Alabama Huntsville" : "<:uah:716027231700516895>",
+"Alaska Anchorage" : "<:uaa:761701504376766464>",
 "UConn" : "<:uconn:761701507782934548>",
-"Massachusetts " : "<:umass:666832224783695879>",
+"Massachusetts" : "<:umass:666832224783695879>",
 "Minnesota Duluth" : "<:umd:666836078019215360>",
 "New Hampshire" : "<:unh:761701513236054027>",
 "Union" : "<:union:761701482030039070>",
@@ -90,8 +90,8 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Wisconsin" : "<:wisconsin:666834959897722900>",
 "Yale" : "<:yale:761701482352607272>"}
 
-    
-    
+    #scorebot.getScores()
+    #games=scorebot.gameList
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -157,19 +157,20 @@ def displayHelp():
 ?[msched / wsched] [team] - displays next 5 games of the team entered (All Caps denotes [team] is home)
 ?[msched / wsched] [team],<number> - displays next <number> games of the team entered (All Caps denotes [team] is home)
 ?[msched / wsched] [team],[team2] - displays results and head to head schedule of teams entered (All Caps denotes [team] is home)
+?[mstats / wstats] [team],[player name/number] - displays player stats of given player
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
 ?[history] [team1],[team2] - displays Matchup history and recent results
 ?[history] [team1],[team2],<number> - displays Matchup history and recent results
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[thanksbot] - Thanks Bot
-?[roles] - display list of availible roles
+?[roles] - display list of available roles
 ?[roles] [role/team name] - adds role to user
 ?[rroles] [role/team name] - removes role from user
 ?[dog] - displays random dog pic
 ?[cat] - displays random cat pic
 
-Scores/Standings/TV Listings courtesy of collegehockeystats.net
+Scores/Standings/TV Listings/Stats courtesy of collegehockeystats.net
 Pairwise Rankings courtesy of collegehockeynews.com
 Women's Pairwise Rankings calculated using scores from collegehockeystats.net
 Women's KRACH calculations courtesy of lugnut92
@@ -294,6 +295,7 @@ def getCheer(role):
     "Michigan State Spartans" : ["Go Sparty!", "Go Green!"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "RPI Engineers" : ["Let's Go Red!", "Go Red!\nGo White!"],
+    "RIT Tigers" : ["Go Tigers!"],
     "Notre Dame Fighting Irish" : ["Go Irish!"],
     "Providence Friars" : ["Go Friars!"],
     "St. Cloud State Huskies" : ["Go Huskies!"],
@@ -313,6 +315,7 @@ def getCheer(role):
     "Holy Cross Crusaders" : ["Go Cross Go"],
     "Army Black Knights" : ["Go Army! Beat Navy!"],
     "Alabama Huntsville Chargers" : ["STAN HORSIES!!", "Go Chargers!", "Go Big Blue!"],
+    "LIU Sharks" : ["Go Sharks!", "Here we go Sharks!", "Strong Island"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
@@ -333,7 +336,7 @@ def getJeer(role):
         role = "Princeton Tigers"
     elif(role == "color vermont"):
         role = "Vermont Catamounts"
-    jeerList = { "Boston College Eagles" : ["BC Sucks!", "Fuck 'Em Up! Fuck 'Em Up! BC Sucks!", "Sunday School!", "Not From Boston!" ,"```For Newton, For Newton\nThe Outhouse on the hill!\nFor Newton, For Newton\nBC sucks and always will!\nSo here’s to the outhouse on the hill,\nCause Boston College sucks and they always will,\nFor Newton, For Newton,\nThe outhouse on the hill!```"],
+    jeerList = { "Boston College Eagles" : ["BC Sucks!", "Fuck 'Em Up! Fuck 'Em Up! BC Sucks!", "Sunday School!", "Not From Boston!" ,"```\nFor Newton, For Newton\nThe Outhouse on the hill!\nFor Newton, For Newton\nBC sucks and always will!\nSo here’s to the outhouse on the hill,\nCause Boston College sucks and they always will,\nFor Newton, For Newton,\nThe outhouse on the hill!```"],
     "Harvard Crimson" : ["Fuck Harvard!", "Gimme an A! Gimme another A! Gimme another A! Grade Inflation!", "UMass Rejects!"],
     "Yale Bulldogs" : ["Yuck Fale", "UConn Rejects!", "I wouldn't jeer me if i were you. Do you know who my father is?"],
     "Dartmouth Big Green" : ["UNH Rejects!"],
@@ -346,16 +349,18 @@ def getJeer(role):
     "Boston University Terriers" : ["Sucks to BU!", "Screw BU!"],
     "Northeastern Huskies" : ["Northleastern", "North! Eastern! Sucks!"],
     "Colgate Raiders" : ["Crest is Best!"],
-    "Cornell Big Red" : ["Harvard Rejects!", "```Up above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
+    "Cornell Big Red" : ["Harvard Rejects!", "```\nUp above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
     "Maine Black Bears" : ["M-A-I-N-E ~~Go Blue~~ MAAAAAIIINNNE SUCKS", "UMOwO"],
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
+    "Michigan Wolverines" : ["```\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio\nWe're from Ohio...O-H\nWe're from Ohio...I-O\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio```"],
     "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!", "https://youtu.be/OCbuRA_D3KU"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
     "RPI Engineers" : ["KRACH is Better!"],
     "Minnesota State Mavericks" : ["Mankatno", "Mankato Sucks!"],
     "Minnesota Duluth Bulldogs" : ["Duluth Sucks!"],
+    "Minnesota Golden Gophers" : ["Golden Goofs"],
     "Quinnipiac Bobcats" : ["QU PU!"],
     "Michigan Tech Huskies" : ["Even Mel had to leave Houghton."],
     "Denver Pioneers" : ["Sucks to DU!"],
@@ -367,9 +372,10 @@ def getJeer(role):
     "Vermont Catamounts" : ["Elephants Don't Walk That Way", "Dirty Hippies"],
     "UConn Huskies" : ["Slush Bus", "U-Cons"],
     "New Hampshire Wildcats" : ["Bad Kitty"],
-    "Holy Cross Crusaders" : ["Boo Cross Boo", "Holy Cow"],
+    "Holy Cross Crusaders" : ["Boo Cross Boo", "Holy Cow", "No Cross No", "Moo Cow Moo"],
     "Army Black Knights" : ["Woops", "Ring Knockers", "https://www.dictionary.com/e/slang/circle-game/"],
     "Air Force Falcons" : ["Ring Knockers", "Chair Force"],
+    "LIU Sharks" : ["Baby Shark Doo doo, doo doo doo doo"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "Craig" : ["Imagine being named Craig"],
     "Yankees" : ["Yankees Suck!"],
@@ -380,6 +386,8 @@ def getJeer(role):
         return "";
  
 def getPairwise(opt):
+
+    #return "Pairwise is currently unavailable for the 2020-21 Season, use ?mpwr for an approximation"
     url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -453,7 +461,7 @@ def getPairwise(opt):
     else:
         end = 16
 
-    rankings = "```"
+    rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,pairwise[i])
     rankings += "```"
@@ -535,7 +543,7 @@ def getKRACH(opt):
     else:
         end = 16
 
-    rankings = "```"
+    rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,krach[i])
     rankings += "```"
@@ -555,14 +563,11 @@ def getMatchupHistory(team,opp,numGames):
         
         return "Enter Two Teams!"
         
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
+    chnDiffs={"Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass Lowell",
+        "Omaha" : "Nebraska Omaha",
+        "American International" : "American Intl",
         "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
         "UConn" : "Connecticut"}
         
     team = decodeTeam(team)
@@ -584,6 +589,7 @@ def getMatchupHistory(team,opp,numGames):
         
         return "Enter Two Different Teams!"
 
+    '''
     url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -596,7 +602,23 @@ def getMatchupHistory(team,opp,numGames):
             idNum=re.search('.*=(.*)',link['href'])
             idNum=idNum.group(1)
             hrefDict[link.get_text()]=idNum
-
+    #print(hrefDict)
+    '''
+    url = "https://www.collegehockeynews.com/reports/teamindex-historical.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    pairwise = []
+    hrefDict = {}
+    for link in soup.find_all('a',{'class':'team'}):
+            #print(link['href'],link.get_text())
+            #print(link['href'])
+            res=re.search('.*\/(.*)\/(\d*)',link['href'])
+            idNum=res.group(2)
+            teamName=res.group(1)
+            teamName=teamName.replace('-',' ')
+            hrefDict[teamName]=idNum
     url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -619,6 +641,7 @@ def getMatchupHistory(team,opp,numGames):
         gameStr=gameStr.replace('!!',u'!')
         
         gameData=gameStr.split('!')
+       # print(gameData)
         gameData.pop()
 
         if(gameData!=[]):
@@ -969,7 +992,7 @@ def getPWRComp(team1,team2):
                     comp[-2]=temp
                     comp[-1]=''
                 compList.append(comp)
-    pwrComp = '```'
+    pwrComp = '```\n'
     for i in compList:
         for d in i:
             pwrComp+= d + '\t'
@@ -1027,7 +1050,7 @@ def getStandings(conf, m_w):
     for i in soup.find_all('pre'):
         data=i.get_text()
         standings=data.replace(u'\xa0',u' ') 
-        standings = "```" + standings + "```"
+        standings = "```\n" + standings + "```"
         return standings
         
 def getGamesOnTV():
@@ -1050,13 +1073,15 @@ def getGamesOnTV():
     gameData=parser.return_data()
 
     days = gameData.split('\n\n')
-    games = days[0].split('\n')   
+    games = days[0].split('\n')
+    #print(games)    
     mtagLookup = {}
     wtagLookup = {}
     leagues=set()
     gameList = []
     tag = ''
     for game in games:
+        #print(game)
         game = game.split('!')
         channel = ''
         if any("TV" in i for i in game):
@@ -1294,7 +1319,8 @@ def compareTeams(team1,team2):
     
 def getWPairwise(opt):
     
-    global teamDict,newha,season 
+    global teamDict,newha,season
+    #newha =['Saint Anselm','Franklin Pierce',"Saint Michael's"]   
     newha = []
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
@@ -1308,13 +1334,15 @@ def getWPairwise(opt):
     teamDict = {}
     days = gameData.split('\n\n')
     for day in days:
-        games = day.split('\n')   
+        games = day.split('\n')
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1462,7 +1490,187 @@ def getWPairwise(opt):
                 end=swap+1
     else:
         end = 8
-    rankings = "```"
+    rankings = "```\n"
+    for i in range(start,end):
+        rankings+="{}. {}\n".format(i+1,pwr[i])
+    rankings += "```"
+    return rankings
+    
+    
+def getMPairwise(opt):
+    
+    global teamDict,newha,season
+    url = "http://www.collegehockeystats.net/{}/schedules/d1m".format(season)
+    newha = [] 
+    parser = MyHTMLParser()
+    f=urllib.request.urlopen(url,timeout=10)
+    html = f.read()
+    f.close()
+    parser.feed(html.decode("latin1"))
+    
+    gameData=parser.return_data()
+    teamDict = {}
+    days = gameData.split('\n\n')
+    for day in days:
+        games = day.split('\n')
+        #print(games)    
+        mtagLookup = {}
+        wtagLookup = {}
+        leagues=set()
+        gameList = []
+        tag = ''
+        for game in games:
+            #print(game)
+            game = game.split('!')
+            if(len(game)==1):
+                continue
+            if(game[0]==''):
+                game.pop(0)
+
+            if(game[-1]==''):
+                game.pop()
+                if(game==[]):
+                    continue
+                try:
+                    if(game[-1][0]=='('):
+                        game.pop()
+                except IndexError:
+                    pass
+            if(len(game)==2):
+               continue
+                   
+            if(len(game)>2):
+                if(game[0]==''):
+                    continue            
+                if(game[0][0]=='('):
+                    tag=game[0]
+                    game.pop(0)                
+            if(game.count('OT')>0):
+                numOT = 'OT'
+                if(game.count('2OT')>0):
+                    numOT = '2OT'
+                elif(game.count('3OT')>0):
+                    numOT = '3OT'
+                elif(game.count('4OT')>0):
+                    numOT = '4OT'
+                elif(game.count('5OT')>0):
+                    numOT = '5OT'
+                game.pop(5)
+                if(game.count('Final')>0):
+                    game[7]='Final ({})'.format(numOT)
+            if(len(game)==8):
+                game[5]=game[5].replace(' ',"")
+                if(game[5]=='EC,IV'):
+                   game[5] = 'EC'
+                if(game[5]=='NH'):
+                  game[5] = 'NW' 
+                game[4] = game[4].replace(' OT','')
+                game[4] = game[4].replace(' 2OT','')
+                game[4] = game[4].replace(' 3OT','')
+                game[4] = game[4].replace(' 4OT','')
+                game[4] = game[4].replace(' 5OT','')
+                pwrGameDict = {'awayTeam' : game[0],
+                            'awayScore': game[1],
+                            'homeTeam' : game[3],
+                            'homeScore': game[4]}
+                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Men') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Men')):
+                    continue
+                if(pwrGameDict['homeTeam'] not in teamDict):
+                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB': 0, 'cWins': 0}})
+                if(pwrGameDict['awayTeam'] not in teamDict):
+                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB' : 0, 'cWins': 0}})
+                
+                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
+                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
+                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
+                    
+                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
+                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
+                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
+                else:
+                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
+                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
+                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
+                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
+                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
+                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
+
+
+    
+    calcRPI()
+    teamList = [i for i in teamDict.keys() if scorebot.isD1(i,i,'Men')]
+
+    teamCombos=list(itertools.combinations(teamList,2))
+    for team1,team2 in teamCombos:
+        sumTeam1,sumTeam2 = compareTeams(team1,team2)
+        if(sumTeam1>sumTeam2):
+            teamDict[team1]['cWins']+=1
+        elif(sumTeam1<sumTeam2):
+            teamDict[team2]['cWins']+=1
+        else:
+            t1RPI,t2RPI = compareRPI(team1,team2)
+            if(t1RPI>t2RPI):
+                teamDict[team1]['cWins']+=1
+            elif(t1RPI<t2RPI):
+                teamDict[team2]['cWins']+=1
+    pwrDict ={}
+    for i in teamDict.keys():
+        if(scorebot.isD1(i,i,'Men')):
+            pwrDict[i] = [teamDict[i]['cWins'],teamDict[i]['RPI']]
+        
+    sorted_pwr = sorted(pwrDict.items(), key=operator.itemgetter(1,1), reverse=True)
+    pwr = []
+    for i in sorted_pwr:
+        pwr.append(i[0])
+    start = 0
+    splitopt = opt.split(',')
+    decodedTeam = decodeTeam(opt)
+    if(opt.isnumeric()):
+        end = int(opt)
+    elif(opt.lower()=='full'):
+        end = 60
+    elif(scorebot.isD1(decodedTeam,decodedTeam,'Men')):
+
+        teamIdx=pwr.index(decodedTeam)
+        if(teamIdx-2<0):
+            start=0
+        else:
+            start = teamIdx-2
+        if(teamIdx+3>60):
+            end=60
+        else:
+            end = teamIdx+3
+    elif(opt.lower() == 'bubble'):
+        start = 5
+        end = 12
+    elif(opt.lower() == 'top'):
+        end = 4
+    elif(opt.lower() == 'bottom'):
+        start = 35
+        end = 60
+    elif(len(splitopt)==2):
+        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+            sOpt=int(splitopt[0])
+            eOpt=int(splitopt[1])
+            if(sOpt>0):
+                start=sOpt-1
+            else:
+                start=0
+                
+            if(eOpt<=60):
+                end = eOpt
+            else:
+                end=60
+            
+            if(sOpt>eOpt):
+                swap=start
+                start=end-1
+                end=swap+1
+    else:
+        end = 16
+    rankings = "```\n"
+    if(len(pwr)<end):
+        end=len(pwr)
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,pwr[i])
     rankings += "```"
@@ -1483,13 +1691,15 @@ def getWKRACH(opt):
     teamDict = {}
     days = gameData.split('\n\n')
     for day in days:
-        games = day.split('\n')   
+        games = day.split('\n')
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1649,7 +1859,7 @@ def getWKRACH(opt):
                 end=swap+1   
     else:
         end = 8
-    rankings = "```"
+    rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,krach[i])
     rankings += "```"
@@ -1671,14 +1881,14 @@ def getComboKRACH(type,opt):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1765,14 +1975,14 @@ def getComboKRACH(type,opt):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -1923,7 +2133,7 @@ def getComboKRACH(type,opt):
         end = len(krach)-1
     else:
         end = 10
-    rankings = "```"
+    rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,krach[i])
     rankings += "```"
@@ -1954,14 +2164,14 @@ def getWOdds(team1,team2):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -2096,14 +2306,14 @@ def getWOdds3(team1,team2):
     days = gameData.split('\n\n')
     for day in days:
         games = day.split('\n')
-        
+        #print(games)    
         mtagLookup = {}
         wtagLookup = {}
         leagues=set()
         gameList = []
         tag = ''
         for game in games:
-            
+            #print(game)
             game = game.split('!')
             if(len(game)==1):
                 continue
@@ -2458,6 +2668,52 @@ async def on_message(message):
             p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)              
+      
+    if message.content.startswith('?mstats '):
+        team = message.content.split('?mstats ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            player=split[1]
+            player=player.lstrip(' ')
+            team=split[0]
+        else:
+            player='N/A'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getStats, team, player, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+
+    if message.content.startswith('?stats '):
+        team = message.content.split('?stats ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            player=split[1]
+            player=player.lstrip(' ')
+            team=split[0]
+        else:
+            player='N/A'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getStats, team, player, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+            
+    if message.content.startswith('?wstats '):
+        team = message.content.split('?wstats ')[1]
+        split=team.split(',')
+        if(len(split)==2):
+            player=split[1]
+            player=player.lstrip(' ')
+            team=split[0]
+        else:
+            player='N/A'
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getStats, team, player, "Women")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
             
     if message.content.startswith('?thanksbot'):
         msg = "You're Welcome {0.author.mention}!".format(message)
@@ -2485,7 +2741,11 @@ async def on_message(message):
         if(cheer!=""):
             msg="{}".format(cheer)
         else:
-            msg = "I don't know that cheer."
+            #msg = "I don't know that cheer."
+            teamName=team
+            if(convertTeamtoDisRole(team) != ""):
+                teamName = convertTeamtoDisRole(team)
+            msg = "Go {}!".format(teamName)
         await message.channel.send(msg)
         
     if message.content.startswith('?jeer '):
@@ -2498,7 +2758,11 @@ async def on_message(message):
         if(jeer!=""):
             msg="{}".format(jeer)
         else:
-            msg = "I don't know that jeer."
+            #msg = "I don't know that jeer."
+            teamName=team
+            if(convertTeamtoDisRole(team) != ""):
+                teamName = convertTeamtoDisRole(team)
+            msg = "Boo {}".format(teamName)
         await message.channel.send(msg)
     if message.content.startswith('?boo '):
         teamChoice = message.content.split('?boo ')
@@ -2527,7 +2791,22 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
-                
+    '''            
+    if(message.content.startswith('?mpwr')):
+        opt = message.content.split('?mpwr ')
+        if(len(opt)==1):
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getMPairwise, '')
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getMPairwise, opt[1])
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+    '''            
     if(message.content.startswith('?wpwr')):
         opt = message.content.split('?wpwr ')
         if(len(opt)==1):
@@ -2785,7 +3064,7 @@ async def on_message(message):
                 for i in message.guild.roles:
                     if(i.name not in invalidRoles):
                         roles+= i.name + "\n"
-                if(roles != "```"):
+                if(roles != "```\n"):
                     roles += '```'
                     await message.author.send(roles) 
             else:
@@ -2831,7 +3110,10 @@ async def on_message(message):
                     await message.channel.send("Invalid Role")
         except discord.errors.Forbidden:
             await message.channel.send("Invalid Role")
-            
+     
+    if(message.content.startswith('?scoreboard')):
+            await message.channel.send("http://www.collegehockeyinc.com/nationalscores.php")
+     
     # gifs and stuff
     if(message.content.startswith('?bu')):
             await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
@@ -2851,8 +3133,13 @@ async def on_message(message):
     if(message.content.startswith('?harvard')):
             await message.channel.send("FUCK HARVARD")
         
-    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):         
-            await message.channel.send("https://m.imgur.com/ZPZUGW0")
+    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
+            gif="https://m.imgur.com/ZPZUGW0"
+#            random.seed(datetime.datetime.now())
+#            if(random.randint(0,100)<=10):
+#                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
+            
+            await message.channel.send(gif)
             
     if(message.content.startswith('?nuboston')):
             await message.channel.send("https://media.giphy.com/media/WU0oTNSciD83BUDfYR/giphy.gif")
@@ -2968,10 +3255,15 @@ async def on_message(message):
         await message.channel.send(getCat())
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
+        #for i in message.guild.emojis:
+        #   print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
     
-    if(message.content.startswith('?beanpot')):
+    if(message.content.startswith('?beanpot') and not message.content.startswith('?beanpottrot')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
+        
+    if(message.content.startswith('?beanpottrot')):
+        await message.channel.send("https://www.youtube.com/watch?v=EC2cs88XK1g")
         
     if(message.content.startswith('?beanpawt')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/761742817025327114/IMG_20201002_201354.jpg")
@@ -2988,6 +3280,11 @@ async def on_message(message):
     if(message.content.startswith('?merrimack') or message.content.startswith('?mack') ):
         await message.channel.send("Is Merrimack College a respectable institution?")   
 
+    if(message.content.startswith('?btn+')):
+        await message.channel.send("There are no non-paid streams for BTN+ games available, might I suggest locating the team's radio broadcast")  
+        
+    if(message.content.startswith('?five-0') or message.content.startswith('?five-o')):
+        await message.channel.send("https://www.youtube.com/watch?v=MC64gKvh5R8")    
     
     
            
@@ -3085,6 +3382,7 @@ def decodeTeam(team):
         "purplecows" : "Minnesota State",
         "qu" : "Quinnipiac",
         "quinny" : "Quinnipiac",
+        "quinni" : "Quinnipiac",
         "rmu" : "Robert Morris",
         "rpi" : "Rensselaer",
         "rit" : "RIT",
@@ -3182,14 +3480,14 @@ def generateScoreline(team, gender):
 
     days = gameData.split('\n\n')
     games = days[0].split('\n')
-    
+    #print(games)    
     mtagLookup = {}
     wtagLookup = {}
     leagues=set()
     gameList = []
     tag = ''
     for game in games:
-        
+        #print(game)
         game = game.split('!')
         
         
@@ -3434,7 +3732,7 @@ def getSchedule(team,opt,gender):
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find_all('table')[1]
-    gameLine = '```'
+    gameLine = '```\n'
     counter=0
     format = "%A, %B %d %y"
     firstHalf = ["September", "October", "November", "December"]
@@ -3499,7 +3797,7 @@ def getSchedule(team,opt,gender):
             break
             
     gameLine +='```'
-    if(gameLine=='``````'):
+    if(gameLine=='```\n```'):
         return 'No Schedule Found'
     return gameLine
     
@@ -3587,7 +3885,7 @@ def getResults(team,opt,gender):
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find_all('table')[1]
-    gameLine = '```'
+    gameLine = '```\n'
     counter=0
     games = []
     format = "%A, %B %d %y"
@@ -3621,8 +3919,190 @@ def getResults(team,opt,gender):
         gameLine+= i
             
     gameLine +='```'
-    if(gameLine=='``````'):
+    if(gameLine=='```\n```'):
         return 'No Results Found'
     return gameLine
+    
+def getStats(team,playerToFind,gender):
+
+    teamDict = {"Air Force" : "teamstats/afa",
+        "Alabama Huntsville" : "teamstats/alh",
+        "Alaska Anchorage" : "teamstats/aka",
+        "Alaska" : "teamstats/akf",
+        "American International" : "teamstats/aic",
+        "Arizona State" : "teamstats/asu",
+        "Army West Point" : "teamstats/arm",
+        "Bemidji State" : "teamstats/bmj",
+        "Bentley" : "teamstats/ben",
+        "Boston College" : "teamstats/bc_",
+        "Boston University" : "teamstats/bu_",
+        "Bowling Green" : "teamstats/bgs",
+        "Brown" : "teamstats/brn",
+        "Canisius" : "teamstats/cns",
+        "Clarkson" : "teamstats/clk",
+        "Colgate" : "teamstats/clg",
+        "Colorado College" : "teamstats/cc_",
+        "Cornell" : "teamstats/cor",
+        "Dartmouth" : "teamstats/dar",
+        "Denver" : "teamstats/den",
+        "Ferris State" : "teamstats/fsu",
+        "Franklin Pierce" : "teamstats/fpu",
+        "Harvard" : "teamstats/har",
+        "Holy Cross" : "teamstats/hcr",
+        "Lake Superior State" : "teamstats/lss",
+        "Lindenwood" : "teamstats/lin",
+        "Long Island University" : "teamstats/liu",
+        "Maine" : "teamstats/mne",
+        "Massachusetts" : "teamstats/uma",
+        "Mercyhurst" : "teamstats/mrc",
+        "Merrimack" : "teamstats/mer",
+        "Miami" : "teamstats/mia",
+        "Michigan State" : "teamstats/msu",
+        "Michigan Tech" : "teamstats/mtu",
+        "Michigan" : "teamstats/mic",
+        "Minnesota Duluth" : "teamstats/mnd",
+        "Minnesota State" : "teamstats/mns",
+        "Minnesota" : "teamstats/min",
+        "New Hampshire" : "teamstats/unh",
+        "Niagara" : "teamstats/nia",
+        "North Dakota" : "teamstats/ndk",
+        "Northeastern" : "teamstats/noe",
+        "Northern Michigan" : "teamstats/nmu",
+        "Notre Dame" : "teamstats/ndm",
+        "Ohio State" : "teamstats/osu",
+        "Omaha" : "teamstats/uno",
+        "Penn State" : "teamstats/psu",
+        "Post" : "teamstats/pst",
+        "Princeton" : "teamstats/prn",
+        "Providence" : "teamstats/prv",
+        "Quinnipiac" : "teamstats/qui",
+        "RIT" : "teamstats/rit",
+        "Rensselaer" : "teamstats/ren",
+        "Robert Morris" : "teamstats/rmu",
+        "Sacred Heart" : "teamstats/sac",
+        "Saint Anselm" : "teamstats/sta",
+        "Saint Michael's" : "teamstats/stm",
+        "St. Cloud State" : "teamstats/stc",
+        "St. Lawrence" : "teamstats/stl",
+        "Syracuse" : "teamstats/syr",
+        "UConn" : "teamstats/con",
+        "UMass Lowell" : "teamstats/uml",
+        "Union" : "teamstats/uni",
+        "Vermont" : "teamstats/ver",
+        "Western Michigan" : "teamstats/wmu",
+        "Wisconsin" : "teamstats/wis",
+        "Yale" : "teamstats/yal"}
+              
+    decTeam = decodeTeam(team)
+    if(scorebot.isD1(decTeam,decTeam,gender)):
+       url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    else:
+        return ":regional_indicator_x: Team Not Found"
+
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    tab = soup.find_all("table")
+    skatersTab=tab[2]
+    tabRows=skatersTab.find_all('tr')
+    
+    statsDict={"number" : 0,
+    "name" : 1,
+    "pos" : 2,
+    "yr" : 3,
+    "overall_gp" : 4,
+    "overall_goals" : 5,
+    "overall_assists" : 6,
+    "overall_pts" : 7,
+    "overall_pen" : 8,
+    "overall_ppg" : 9,
+    "overall_shg" : 10,
+    "overall_gwg" : 11,
+    "overall_plusminus" : 12,
+    "overall_sog" : 13,
+    "conf_gp" : 14,
+    "conf_goals" : 15,
+    "conf_assists" : 16,
+    "conf_pts" : 17,
+    "conf_pen" : 18,
+    "conf_ppg" : 19,
+    "conf_shg" : 20,
+    "conf_gwg" : 21,
+    "conf_plusminus" : 22,
+    "conf_sog" : 23,
+    "career_gp" : 24,
+    "career_goals" : 25,
+    "career_assists" : 26,
+    "career_pts" : 27}
+    
+    gStatsDict={"number" : 0,
+    "name" : 1,
+    "yr" : 2,
+    "gp" : 3,
+    "mins" : 4,
+    "ga" : 5,
+    "saves" : 6,
+    "shots" : 7,
+    "saveperc" : 8,
+    "gaa" : 9,
+    "record" : 10,
+    "winpec" : 11,
+    "gs" : 12,
+    "so" : 13}
+    
+    skaterRows=skatersTab.find_all('tr', class_=lambda x: x != 'chssmallbold')
+    skaterDict_name={}
+    skaterDict_number={}
+    for i in range(1,len(skaterRows)):
+        playerDict={}
+        if("Bench" in skaterRows[i].get_text()):
+            break
+        for d in statsDict.keys():
+            playerDict[d] = skaterRows[i].find_all('td')[statsDict[d]].get_text().lstrip(' ').rstrip(' ').replace('\xa0','N/A')
+        skaterDict_name[skaterRows[i].find_all('td')[statsDict['name']].get_text().upper()]=playerDict
+        skaterDict_number[skaterRows[i].find_all('td')[statsDict['number']].get_text().lstrip(' ').rstrip(' ')]=playerDict
+       
+    goalieTab=tab[3]
+    goalieRows=goalieTab.find_all('tr', class_=lambda x: x != 'chssmallbold')
+    goalieDict_name={}
+    goalieDict_number={}
+    for i in range(1,len(goalieRows)):
+        playerDict={}
+        if("Open Net" in goalieRows[i].get_text() or "##" in goalieRows[i].get_text()):
+            break
+        for d in gStatsDict.keys():
+            playerDict[d] = goalieRows[i].find_all('td')[gStatsDict[d]].get_text().lstrip(' ').rstrip(' ').replace('\xa0','N/A')
+        goalieDict_name[goalieRows[i].find_all('td')[gStatsDict['name']].get_text().upper()]=playerDict
+        goalieDict_number[goalieRows[i].find_all('td')[gStatsDict['number']].get_text().lstrip(' ').rstrip(' ')]=playerDict
+
+    skateHeader="##\tName\t\tPos\tYR\tGP\tG\tA\tPts\tPEN/MIN\t+/-\n"
+    goalieHeader="##\tName\t\tYR\tGP\tMinutes\tGA\tSave%\tGAA\tRecord\tGS\tSO\n"
+    if(playerToFind.isnumeric()):
+        if(playerToFind in goalieDict_number.keys()):
+            player= goalieDict_number[playerToFind]            
+            goalStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['yr'],player['gp'],player['mins'],player['ga'],player['saveperc'],player['gaa'],player['record'],player['gs'],player['so'])
+            return "```\n" + goalieHeader + goalStatLine + "```"
+        elif(playerToFind in skaterDict_number.keys()):
+            player = skaterDict_number[playerToFind]
+            skateStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['pos'],player['yr'],player['overall_gp'],player['overall_goals'],player['overall_assists'],player['overall_pts'],player['overall_pen'],player['overall_plusminus'])
+            return "```\n" + skateHeader+skateStatLine + "```"
+        else:
+            return "Player Not Found"
+    else:
+        playerToFind=playerToFind.upper()
+        goalie=(dict(filter(lambda item: playerToFind in item[0], goalieDict_name.items())))
+        skater=(dict(filter(lambda item: playerToFind in item[0], skaterDict_name.items())))
+        if(goalie != {}):
+            player = list(goalie.values())[0]
+            goalStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['yr'],player['gp'],player['mins'],player['ga'],player['saveperc'],player['gaa'],player['record'],player['gs'],player['so'])
+            return "```\n" + goalieHeader + goalStatLine + "```"
+        elif(skater != {}):
+            player=list(skater.values())[0]
+            skateStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['pos'],player['yr'],player['overall_gp'],player['overall_goals'],player['overall_assists'],player['overall_pts'],player['overall_pen'],player['overall_plusminus'])
+            return "```\n" + skateHeader + skateStatLine + "```"
+        else:
+            return "Player Not Found"
+    
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
