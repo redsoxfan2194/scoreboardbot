@@ -41,14 +41,15 @@ class MyHTMLParser(HTMLParser):
 def getLeagueName(name):
     leagueNames={'WC': "WCHA",
                  'AH': "Atlantic Hockey",
-                 'NC': "Non-Conference",
+                 'NON': "Non-Conference",
                  'B1': "Big Ten",
                  'EC': "ECAC",
                  'NH': "NCHC",
                  'HE': "Hockey East",
                  'CH': "College Hockey America",
                  'EX': "Exhibition",
-                 'NW': "NEWHA"}
+                 'NW': "NEWHA",
+                 'ZZZ' : 'Postponed/Canceled'}
     if name not in leagueNames.keys():
         return 'N/A'
     return leagueNames[name]
@@ -72,8 +73,10 @@ def getFlair(team):
          "Northern Mich." : "northernmichigan",
          "Miami" : "miamioh",
          "Lake Superior" : "lakesuperiorstate",
+         "Long Island University" : "liu",
          "Alaska" : "alaskafairbanks",
          "Rensselaer" : "rpi2",
+         "Providence" : "providence2",
          "Massachusetts" : "umass",
          "UMass Lowell": "massachusettslowell",
          "UConn": "connecticut",
@@ -119,10 +122,13 @@ def getScores():
     leagues=set()
     gameList = []
     tag = ''
+
     #print gameData
     for game in games:
-        game = game.replace('(TV-AT!)','(TV-AT)')
+        game = game.replace('(TV-AT!)','(TV-AT&T)')
         game = game.split('!')
+        #print(game,len(game))
+        tv=''
         if(len(game)==1):
             continue
         if(game[0]==''):
@@ -134,9 +140,12 @@ def getScores():
                 break
             try:
                 if(game[-1][0]=='('):
+                    tv=game[-1].replace('(TV-','')
+                    tv=tv.replace(')','')
                     game.pop()
             except IndexError:
                 pass
+
         if(len(game)==2):
            if(game[0][0]=='('):
                
@@ -163,8 +172,10 @@ def getScores():
                 numOT = '3OT'
             elif(game.count('4OT')>0):
                 numOT = '4OT'
-            game.pop(5)
+           # print(game,len(game))
+
             if(game.count('Final')>0):
+                game.pop(5)
                 game[7]='Final ({})'.format(numOT)
             
         if(len(game)==8):
@@ -179,7 +190,8 @@ def getScores():
                         'league' : game[5],
                         'startTime': game[6],
                         'status' : game[7],
-                        'm_w': m_w}
+                        'm_w': m_w,
+                        'tv' : tv}
             leagues.add(game[5])
             gameList.append(gameDict)
         if(len(game)==9):
@@ -200,7 +212,8 @@ def getScores():
                         'league' : game[5],
                         'startTime': game[6],
                         'status' : time,
-                        'm_w' : m_w}
+                        'm_w' : m_w,
+                        'tv': tv}
           leagues.add(game[5])
           gameList.append(gameDict)
         if(len(game)==5):
@@ -215,7 +228,8 @@ def getScores():
                         'league' : game[3],
                         'startTime': "",
                         'status' : game[4],
-                        'm_w': m_w}
+                        'm_w': m_w,
+                        'tv':tv}
             leagues.add(game[3])
             gameList.append(gameDict)
 def generateScoreboard():
@@ -226,6 +240,11 @@ def generateScoreboard():
     for game in gameList:
         if(not isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
             continue
+        game['status']=game['status'].rstrip(' ');
+        if(game['status']=='Canceled' or game['status']=='Postponed'):
+            game['league'] = 'ZZZ'
+        if(game['league']=='NC'):
+            game['league'] = 'NON'
         if game['m_w'] == 'Men':
             if(game['league'] not in mGamesByLeague):
                 mGamesByLeague[game['league']]=[]
@@ -240,10 +259,10 @@ def generateScoreboard():
     numGames = 0
     for league in sorted(mGamesByLeague.keys()):
         scoreboard += "**{}**\n".format(getLeagueName(league))
-        scoreboard += "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|\n"
+        scoreboard += "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in mGamesByLeague[league]:
             if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-                scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])
+                scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])
                 numGames +=1
     if(numGames==0):
         scoreboard=scoreboard.replace("#Men's Scores\n","")
@@ -252,10 +271,10 @@ def generateScoreboard():
     scoreboard += "#Women's Scores\n"
     for league in sorted(wGamesByLeague.keys()):
         scoreboard += "**{}**\n".format(getLeagueName(league))
-        scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time\n|---|---|---|---|---|\n"
+        scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-            scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'])        
+            scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])        
             numGames += 1
     if(numGames == 0):
         scoreboard=scoreboard.replace("#Women's Scores\n","")
@@ -263,7 +282,7 @@ def generateScoreboard():
     return scoreboard
     
 if __name__ == '__main__':
-    global gameDate
+    #global gameDate
     scoreboard=generateScoreboard()
     #getScores()
-    print( scoreboard)
+    print(scoreboard)
