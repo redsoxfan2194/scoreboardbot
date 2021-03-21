@@ -236,6 +236,7 @@ def convertTeamtoDisRole(team):
                 "Sacred Heart" : "Sacred Heart Pioneers",
                 "Sieve" : "Sieve",
                 "Craig" : "Craig",
+                "Voter" : "/r/collegehockey Poll Voter",
                 "St. Anselm" : "St. Anselm Hawks",
                 "St. Cloud State" : "St. Cloud State Huskies",
                 "St. Lawrence" : "St. Lawrence Saints",
@@ -252,6 +253,7 @@ def convertTeamtoDisRole(team):
                 "UL Lafayette" : "Louisiana Ragin' Cajuns",
                 "LSU" : "Louisiana State University Tigers",
                 "Georgia Tech" : "Georgia Tech Yellow Jackets",
+                "St. Thomas" : "St. Thomas Tommies",
                 "Ref" : "Ref",
                 "Meteor" : "Meteor",
                 "Portal" : "Portal",
@@ -303,7 +305,7 @@ def getCheer(role):
     "Minnesota Duluth Bulldogs" : ["Go Bulldogs!"],
     "Quinnipiac Bobcats" : ["Go Bobcats!", "Meowwww", "Feed. The. Kitty."],
     "Denver Pioneers" : ["Let's Go DU!", "Go Pios!"],
-    "Ohio State Buckeyes" : ["Go Buckeyes!"],
+    "Ohio State Buckeyes" : ["Go Buckeyes!", "O-H!"],
     "Arizona State Sun Devils" : ["Forks Up!","Go Sparky!"],
     "Bowling Green Falcons" : ["Ay Ziggy", "Go Ziggy!"],
     "Brown Bears" : ["Go Bruno!"],
@@ -316,6 +318,7 @@ def getCheer(role):
     "Army Black Knights" : ["Go Army! Beat Navy!"],
     "Alabama Huntsville Chargers" : ["STAN HORSIES!!", "Go Chargers!", "Go Big Blue!"],
     "LIU Sharks" : ["Go Sharks!", "Here we go Sharks!", "Strong Island"],
+    "Northern Michigan Wildcats" : ["Go 'Cats, Go 'Cats, Go 'Cats, GO!", " Tech Still Sucks!"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
@@ -999,6 +1002,7 @@ def getPWRComp(team1,team2):
         pwrComp += '\n'
     pwrComp+='```'
     return pwrComp
+    
 def getStandings(conf, m_w):
     
     global season
@@ -2923,6 +2927,38 @@ async def on_message(message):
                     await message.channel.send(msg)
             else:
                     await message.channel.send("I don't know that conference.")
+                    
+                    
+    if(message.content.startswith('?mhepi')):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getHEPI, "men")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+                
+    if(message.content.startswith('?hepi')):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getHEPI, "men")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+ 
+    if(message.content.startswith('?whepi')):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getHEPI, "women")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+                
     if(message.content.startswith('?whatsontv')):
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getGamesOnTV)
@@ -3124,6 +3160,9 @@ async def on_message(message):
     if(message.content.startswith('?nogoal')):
             await message.channel.send("https://media.giphy.com/media/q01IxfTXuoP4Y/giphy.mp4")  
 
+    if(message.content.startswith('?savory')):
+            await message.channel.send("https://media.giphy.com/media/ozTKmmDCcE9pMNWMXF/giphy.mp4")
+            
     if(message.content.startswith('?uml')):
             await message.channel.send("https://media.giphy.com/media/ejDkNiozRxVwUtbbpN/giphy.mp4")
     
@@ -3153,10 +3192,16 @@ async def on_message(message):
     if(message.content.startswith('?northdakota')):
             await message.channel.send("F'IN HAWKS")
             
-    if(message.content.startswith('?bc')):
+    if(message.content.startswith('?jerry')):
             #await message.channel.send("https://imgur.com/a/mejC6E2")
             await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
-            
+    
+    if(message.content.startswith('?bcot')):
+            await message.channel.send('"free" "hockey" in "Boston"')    
+
+    if(message.content.startswith('?bc') and not message.content.startswith('?bcot')):
+            await message.channel.send("https://media.giphy.com/media/E327kKMf0RKHAB1jpu/giphy.gif")
+
     if(message.content.startswith('?uconn')):
             await message.channel.send("https://imgur.com/a/gWy8Ifj")
             
@@ -3222,6 +3267,9 @@ async def on_message(message):
     if(message.content.startswith('?bread')):
             await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/685911017334767840/unknown.png")        
               
+    if(message.content.startswith('?bgsu') or message.content.startswith('?bowlinggreen')):
+            await message.channel.send("https://media.giphy.com/media/Nv391J41hh34oL34Xr/giphy.gif")
+             
             
     if(message.content.startswith('?bemidji')):
             await message.channel.send("https://www.youtube.com/watch?v=CW_B4KB0wYs")
@@ -3234,13 +3282,15 @@ async def on_message(message):
     
     if(message.content.startswith('?northeastern') and not message.content.startswith('?northeasternwins')):
             await message.channel.send("https://media.giphy.com/media/jt8C9VdM1Xo6SY2Yib/giphy.gif")
-
+            
+    if(message.content.startswith('?wnortheastern')):
+            await message.channel.send("https://media.giphy.com/media/008VqVNcINvZbQq7oH/giphy.mp4")       
+            
     if(message.content.startswith('?rit')):
             await message.channel.send("https://j.gifs.com/q75jR0.gif")
             
     if(message.content.startswith('?almostchaos')):
             await message.channel.send("https://media.giphy.com/media/26ybwvTX4DTkwst6U/giphy.gif")
-
 
     if(message.content.startswith('?russia')):
             await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
@@ -3282,7 +3332,16 @@ async def on_message(message):
 
     if(message.content.startswith('?btn+')):
         await message.channel.send("There are no non-paid streams for BTN+ games available, might I suggest locating the team's radio broadcast")  
+    
+    if(message.content.startswith('?huskyalliance')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/821574872290295849/image0.jpg")  
         
+    if(message.content.startswith('?post')):
+        await message.channel.send("PING!")
+        
+    if(message.content.startswith('?flagship')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/821215322823458826/image0.jpg")  
+    
     if(message.content.startswith('?five-0') or message.content.startswith('?five-o')):
         await message.channel.send("https://www.youtube.com/watch?v=MC64gKvh5R8")    
     
@@ -3398,6 +3457,8 @@ def decodeTeam(team):
         "stcloud" : "St. Cloud State",
         "stmichaels" : "Saint Michael's",
         "stmikes" : "Saint Michael's",
+        "stthomas" : "St. Thomas",
+        "ust" : "St. Thomas",
         "sootech" : "Lake Superior State",
         "su" : "Syracuse",
         "syracuse" : "Syracuse",
@@ -3436,6 +3497,8 @@ def decodeTeam(team):
         "louisiana" : "UL Lafayette",
         "georgiatech" : "Georgia Tech",
         "gt" : "Georgia Tech",
+        "voter" : "Voter",
+        "poll" : "Voter",
         "lsu" : "LSU",
         "ref" : "Ref",
         "refs" : "Ref",
@@ -4103,6 +4166,20 @@ def getStats(team,playerToFind,gender):
             return "```\n" + skateHeader + skateStatLine + "```"
         else:
             return "Player Not Found"
-    
+ 
+def getHEPI(gender):
+    url = "http://hockeyeastonline.com/{}/standings/index.php".format(gender)
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    tab = soup.find_all("table",{'class':'story-table'})
+    rows=tab[0].find_all('tr')
+    rankings='```\n'
+    for i in range(2,len(rows)):
+        col=rows[i].find_all('td')
+        rankings+=("{}. {}\t{}\n".format(col[0].get_text(),col[1].get_text(),col[2].get_text()))
+    rankings+='```'
+    return rankings
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())

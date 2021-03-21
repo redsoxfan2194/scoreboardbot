@@ -122,7 +122,7 @@ def getScores():
     leagues=set()
     gameList = []
     tag = ''
-
+    tv=''
     #print gameData
     for game in games:
         game = game.replace('(TV-AT!)','(TV-AT&T)')
@@ -145,7 +145,6 @@ def getScores():
                     game.pop()
             except IndexError:
                 pass
-
         if(len(game)==2):
            if(game[0][0]=='('):
                
@@ -164,7 +163,7 @@ def getScores():
                 tag=game[0]
                 game.pop(0)
         
-        if(game.count('OT')>0):
+        if(game.count('OT')>0 or game.count('2OT')>0 or game.count('3OT')>0 or game.count('4OT')>0):
             numOT = 'OT'
             if(game.count('2OT')>0):
                 numOT = '2OT'
@@ -172,13 +171,12 @@ def getScores():
                 numOT = '3OT'
             elif(game.count('4OT')>0):
                 numOT = '4OT'
-           # print(game,len(game))
 
             if(game.count('Final')>0):
                 game.pop(5)
                 game[7]='Final ({})'.format(numOT)
-            
         if(len(game)==8):
+            print(tv)
             if(game[5]=='EC,IV'):
                game[5] = 'EC'
             if(m_w == 'Women' and game[5]=='NH'):
@@ -216,6 +214,7 @@ def getScores():
                         'tv': tv}
           leagues.add(game[5])
           gameList.append(gameDict)
+
         if(len(game)==5):
             if(game[3]=='EC,IV'):
               game[3] = 'EC'
@@ -274,7 +273,7 @@ def generateScoreboard():
         scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-            scoreboard += "{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])        
+            scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])        
             numGames += 1
     if(numGames == 0):
         scoreboard=scoreboard.replace("#Women's Scores\n","")
