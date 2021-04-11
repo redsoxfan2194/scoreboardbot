@@ -9,6 +9,7 @@ subreddit = reddit.subreddit('collegehockey')
 est = pytz.timezone('US/Eastern')
 DOW=calendar.day_name[date.today().weekday()]
 
+isOffSeason = True
 def getTrashTitle():
     comment='SOMEONE FORGOT TO MAKE A WITTY TITLE'
     upTrashFilePath = '/home/nmemme/ch_scorebot/titles/upcomingTrashTitle.txt'
@@ -50,7 +51,7 @@ elif DOW=='Tuesday':
 elif DOW=='Wednesday':
     exit()
     
-elif DOW=='Thursday':
+elif DOW=='Thursday' and not isOffSeason:
     title='TRASH TALK THURSDAY'
     text = '''
 ITS MIDNIGHT, ITS THURSDAY, AND THAT MEANS ONE THING...IT IS TIME FOR SOME TRASH TALK!
@@ -67,6 +68,13 @@ ITS MIDNIGHT, ITS THURSDAY, AND THAT MEANS ONE THING...IT IS TIME FOR SOME TRASH
 
 **IF YOU WOULDN'T SAY IT AT A GAME DON'T POST IT HERE!**'''
 
+elif DOW=='Thursday' and isOffSeason:
+    title =  "Thursday Realignment Rumble"
+    text = '''
+It's the offseason so instead of Trash Talk Thursday, it is time for THURSDAY REALIGNMENT RUUUUMMBLLLLEEEE. 
+
+So post your sensible or nonsensical realignments!
+'''
     
 elif DOW=='Friday':
     title="Free Talk Friday"

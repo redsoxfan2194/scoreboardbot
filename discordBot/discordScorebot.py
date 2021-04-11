@@ -277,6 +277,8 @@ def getCheer(role):
         role = "Vermont Catamounts"
     elif(role == "color maine"):
         role = "Maine Black Bears"
+    elif(role == "color wisconsin"):
+        role = "Wisconsin Badgers"
     cheerList = { "Boston University Terriers" : ["Go BU!", "Let's Go Terriers!", "BC Sucks!"],
     "Northeastern Huskies" : ["Go NU!", "#HowlinHuskies", "Go Huskies!"],
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
@@ -289,12 +291,16 @@ def getCheer(role):
     "Union Dutchmen/Dutchwomen" : ["Let's Go U!"],
     "Michigan Tech Huskies" : ["Go Huskies!"],
     "UMass Lowell River Hawks" : ["Go River Hawks!"],
+    "Lake Superior State Lakers" : ["Ringy Dingy!"],
+    "Bemidji State Beavers" : ["Roll Beaves!", "Go Beaves!", "Go Beavers!"],
+    "Omaha Mavericks" : ["Everyone for Omaha!"],
     "Clarkson Golden Knights" : ["Let's Go Tech!"],
     "Vermont Catamounts" : ["Go Catamounts!"],
     "Penn State Nittany Lions" : ["We Are!", "Hockey Valley! Clap clap clapclapclap"],
     "Minnesota Golden Gophers" : ["Go Gophers!"],
     "Michigan Wolverines": ["Go Blue!"],
     "Michigan State Spartans" : ["Go Sparty!", "Go Green!"],
+    "North Dakota Fighting Hawks" : ["Go Hawks!"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "RPI Engineers" : ["Let's Go Red!", "Go Red!\nGo White!"],
     "RIT Tigers" : ["Go Tigers!"],
@@ -592,6 +598,8 @@ def getMatchupHistory(team,opp,numGames):
         
         return "Enter Two Different Teams!"
 
+    team=team.replace('.','')
+    opp=opp.replace('.','')
     '''
     url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
     f=urllib.request.urlopen(url)
@@ -615,13 +623,14 @@ def getMatchupHistory(team,opp,numGames):
     pairwise = []
     hrefDict = {}
     for link in soup.find_all('a',{'class':'team'}):
-            #print(link['href'],link.get_text())
+            #print(link['href'],repr(link.get_text()),repr(opp))
             #print(link['href'])
             res=re.search('.*\/(.*)\/(\d*)',link['href'])
             idNum=res.group(2)
             teamName=res.group(1)
             teamName=teamName.replace('-',' ')
             hrefDict[teamName]=idNum
+   
     url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -689,6 +698,9 @@ def getMatchupHistory(team,opp,numGames):
     ties=0
     leader='Tied'
     for i in matchupData.keys():
+        matchupData[i]['Winner'] = matchupData[i]['Winner'].replace('-',' ')
+        matchupData[i]['Winner'] = matchupData[i]['Winner'].replace('.','')
+        matchupData[i]['Winner'] = matchupData[i]['Winner'].replace("'",'')
         if(matchupData[i]['Winner']==team):
             teamWins+=1
         elif(matchupData[i]['Winner']==opp):
@@ -2445,6 +2457,41 @@ def setGTTitle(title):
     return "Title Updated: {}".format(title)
     
     
+def getGTVid():
+    upGTVideoPath = '/home/nmemme/ch_scorebot/titles/upcomingGTvideo.txt'
+    currGTVideoPath = '/home/nmemme/ch_scorebot/titles/currentGTvideo.txt'
+    text = 'No Video Set'
+    if(os.path.exists(upGTVideoPath)):
+        file=open(upGTVideoPath,'r')
+        text = file.readline()
+        text=text.rstrip('\n')
+        file.close()
+    elif(os.path.exists(currGTVideoPath)):
+        file=open(currGTVideoPath,'r')
+        text = file.readline()
+        text=text.rstrip('\n')
+        file.close()
+    
+    return "> "+text
+    
+def setGTVid(vid):
+    upGTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingGTvideo.txt'
+    file2=open(upGTFilePath,'w')
+    vid = vid.replace('"','')
+    print(vid,end='',file=file2)
+    file2.close()
+    return "New GT Vid: {}".format(vid)
+    
+def resetGTVid():
+    upGTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingGTvideo.txt'
+    file2=open(upGTFilePath,'w')
+    vid="https://www.youtube.com/watch?v=o0YWRXJsMyM"
+    vid = vid.replace('"','')
+    print(vid,end='',file=file2)
+    file2.close()
+    return "New GT Vid: {}".format(vid)
+    
+    
 def getTrashTitle():
     text='No Title Set'
     upTTTFilePath = '/home/nmemme/ch_scorebot/titles/upcomingTrashTitle.txt'
@@ -2495,7 +2542,28 @@ async def on_message(message):
             p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
+            
+    if message.content.startswith('?getgtvid') and message.author.name == 'memmdog':
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getGTVid)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+            
+    if message.content.startswith('?setgtvid ') and message.author.name == 'memmdog':
+        vid = message.content.split('?setgtvid ')[1]
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, setGTVid,vid)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
     
+    if message.content.startswith('?resetgtvid') and message.author.name == 'memmdog':
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, resetGTVid)
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
     
     if message.content.startswith('?gettrashtitle') and message.author.name == 'memmdog':
         with cf.ProcessPoolExecutor(1) as p:
@@ -3197,7 +3265,10 @@ async def on_message(message):
             await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
     
     if(message.content.startswith('?bcot')):
-            await message.channel.send('"free" "hockey" in "Boston"')    
+            await message.channel.send('"free" "hockey" in "Boston"')  
+
+    if(message.content.startswith('?oti')):
+            await message.channel.send('**ON THE ICE**')             
 
     if(message.content.startswith('?bc') and not message.content.startswith('?bcot')):
             await message.channel.send("https://media.giphy.com/media/E327kKMf0RKHAB1jpu/giphy.gif")
@@ -3208,8 +3279,8 @@ async def on_message(message):
     if(message.content.startswith('?unh')):
             await message.channel.send("https://imgur.com/a/mq8brow")
             
-    if(message.content.startswith('?mankato')):
-            await message.channel.send("https://i.imgur.com/2B2iSkt.jpg")
+    ##if(message.content.startswith('?mankato')):
+    #        await message.channel.send("https://i.imgur.com/2B2iSkt.jpg")
             
     if(message.content.startswith('?ivyleague')):
             await message.channel.send("This command has to wait another couple weeks to start playing")
@@ -3295,6 +3366,9 @@ async def on_message(message):
     if(message.content.startswith('?russia')):
             await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
             
+    if(message.content.startswith('?wisconsin')):
+            await message.channel.send("https://media.giphy.com/media/Ox6839VK0vCPTakv8H/giphy.gif")
+            
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
             if(len(opt)>1):
@@ -3343,8 +3417,10 @@ async def on_message(message):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/821215322823458826/image0.jpg")  
     
     if(message.content.startswith('?five-0') or message.content.startswith('?five-o')):
-        await message.channel.send("https://www.youtube.com/watch?v=MC64gKvh5R8")    
-    
+        await message.channel.send("https://www.youtube.com/watch?v=MC64gKvh5R8") 
+        
+    if(message.content.startswith('?stferrous')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/829934423310204948/StFerrous.png")
     
            
 @client.event
@@ -3432,6 +3508,7 @@ def decodeTeam(team):
         "newhavenwarcriminalfactory" : "Yale",
         "nmu" : "Northern Michigan",
         "northern" : "Northern Michigan",
+        "nodak" : "North Dakota",
         "nu" : "Northeastern",
         "osu" : "Ohio State",
         "pc" : "Providence",

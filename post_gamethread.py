@@ -40,11 +40,12 @@ updateTime =  datetime.now()
 updateTime = updateTime.strftime("%Y-%m-%d %H:%M:%S ET")
 dateString="{}, {} {} {}".format(day,sDate[1],ordinaltg(date.today().day),date.today().year)
 
-
+# https://www.youtube.com/watch?v=QvmJxKbgxr8
+# https://www.youtube.com/watch?v=o0YWRXJsMyM
 header = '''
 IT'S GAMEDAY!
 
-Grab your gear, crack some beers, and get ready to cheer!  [LET'S GO COLLEGE HOCKEY!](https://www.youtube.com/watch?v=o0YWRXJsMyM)
+Grab your gear, crack some beers, and get ready to cheer!  [LET'S GO COLLEGE HOCKEY!]({})
 
 ***
 ***
@@ -103,8 +104,26 @@ Home team determines the rights to the telecast
 text=''
 est = pytz.timezone('US/Eastern')
 title = '[Game Thread] {}{}'.format(dateString,text)
-scoreboard += "\n\nLast Updated: " + str(updateTime)      
-body = header + scoreboard + footer
+scoreboard += "\n\nLast Updated: " + str(updateTime) 
+upGTVideoPath = '/home/nmemme/ch_scorebot/titles/upcomingGTvideo.txt'
+currGTVideoPath = '/home/nmemme/ch_scorebot/titles/currentGTvideo.txt'
+if(os.path.exists(upGTVideoPath)):
+    file=open(upGTVideoPath,'r')
+    vid = file.readline()
+    vid = vid.rstrip('\n')
+    file.close()
+    os.remove(upGTVideoPath)
+    file2=open(currGTVideoPath,'w')
+    file2.write(vid)
+    file2.close()
+elif(os.path.exists(currGTVideoPath)):
+    file=open(currGTVideoPath,'r')
+    vid = file.readline()
+    vid=vid.rstrip('\n')
+else:
+    vid="https://www.youtube.com/watch?v=o0YWRXJsMyM"
+    
+body = header.format(vid) + scoreboard + footer
 
 try:
     for submission in subreddit.hot(limit=20):
