@@ -26,7 +26,7 @@ def getTrashTitle():
     
     return comment
                 
-if DOW=='Sunday':
+if DOW=='Sunday' and not isOffSeason:
     title='Sidebar Submission Sunday'
     text='''Please submit your pic for the sidebar this week.
 

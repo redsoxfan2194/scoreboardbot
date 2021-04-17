@@ -176,7 +176,6 @@ def getScores():
                 game.pop(5)
                 game[7]='Final ({})'.format(numOT)
         if(len(game)==8):
-            print(tv)
             if(game[5]=='EC,IV'):
                game[5] = 'EC'
             if(m_w == 'Women' and game[5]=='NH'):
