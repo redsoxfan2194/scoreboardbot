@@ -16,7 +16,7 @@ import itertools
 import json
 
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-season = '2021'
+season = '2122'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
 
@@ -86,7 +86,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "New Hampshire" : "<:unh:761701513236054027>",
 "Union" : "<:union:761701482030039070>",
 "Vermont" : "<:vermont:761701504691339274>",
-"Western Michigan" : "<:westernmichigan:761701511096959006>",
+"Western Michigan" : "<:wmu:849722307446571018>",
 "Wisconsin" : "<:wisconsin:666834959897722900>",
 "Yale" : "<:yale:761701482352607272>"}
 
@@ -3261,8 +3261,8 @@ async def on_message(message):
             await message.channel.send("F'IN HAWKS")
             
     if(message.content.startswith('?jerry')):
-            #await message.channel.send("https://imgur.com/a/mejC6E2")
-            await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
+            await message.channel.send("https://imgur.com/a/mejC6E2")
+            #await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
     
     if(message.content.startswith('?bcot')):
             await message.channel.send('"free" "hockey" in "Boston"')  
@@ -3369,6 +3369,9 @@ async def on_message(message):
     if(message.content.startswith('?wisconsin')):
             await message.channel.send("https://media.giphy.com/media/Ox6839VK0vCPTakv8H/giphy.gif")
             
+    if(message.content.startswith('?portal')):
+            await message.channel.send(random.choice([ "https://tenor.com/view/chosen-toy-story-gif-7936264","https://media.giphy.com/media/ciadMxfm3135m/giphy.gif"]))      
+                
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
             if(len(opt)>1):
@@ -3421,6 +3424,9 @@ async def on_message(message):
         
     if(message.content.startswith('?stferrous')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/829934423310204948/StFerrous.png")
+    
+    if(message.content.startswith('?redsoxwin') or message.content.startswith('?dirtywater')):
+        await message.channel.send("https://youtu.be/5apEctKwiD8")
     
            
 @client.event
