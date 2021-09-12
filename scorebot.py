@@ -1,43 +1,9 @@
-import urllib2
 import pytz
 from datetime import datetime
-from HTMLParser import HTMLParser
-
+from bs4 import BeautifulSoup
+import urllib.request, urllib.error, urllib.parse
 global gameDate
 gameDate=''
-# create a subclass and override the handler methods
-class MyHTMLParser(HTMLParser):
-    global d, startParse, eol
-    d = ''
-    startParse = False
-    eol = False
-    def handle_starttag(self, tag, attrs):
-        global startParse,eol
-        eol = False
-        for attr in attrs:
-            if(attr[1]=='chsschedreg'):
-                startParse=True;
-        pass
-
-    def handle_endtag(self, tag):
-        global d
-        if(startParse and tag=='tr'):
-            d+='\n'
-
-    def handle_data(self, data):
-        global d,startParse
-        if(startParse):
-            data=data.lstrip('\n')
-            if(data != 'Box' and data != 'Text' and data !=' / ' and data != 'Live - '):
-                if(data == 'Sheet'):
-                    d += 'Final!'
-                else:
-                    d += data + '!'
-
-    def return_data(self):
-        global d
-        return d
-
 def getLeagueName(name):
     leagueNames={'WC': "WCHA",
                  'AH': "Atlantic Hockey",
@@ -54,8 +20,8 @@ def getLeagueName(name):
         return 'N/A'
     return leagueNames[name]
 def isD1(team1,team2,m_w):
-    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
-    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood", "Long Island University","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence","Syracuse","Union","Vermont","Wisconsin","Yale"]
+    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence", "St. Thomas","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
+    validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood", "Long Island University","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence", "St. Thomas","Syracuse","Union","Vermont","Wisconsin","Yale"]
     if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams)):
         return True
     if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams)):
@@ -83,7 +49,8 @@ def getFlair(team):
          "Omaha": "nebraskaomaha",
          "Army West Point": "army",
          "Saint Anselm" : "stanselm",
-         "Saint Michael's" : "stmichaels"
+         "Saint Michael's" : "stmichaels",
+         "St. Thomas" : "stthomasmn"
          }
     if team in dict:
         flairFormat = dict[team]
@@ -95,141 +62,48 @@ def getFlair(team):
         team = "UMass"
     
     return "[](#f/{}){}".format(flairFormat,team)    
-# instantiate the parser and fed it some HTML
-   
-def getScores():
-    global gameDate,gameList
-    parser = MyHTMLParser()
+ 
 
-    url = "http://collegehockeystats.net/"
-    f=urllib2.urlopen(url)
-    html = f.read()
-    f.close()
-    parser.feed(html)
-    
-    if("<meta HTTP-EQUIV=\"REFRESH\"" in html):
-        url=html.split("url=")
-        url=url[1].split("\"")[0]
-        f=urllib2.urlopen(url)
+def getScores():
+    global gameList
+    gameList = []
+    gameDict={}
+    leagues = set()
+    genders=['Men','Women']
+    for gender in genders:
+        if gender=='Men':
+            url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
+            #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
+        elif gender == 'Women':
+            url = "https://www.collegehockeynews.com/women/scoreboard.php"
+            #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
+            
+        f=urllib.request.urlopen(url,timeout=10)
         html = f.read()
         f.close()
-        parser.feed(html)
-    gameData=parser.return_data()
-    days = gameData.split('\n\n')
-    games = days[0].split('\n')
-    mtagLookup = {}
-    wtagLookup = {}
-    leagues=set()
-    gameList = []
-    tag = ''
-    tv=''
-    #print gameData
-    for game in games:
-        game = game.replace('(TV-AT!)','(TV-AT&T)')
-        game = game.split('!')
-        #print(game,len(game))
-        tv=''
-        if(len(game)==1):
-            continue
-        if(game[0]==''):
-            game.pop(0)
+        soup = BeautifulSoup(html, 'html.parser')
+        data =soup.find_all('div',{'class':'confGroup'})
 
-        if(game[-1]==''):
-            game.pop()
-            if(game==[]):
-                break
-            try:
-                if(game[-1][0]=='('):
-                    tv=game[-1].replace('(TV-','')
-                    tv=tv.replace(')','')
-                    game.pop()
-            except IndexError:
-                pass
-        if(len(game)==2):
-           if(game[0][0]=='('):
-               
-               if(m_w=='Men'):
-                   mtagLookup[game[0]]=game[1]
-               elif(m_w=='Women'):
-                   wtagLookup[game[0]]=game[1]
-           else:
-               m_w = game[1][:-1]
-               gameDate = game[0][:-3]
-               gameDate=gameDate.replace(",","")     
-        if(len(game)>2):
-            if(game[0]==''):
-                pass
-            elif(game[0][0]=='('):
-                tag=game[0]
-                game.pop(0)
-        
-        if(game.count('OT')>0 or game.count('2OT')>0 or game.count('3OT')>0 or game.count('4OT')>0):
-            numOT = 'OT'
-            if(game.count('2OT')>0):
-                numOT = '2OT'
-            elif(game.count('3OT')>0):
-                numOT = '3OT'
-            elif(game.count('4OT')>0):
-                numOT = '4OT'
 
-            if(game.count('Final')>0):
-                game.pop(5)
-                game[7]='Final ({})'.format(numOT)
-        if(len(game)==8):
-            if(game[5]=='EC,IV'):
-               game[5] = 'EC'
-            if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'           
-            gameDict = {'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : game[7],
-                        'm_w': m_w,
-                        'tv' : tv}
-            leagues.add(game[5])
-            gameList.append(gameDict)
-        if(len(game)==9):
-          if(game[5]=='EC,IV'):
-            game[5] = 'EC'
-          if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'
-          if(tag):
-            if(m_w=='Men' and tag in mtagLookup.keys()):
-              game[5]=mtagLookup[tag]
-            if(m_w=='Women' and tag in wtagLookup.keys()):
-               game[5]=wtagLookup[tag]
-          time = game[8] + ' ' + game[7]
-          gameDict = {  'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : time,
-                        'm_w' : m_w,
-                        'tv': tv}
-          leagues.add(game[5])
-          gameList.append(gameDict)
-
-        if(len(game)==5):
-            if(game[3]=='EC,IV'):
-              game[3] = 'EC'
-            if(m_w == 'Women' and game[3]=='NH'):
-              game[3] = 'NW'
-            gameDict = {'awayTeam' : game[0],
-                        'awayScore': "",
-                        'homeTeam' : game[2],
-                        'homeScore': "",
-                        'league' : game[3],
-                        'startTime': "",
-                        'status' : game[4],
-                        'm_w': m_w,
-                        'tv':tv}
-            leagues.add(game[3])
-            gameList.append(gameDict)
+        for conf in data:
+            conference=conf.find('h2').get_text()
+            games=conf.find_all('table',{'id':'mainscore'})
+            for i in games:
+                gameData=i.find_all('td')
+                tv=''
+                gameDict = {'awayTeam' : gameData[1].get_text(),
+                'awayScore': gameData[2].get_text(),
+                'homeTeam' : gameData[5].get_text(),
+                'homeScore': gameData[6].get_text(),
+                'league' : conference,
+                'status' : gameData[3].get_text(separator=" "),
+                'm_w': gender,
+                'tv' : tv}
+                leagues.add(conference)
+                gameList.append(gameDict)
+                    
+                
+   
 def generateScoreboard():
     global gameList
     getScores()
@@ -256,7 +130,7 @@ def generateScoreboard():
     scoreboard += "#Men's Scores\n"
     numGames = 0
     for league in sorted(mGamesByLeague.keys()):
-        scoreboard += "**{}**\n".format(getLeagueName(league))
+        scoreboard += "**{}**\n".format(league)
         scoreboard += "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in mGamesByLeague[league]:
             if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
@@ -268,7 +142,7 @@ def generateScoreboard():
     numGames = 0
     scoreboard += "#Women's Scores\n"
     for league in sorted(wGamesByLeague.keys()):
-        scoreboard += "**{}**\n".format(getLeagueName(league))
+        scoreboard += "**{}**\n".format(league)
         scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):

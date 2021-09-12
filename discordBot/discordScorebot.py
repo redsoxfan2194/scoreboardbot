@@ -19,6 +19,15 @@ TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '2122'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
+chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+    "Lake Superior State" : "Lake Superior",
+    "UMass Lowell" : "Mass.-Lowell",
+    "Omaha" : "Nebraska-Omaha",
+    "American International" : "American Int'l",
+    "Army West Point" : "Army",
+    "Alabama Huntsville" : "Alabama-Huntsville",
+    "Alaska Anchorage" : "Alaska-Anchorage",
+    "UConn" : "Connecticut"}
 
 flairlist = {"American International" : "<:aic:693220791076126760>",
 "Air Force" : "<:airforce:761701456188538890>",
@@ -88,7 +97,17 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Vermont" : "<:vermont:761701504691339274>",
 "Western Michigan" : "<:wmu:849722307446571018>",
 "Wisconsin" : "<:wisconsin:666834959897722900>",
-"Yale" : "<:yale:761701482352607272>"}
+"Yale" : "<:yale:761701482352607272>",
+"Minnesota-Duluth": "<:umd:666836078019215360>",
+"Lake Superior" : "<:lakesuperior:761701538661400616>",
+"Long Island" : "<:liu:761701500565061655>",
+"Mass.-Lowell" : "<:lowell:761701500397158450>",
+"Nebraska-Omaha": "<:omaha:761701489047371807>",
+"American Int'l": "<:aic:693220791076126760>",
+"Army": "<:army:761701458311381003>",
+"Alabama-Huntsville": "<:uah:716027231700516895>",
+"Alaska-Anchorage" : "<:uaa:761701504376766464>",
+"Connecticut" : "<:uconn:761701507782934548>"}
 
     #scorebot.getScores()
     #games=scorebot.gameList
@@ -2996,7 +3015,7 @@ async def on_message(message):
             else:
                     await message.channel.send("I don't know that conference.")
                     
-                    
+    '''                
     if(message.content.startswith('?mhepi')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
@@ -3006,7 +3025,7 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
-                
+           
     if(message.content.startswith('?hepi')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
@@ -3026,7 +3045,7 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
-                
+    '''            
     if(message.content.startswith('?whatsontv')):
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, getGamesOnTV)
@@ -3604,7 +3623,7 @@ def decodeTeam(team):
             if(i<len(teamSplit)-1):
                 teamName+=' '
         return teamName
-def generateScoreline(team, gender):
+def zzzgenerateScoreline(team, gender):
     
     global flairlist
     parser = MyHTMLParser()
@@ -4264,5 +4283,43 @@ def getHEPI(gender):
         rankings+=("{}. {}\t{}\n".format(col[0].get_text(),col[1].get_text(),col[2].get_text()))
     rankings+='```'
     return rankings
+    
+def generateScoreline(team, gender):    
+    if gender=='Men':
+        url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
+        #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
+    elif gender == 'Women':
+        url = "https://www.collegehockeynews.com/women/scoreboard.php"
+        #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
+        
+    f=urllib.request.urlopen(url,timeout=10)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    data =soup.find_all('div',{'class':'confGroup'})
+    gameList = []
+    if(team in chnDiffs.keys()):
+        team=chnDiffs[team]
+    if not scorebot.isD1(team,team,gender):
+        return ":regional_indicator_x: Team Not Found"
+    for conf in data:
+        conference=conf.find('h2').get_text()
+        games=conf.find_all('table',{'id':'mainscore'})
+        for i in games:
+            gameData=i.find_all('td')
+            awayTeam=gameData[1].get_text()
+            awayScore=gameData[2].get_text()
+            homeTeam=gameData[5].get_text()
+            homeScore=gameData[6].get_text()
+            status=gameData[3].get_text(separator=" ")
+            if(team==homeTeam or team==awayTeam):
+                if(awayTeam in flairlist):
+                    awayTeam = flairlist[awayTeam] + " " + awayTeam
+                if(homeTeam in flairlist):
+                    homeTeam = flairlist[homeTeam] + " " + homeTeam
+                scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore,status)
+                return scoreline
+    return "No game scheduled for {} {}".format(team,gender)
+    
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
