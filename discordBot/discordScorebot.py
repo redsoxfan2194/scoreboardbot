@@ -14,6 +14,10 @@ from bs4 import BeautifulSoup
 import operator
 import itertools
 import json
+import matplotlib.pyplot as plt
+import numpy as np
+import imageio
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '2122'
@@ -22,12 +26,13 @@ invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot'
 chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
     "Lake Superior State" : "Lake Superior",
     "UMass Lowell" : "Mass.-Lowell",
-    "Omaha" : "Nebraska-Omaha",
     "American International" : "American Int'l",
     "Army West Point" : "Army",
     "Alabama Huntsville" : "Alabama-Huntsville",
     "Alaska Anchorage" : "Alaska-Anchorage",
-    "UConn" : "Connecticut"}
+    "UConn" : "Connecticut",
+    "Long Island University": "Long Island",
+    "St Thomas" : "St. Thomas"}
 
 flairlist = {"American International" : "<:aic:693220791076126760>",
 "Air Force" : "<:airforce:761701456188538890>",
@@ -182,6 +187,8 @@ def displayHelp():
 ?[history] [team1],[team2] - displays Matchup history and recent results
 ?[history] [team1],[team2],<number> - displays Matchup history and recent results
 ?[whatsontv] - displays list of Today's games broadcasted on TV
+?[pdoplot] - displays PDO plot (note may take a few minutes to generate)
+?[corsi] - displays PDO plot (note may take a few minutes to generate)
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of available roles
 ?[roles] [role/team name] - adds role to user
@@ -298,6 +305,8 @@ def getCheer(role):
         role = "Maine Black Bears"
     elif(role == "color wisconsin"):
         role = "Wisconsin Badgers"
+    elif(role == "color north dakota"):
+        role = "North Dakota Fighting Hawks"
     cheerList = { "Boston University Terriers" : ["Go BU!", "Let's Go Terriers!", "BC Sucks!"],
     "Northeastern Huskies" : ["Go NU!", "#HowlinHuskies", "Go Huskies!"],
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
@@ -364,6 +373,12 @@ def getJeer(role):
         role = "Princeton Tigers"
     elif(role == "color vermont"):
         role = "Vermont Catamounts"
+    elif(role == "color maine"):
+        role = "Maine Black Bears"
+    elif(role == "color wisconsin"):
+        role = "Wisconsin Badgers"
+    elif(role == "color north dakota"):
+        role = "North Dakota Fighting Hawks"
     jeerList = { "Boston College Eagles" : ["BC Sucks!", "Fuck 'Em Up! Fuck 'Em Up! BC Sucks!", "Sunday School!", "Not From Boston!" ,"```\nFor Newton, For Newton\nThe Outhouse on the hill!\nFor Newton, For Newton\nBC sucks and always will!\nSo here’s to the outhouse on the hill,\nCause Boston College sucks and they always will,\nFor Newton, For Newton,\nThe outhouse on the hill!```"],
     "Harvard Crimson" : ["Fuck Harvard!", "Gimme an A! Gimme another A! Gimme another A! Grade Inflation!", "UMass Rejects!"],
     "Yale Bulldogs" : ["Yuck Fale", "UConn Rejects!", "I wouldn't jeer me if i were you. Do you know who my father is?"],
@@ -488,8 +503,12 @@ def getPairwise(opt):
             
     else:
         end = 16
-
+    
+    if(len(pairwise)<end):
+        end=len(pairwise)
+        
     rankings = "```\n"
+        
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,pairwise[i])
     rankings += "```"
@@ -1088,148 +1107,84 @@ def getStandings(conf, m_w):
         standings = "```\n" + standings + "```"
         return standings
         
+    
 def getGamesOnTV():
-    
-    parser = MyHTMLParser()
-    url = "http://collegehockeystats.net/"
-    f=urllib.request.urlopen(url,timeout=10)
-    html = f.read()
-    f.close()
-    parser.feed(html.decode("ISO-8859-1"))
-    
-    if("<meta HTTP-EQUIV=\"REFRESH\"" in html.decode("ISO-8859-1")):
-        html = html.decode("ISO-8859-1")
-        url=html.split("url=")
-        url=url[1].split("\"")[0]
-        f=urllib.request.urlopen(url,timeout = 10)
+    gameList = []
+    for gender in ["Men","Women"]:
+        if gender=='Men':
+            url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
+        elif gender == 'Women':
+            url = "https://www.collegehockeynews.com/women/scoreboard.php"
+            
+        f=urllib.request.urlopen(url,timeout=10)
         html = f.read()
         f.close()
-        parser.feed(html.decode("ISO-8859-1"))
-    gameData=parser.return_data()
+        soup = BeautifulSoup(html, 'html.parser')
+        data =soup.find_all('div',{'class':'confGroup'})
+        nextbutton = soup.find('a',{'class':'button2 next'})
+        now = datetime.datetime.now()
+        
+        if(nextbutton.get_text() == 'Today' and now.hour>4):
+            url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
+            f=urllib.request.urlopen(url,timeout=10)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            data =soup.find_all('div',{'class':'confGroup'})
+           
+        
+        for conf in data:
+            conference=conf.find('h2').get_text()
+            games=conf.find_all('table',{'id':'mainscore'})
+            gClass=conf.find_all('div',{'class':'game'})
+            tvList=[]
+            for i in gClass:
+                para=i.find_all('p',{'class','meta'})
+                if(para==[]):
+                     tvList.append(' ')
+                else:
+                
+                    text=para[0].get_text()
+                    if('TV' in text):
+                        m=re.search('TV: (.*)',text)
+                        tvList.append(m.group(1))
+                    else:
+                        tvList.append(' ')
 
-    days = gameData.split('\n\n')
-    games = days[0].split('\n')
-    #print(games)    
-    mtagLookup = {}
-    wtagLookup = {}
-    leagues=set()
-    gameList = []
-    tag = ''
-    for game in games:
-        #print(game)
-        game = game.split('!')
-        channel = ''
-        if any("TV" in i for i in game):
-            channel=[i for i in game if "TV" in i][0].lstrip(' ')
-            channel=channel.replace("(TV-","")
-            channel=channel.replace(")","")
-        if(len(game)==1):
-            continue
-        if(game[0]==''):
-            game.pop(0)
-
-        if(game[-1]==''):
-            game.pop()
-            if(game==[]):
-                break
-            try:
-                if(game[-1][0]=='('):
-                    game.pop()
-            except IndexError:
-                pass
-        if(len(game)==2):
-           if(game[0][0]=='('):
-               
-               if(m_w=='Men'):
-                   mtagLookup[game[0]]=game[1]
-               elif(m_w=='Women'):
-                   wtagLookup[game[0]]=game[1]
-           else:
-               m_w = game[1][:-1]
-               gameDate = game[0][:-3]
-               gameDate=gameDate.replace(",","")
-               
-               
-        if(len(game)>2):
-            if(game[0]==''):
-                continue            
-            if(game[0][0]=='('):
-                tag=game[0]
-                game.pop(0)                
-        if(game.count('OT')>0):
-            numOT = 'OT'
-            if(game.count('2OT')>0):
-                numOT = '2OT'
-            elif(game.count('3OT')>0):
-                numOT = '3OT'
-            elif(game.count('4OT')>0):
-                numOT = '4OT'
-            elif(game.count('5OT')>0):
-                numOT = '5OT'
-            game.pop(5)
-            if(game.count('Final')>0):
-                game[7]='Final ({})'.format(numOT)
-        if(len(game)==8):
-            game[5]=game[5].replace(' ',"")
-            if(game[5]=='EC,IV'):
-               game[5] = 'EC'
-            if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'           
-            gameDict = {'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : game[7],
-                        'm_w': m_w,
-                        'channel' : channel}
-            leagues.add(game[5])
-            gameList.append(gameDict)
-        if(len(game)==9):
-          game[5]=game[5].replace(' ',"")
-          if(game[5]=='EC,IV'):
-            game[5] = 'EC'
-          if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'
-          if(tag):
-            if(m_w=='Men' and tag in list(mtagLookup.keys())):
-              game[5]=mtagLookup[tag]
-            if(m_w=='Women' and tag in list(wtagLookup.keys())):
-               game[5]=wtagLookup[tag]
-          time = game[8] + ' ' + game[7]
-          gameDict = {  'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : time,
-                        'm_w' : m_w,
-                        'channel' : channel}
-          leagues.add(game[5])
-          gameList.append(gameDict)
-        if(len(game)==5):
-            game[3]=game[3].replace(' ',"")
-            if(game[3]=='EC,IV'):
-              game[3] = 'EC'
-            if(m_w == 'Women' and game[3]=='NH'):
-              game[3] = 'NW'
-            gameDict = {'awayTeam' : game[0],
+            gCount=0
+            for i in games:
+                if(tvList[gCount]!=' '):
+                    gameData=i.find_all('td')
+                    
+                    if(len(gameData)>=8):
+                        awayTeam=gameData[2].get_text()
+                        awayScore=gameData[3].get_text()
+                        homeTeam=gameData[7].get_text()
+                        homeScore=gameData[8].get_text()
+                        status=gameData[4].get_text(separator=" ")
+                    elif(len(gameData)==7):
+                        awayTeam=gameData[1].get_text()
+                        awayScore=gameData[2].get_text()
+                        homeTeam=gameData[5].get_text()
+                        homeScore=gameData[6].get_text()
+                        status=gameData[3].get_text(separator=" ")
+                        
+                    gameDict = {'awayTeam' : awayTeam,
                         'awayScore': "",
-                        'homeTeam' : game[2],
+                        'homeTeam' : homeTeam,
                         'homeScore': "",
-                        'league' : game[3],
-                        'startTime': game[4],
-                        'status' : game[4],
-                        'm_w': m_w,
-                        'channel' : channel}
-            leagues.add(game[3])
-            gameList.append(gameDict)
+                        'league' : conference,
+                        'startTime': status,
+                        'status' : status,
+                        'm_w': gender,
+                        'channel' : tvList[gCount].rstrip(' ')}
+                        
+                    gameList.append(gameDict)
+                gCount+=1
     tvGames = ""
     for game in gameList:
         if(game['channel'] != ''):
-            if("am" not in game['status'] and "pm" not in game['status']):
+            if("a.m." not in game['status'] and "p.m." not in game['status']):
                 if('Final' in game['status']):
                     game['startTime'] = 'Ended'
                 else:
@@ -1530,187 +1485,7 @@ def getWPairwise(opt):
         rankings+="{}. {}\n".format(i+1,pwr[i])
     rankings += "```"
     return rankings
-    
-    
-def getMPairwise(opt):
-    
-    global teamDict,newha,season
-    url = "http://www.collegehockeystats.net/{}/schedules/d1m".format(season)
-    newha = [] 
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
-    html = f.read()
-    f.close()
-    parser.feed(html.decode("latin1"))
-    
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Men') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Men')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB': 0, 'cWins': 0}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB' : 0, 'cWins': 0}})
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-
-
-    
-    calcRPI()
-    teamList = [i for i in teamDict.keys() if scorebot.isD1(i,i,'Men')]
-
-    teamCombos=list(itertools.combinations(teamList,2))
-    for team1,team2 in teamCombos:
-        sumTeam1,sumTeam2 = compareTeams(team1,team2)
-        if(sumTeam1>sumTeam2):
-            teamDict[team1]['cWins']+=1
-        elif(sumTeam1<sumTeam2):
-            teamDict[team2]['cWins']+=1
-        else:
-            t1RPI,t2RPI = compareRPI(team1,team2)
-            if(t1RPI>t2RPI):
-                teamDict[team1]['cWins']+=1
-            elif(t1RPI<t2RPI):
-                teamDict[team2]['cWins']+=1
-    pwrDict ={}
-    for i in teamDict.keys():
-        if(scorebot.isD1(i,i,'Men')):
-            pwrDict[i] = [teamDict[i]['cWins'],teamDict[i]['RPI']]
         
-    sorted_pwr = sorted(pwrDict.items(), key=operator.itemgetter(1,1), reverse=True)
-    pwr = []
-    for i in sorted_pwr:
-        pwr.append(i[0])
-    start = 0
-    splitopt = opt.split(',')
-    decodedTeam = decodeTeam(opt)
-    if(opt.isnumeric()):
-        end = int(opt)
-    elif(opt.lower()=='full'):
-        end = 60
-    elif(scorebot.isD1(decodedTeam,decodedTeam,'Men')):
-
-        teamIdx=pwr.index(decodedTeam)
-        if(teamIdx-2<0):
-            start=0
-        else:
-            start = teamIdx-2
-        if(teamIdx+3>60):
-            end=60
-        else:
-            end = teamIdx+3
-    elif(opt.lower() == 'bubble'):
-        start = 5
-        end = 12
-    elif(opt.lower() == 'top'):
-        end = 4
-    elif(opt.lower() == 'bottom'):
-        start = 35
-        end = 60
-    elif(len(splitopt)==2):
-        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
-            sOpt=int(splitopt[0])
-            eOpt=int(splitopt[1])
-            if(sOpt>0):
-                start=sOpt-1
-            else:
-                start=0
-                
-            if(eOpt<=60):
-                end = eOpt
-            else:
-                end=60
-            
-            if(sOpt>eOpt):
-                swap=start
-                start=end-1
-                end=swap+1
-    else:
-        end = 16
-    rankings = "```\n"
-    if(len(pwr)<end):
-        end=len(pwr)
-    for i in range(start,end):
-        rankings+="{}. {}\n".format(i+1,pwr[i])
-    rankings += "```"
-    return rankings
-    
 def getWKRACH(opt):
     
     global teamDict,season
@@ -2816,6 +2591,7 @@ async def on_message(message):
         if(cheer!=""):
             msg+="\n{}".format(cheer)
         await message.channel.send(msg)
+
     
     if message.content.startswith('?cheer'):
         teamChoice = message.content.split('?cheer ')
@@ -2867,7 +2643,7 @@ async def on_message(message):
         else:
             msg = "I don't know that jeer."
         await message.channel.send(msg)
-       
+     
     if(message.content.startswith('?pwr')):
         opt = message.content.split('?pwr ')
         if(len(opt)==1):
@@ -2882,22 +2658,22 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
-    '''            
+                
     if(message.content.startswith('?mpwr')):
         opt = message.content.split('?mpwr ')
         if(len(opt)==1):
             with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getMPairwise, '')
+                msg = await loop.run_in_executor(p, getPairwise, '')
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
             with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getMPairwise, opt[1])
+                msg = await loop.run_in_executor(p, getPairwise, opt[1])
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
-    '''            
+               
     if(message.content.startswith('?wpwr')):
         opt = message.content.split('?wpwr ')
         if(len(opt)==1):
@@ -3233,7 +3009,15 @@ async def on_message(message):
                     await message.channel.send("Invalid Role")
         except discord.errors.Forbidden:
             await message.channel.send("Invalid Role")
-     
+    
+    if(message.content.startswith('?pdoplot') or message.content.startswith('?pdo')):
+        gender='Mens'        
+        await message.channel.send(file=discord.File(generatePDOPlot(gender)))
+        
+    if(message.content.startswith('?corsiplot') or message.content.startswith('?corsi')):
+        gender='Mens'        
+        await message.channel.send(file=discord.File(generateCorsiPlot(gender)))
+        
     if(message.content.startswith('?scoreboard')):
             await message.channel.send("http://www.collegehockeyinc.com/nationalscores.php")
      
@@ -3298,8 +3082,10 @@ async def on_message(message):
     if(message.content.startswith('?unh')):
             await message.channel.send("https://imgur.com/a/mq8brow")
             
-    ##if(message.content.startswith('?mankato')):
+    if(message.content.startswith('?mankato')):
     #        await message.channel.send("https://i.imgur.com/2B2iSkt.jpg")
+            await message.channel.send(" https://media.giphy.com/media/66nOBbUf0MqbOU4DYR/giphy.gif")
+   
             
     if(message.content.startswith('?ivyleague')):
             await message.channel.send("This command has to wait another couple weeks to start playing")
@@ -3323,7 +3109,7 @@ async def on_message(message):
             await message.channel.send("https://www.youtube.com/watch?v=X1_x1oo35L0")
             
     if(message.content.startswith('?miami')):
-            await message.channel.send("https://youtu.be/_-mBI7jEfVU?t=81")
+            await message.channel.send("https://www.youtube.com/watch?v=0bGpREk4Cw4")
             
     if(message.content.startswith('?dartmouth')):
             await message.channel.send("https://www.youtube.com/watch?v=Qe3iNZjenvI")
@@ -3359,7 +3145,9 @@ async def on_message(message):
               
     if(message.content.startswith('?bgsu') or message.content.startswith('?bowlinggreen')):
             await message.channel.send("https://media.giphy.com/media/Nv391J41hh34oL34Xr/giphy.gif")
-             
+     
+    if(message.content.startswith('?hocro') or message.content.startswith('?holycross') or message.content.startswith('?hc')):
+            await message.channel.send("https://media.giphy.com/media/yg3AWJeOza2XGpXRt7/giphy.gif")     
             
     if(message.content.startswith('?bemidji')):
             await message.channel.send("https://www.youtube.com/watch?v=CW_B4KB0wYs")
@@ -3447,7 +3235,12 @@ async def on_message(message):
     if(message.content.startswith('?redsoxwin') or message.content.startswith('?dirtywater')):
         await message.channel.send("https://youtu.be/5apEctKwiD8")
     
-           
+    if(message.content.startswith('?metcalf')):
+        await message.channel.send("Win your games and don’t worry about this!!")
+    
+    if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
+        await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
+        
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -3623,172 +3416,7 @@ def decodeTeam(team):
             if(i<len(teamSplit)-1):
                 teamName+=' '
         return teamName
-def zzzgenerateScoreline(team, gender):
-    
-    global flairlist
-    parser = MyHTMLParser()
-    url = "http://collegehockeystats.net/"
-    f=urllib.request.urlopen(url,timeout=10)
-    html = f.read()
-    f.close()
-    parser.feed(html.decode("ISO-8859-1"))
-    
-    if("<meta HTTP-EQUIV=\"REFRESH\"" in html.decode("ISO-8859-1")):
-        html = html.decode("ISO-8859-1")
-        url=html.split("url=")
-        url=url[1].split("\"")[0]
-        f=urllib.request.urlopen(url,timeout = 10)
-        html = f.read()
-        f.close()
-        parser.feed(html.decode("ISO-8859-1"))
-    gameData=parser.return_data()
 
-    days = gameData.split('\n\n')
-    games = days[0].split('\n')
-    #print(games)    
-    mtagLookup = {}
-    wtagLookup = {}
-    leagues=set()
-    gameList = []
-    tag = ''
-    for game in games:
-        #print(game)
-        game = game.split('!')
-        
-        
-        if(len(game)==1):
-            continue
-        if(game[0]==''):
-            game.pop(0)
-
-        if(game[-1]==''):
-            game.pop()
-            if(game==[]):
-                break
-            try:
-                if(game[-1][0]=='('):
-                    game.pop()
-            except IndexError:
-                pass
-        if(len(game)==2):
-           if(game[0][0]=='('):
-               
-               if(m_w=='Men'):
-                   mtagLookup[game[0]]=game[1]
-               elif(m_w=='Women'):
-                   wtagLookup[game[0]]=game[1]
-           else:
-               m_w = game[1][:-1]
-               gameDate = game[0][:-3]
-               gameDate=gameDate.replace(",","")
-               
-        if(len(game)>2):
-            if(game[0]==''):
-                continue            
-            if(game[0][0]=='('):
-                tag=game[0]
-                game.pop(0)                
-        if(game.count('OT')>0):
-            numOT = 'OT'
-            if(game.count('2OT')>0):
-                numOT = '2OT'
-            elif(game.count('3OT')>0):
-                numOT = '3OT'
-            elif(game.count('4OT')>0):
-                numOT = '4OT'
-            elif(game.count('5OT')>0):
-                numOT = '5OT'
-            game.pop(5)
-            if(game.count('Final')>0):
-                game[7]='Final ({})'.format(numOT)
-        if(len(game)==8):
-            game[5]=game[5].replace(' ',"")
-            if(game[5]=='EC,IV'):
-               game[5] = 'EC'
-            if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'           
-            gameDict = {'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : game[7],
-                        'm_w': m_w}
-            leagues.add(game[5])
-            gameList.append(gameDict)
-        if(len(game)==9):
-          game[5]=game[5].replace(' ',"")
-          if(game[5]=='EC,IV'):
-            game[5] = 'EC'
-          if(m_w == 'Women' and game[5]=='NH'):
-              game[5] = 'NW'
-          if(tag):
-            if(m_w=='Men' and tag in list(mtagLookup.keys())):
-              game[5]=mtagLookup[tag]
-            if(m_w=='Women' and tag in list(wtagLookup.keys())):
-               game[5]=wtagLookup[tag]
-          time = game[8] + ' ' + game[7]
-          gameDict = {  'awayTeam' : game[0],
-                        'awayScore': game[1],
-                        'homeTeam' : game[3],
-                        'homeScore': game[4],
-                        'league' : game[5],
-                        'startTime': game[6],
-                        'status' : time,
-                        'm_w' : m_w}
-          leagues.add(game[5])
-          gameList.append(gameDict)
-        if(len(game)==5):
-            game[3]=game[3].replace(' ',"")
-            if(game[3]=='EC,IV'):
-              game[3] = 'EC'
-            if(m_w == 'Women' and game[3]=='NH'):
-              game[3] = 'NW'
-            gameDict = {'awayTeam' : game[0],
-                        'awayScore': "",
-                        'homeTeam' : game[2],
-                        'homeScore': "",
-                        'league' : game[3],
-                        'startTime': "",
-                        'status' : game[4],
-                        'm_w': m_w}
-            leagues.add(game[3])
-            gameList.append(gameDict)
-    games=gameList
-    if scorebot.isD1(team,team,gender):
-        for game in games:
-            if((game['homeTeam'] == team or game['awayTeam'] == team) and game['m_w']==gender):            
-                if("OT" in game['homeScore']):
-                    if(game['homeScore'].count('OT')>0):
-                        numOT = 'OT'
-                        if(game['homeScore'].count('2OT')>0):
-                            numOT = '2OT'
-                        elif(game['homeScore'].count('3OT')>0):
-                            numOT = '3OT'
-                        elif(game['homeScore'].count('4OT')>0):
-                            numOT = '4OT'
-                        elif(game['homeScore'].count('5OT')>0):
-                            numOT = '5OT'
-                    game['status']="Final ({})".format(numOT)
-                    game['homeScore']=game['homeScore'].replace(numOT,"")
-                if("TV-" in game['status']):
-                    game['status']=re.sub(" \(TV-.*\) ","", game['status'])
-                if(gender=='Men'):
-                    winProb=getWinProb(game['awayTeam'],game['awayScore'],game['homeTeam'],game['homeScore'],game['status'])
-                else:
-                    winProb = ''
-                if(game['awayTeam'] in flairlist):
-                    game['awayTeam'] = flairlist[game['awayTeam']] + " " + game['awayTeam']
-                if(game['homeTeam'] in flairlist):
-                    game['homeTeam'] = flairlist[game['homeTeam']] + " " + game['homeTeam']
-
-                scoreline= "{} {}\n{} {}\n{}".format(game['awayTeam'],game['awayScore'],game['homeTeam'],game['homeScore'],game['status'])
-                if(winProb != ''):
-                    scoreline+="\n\n> " + winProb
-                return scoreline
-        return "No game scheduled for {} {}".format(team,gender)
-    return ":regional_indicator_x: Team Not Found"
 
 def getDog(opt):
     opt=opt.lower()
@@ -4284,7 +3912,7 @@ def getHEPI(gender):
     rankings+='```'
     return rankings
     
-def generateScoreline(team, gender):    
+def generateScoreline(team, gender):
     if gender=='Men':
         url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
         #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
@@ -4298,20 +3926,39 @@ def generateScoreline(team, gender):
     soup = BeautifulSoup(html, 'html.parser')
     data =soup.find_all('div',{'class':'confGroup'})
     gameList = []
+    nextbutton = soup.find('a',{'class':'button2 next'})
+    now = datetime.datetime.now()
+    if(nextbutton.get_text() == 'Today'  and now.hour>4):
+        url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
+        f=urllib.request.urlopen(url,timeout=10)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        data =soup.find_all('div',{'class':'confGroup'})
+        
     if(team in chnDiffs.keys()):
         team=chnDiffs[team]
-    if not scorebot.isD1(team,team,gender):
+    if not scorebot.isD1(team,team,gender) and not team in chnDiffs.values():
         return ":regional_indicator_x: Team Not Found"
     for conf in data:
         conference=conf.find('h2').get_text()
         games=conf.find_all('table',{'id':'mainscore'})
         for i in games:
+
             gameData=i.find_all('td')
-            awayTeam=gameData[1].get_text()
-            awayScore=gameData[2].get_text()
-            homeTeam=gameData[5].get_text()
-            homeScore=gameData[6].get_text()
-            status=gameData[3].get_text(separator=" ")
+            if(len(gameData)>=8):
+                awayTeam=gameData[2].get_text()
+                awayScore=gameData[3].get_text()
+                homeTeam=gameData[7].get_text()
+                homeScore=gameData[8].get_text()
+                status=gameData[4].get_text(separator=" ")
+            if(len(gameData)==7):
+                awayTeam=gameData[1].get_text()
+                awayScore=gameData[2].get_text()
+                homeTeam=gameData[5].get_text()
+                homeScore=gameData[6].get_text()
+                status=gameData[3].get_text(separator=" ")
+            
             if(team==homeTeam or team==awayTeam):
                 if(awayTeam in flairlist):
                     awayTeam = flairlist[awayTeam] + " " + awayTeam
@@ -4320,6 +3967,322 @@ def generateScoreline(team, gender):
                 scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore,status)
                 return scoreline
     return "No game scheduled for {} {}".format(team,gender)
+
+def generatePDOPlot(gender):
+    if(gender=='Mens'):
+        url = "https://www.collegehockeynews.com/stats/"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    logoDict={"Air Force" : "images/logos/afa.png",
+            "Alabama Huntsville" : "images/logos/alh.png",
+            "Alaska Anchorage" : "images/logos/aka.png",
+            "Alaska" : "images/logos/akf.png",
+            "American Int'l" : "images/logos/aic.png",
+            "Arizona State" : "images/logos/asu.png",
+            "Army" : "images/logos/arm.png",
+            "Bemidji State" : "images/logos/bmj.png",
+            "Bentley" : "images/logos/ben.png",
+            "Boston College" : "images/logos/bc_.png",
+            "Boston University" : "images/logos/bu_.png",
+            "Bowling Green" : "images/logos/bgs.png",
+            "Brown" : "images/logos/brn.png",
+            "Canisius" : "images/logos/cns.png",
+            "Clarkson" : "images/logos/clk.png",
+            "Colgate" : "images/logos/clg.png",
+            "Colorado College" : "images/logos/cc_.png",
+            "Cornell" : "images/logos/cor.png",
+            "Dartmouth" : "images/logos/dar.png",
+            "Denver" : "images/logos/den.png",
+            "Ferris State" : "images/logos/fsu.png",
+            "Franklin Pierce" : "images/logos/fpu.png",
+            "Harvard" : "images/logos/har.png",
+            "Holy Cross" : "images/logos/hcr.png",
+            "Lake Superior" : "images/logos/lss.png",
+            "Lindenwood" : "images/logos/lin.png",
+            "Long Island" : "images/logos/liu.png",
+            "Maine" : "images/logos/mne.png",
+            "Massachusetts" : "images/logos/uma.png",
+            "Mercyhurst" : "images/logos/mrc.png",
+            "Merrimack" : "images/logos/mer.png",
+            "Miami" : "images/logos/mia.png",
+            "Michigan State" : "images/logos/msu.png",
+            "Michigan Tech" : "images/logos/mtu.png",
+            "Michigan" : "images/logos/mic.png",
+            "Minnesota-Duluth" : "images/logos/mnd.png",
+            "Minnesota State" : "images/logos/mns.png",
+            "Minnesota" : "images/logos/min.png",
+            "New Hampshire" : "images/logos/unh.png",
+            "Niagara" : "images/logos/nia.png",
+            "North Dakota" : "images/logos/ndk.png",
+            "Northeastern" : "images/logos/noe.png",
+            "Northern Michigan" : "images/logos/nmu.png",
+            "Notre Dame" : "images/logos/ndm.png",
+            "Ohio State" : "images/logos/osu.png",
+            "Omaha" : "images/logos/uno.png",
+            "Penn State" : "images/logos/psu.png",
+            "Post" : "images/logos/pst.png",
+            "Princeton" : "images/logos/prn.png",
+            "Providence" : "images/logos/prv.png",
+            "Quinnipiac" : "images/logos/qui.png",
+            "RIT" : "images/logos/rit.png",
+            "Rensselaer" : "images/logos/ren.png",
+            "Robert Morris" : "images/logos/rmu.png",
+            "Sacred Heart" : "images/logos/sac.png",
+            "Saint Anselm" : "images/logos/sta.png",
+            "Saint Michael's" : "images/logos/stm.png",
+            "St. Cloud State" : "images/logos/stc.png",
+            "St. Lawrence" : "images/logos/stl.png",
+            "St. Thomas" : "images/logos/stt.png",
+            "Syracuse" : "images/logos/syr.png",
+            "Connecticut" : "images/logos/con.png",
+            "Mass.-Lowell" : "images/logos/uml.png",
+            "Union" : "images/logos/uni.png",
+            "Vermont" : "images/logos/ver.png",
+            "Western Michigan" : "images/logos/wmu.png",
+            "Wisconsin" : "images/logos/wis.png",
+            "Yale" : "images/logos/yal.png"}
+            
+    standStats=soup.find('table',{'id':'standard'})
+    thead=standStats.find('thead')
+    headers = thead.find_all('th')
+    headers = [i.get_text() for i in headers]
+    tbod=standStats.find('tbody')
+    statDict = {}
+
+    for row in tbod.find_all('tr'):
+        col = row.find_all('td')
+        teamDict ={}
+        for i in range(len(col)):
+            val = col[i].get_text()
+            if(val.isnumeric() or val.replace('.', '', 1).isdigit()):
+                val=float(val)
+               
+            teamDict[headers[i]] = val
+        
+        statDict[col[1].get_text()] = teamDict 
+
+    sv=[]
+    sh=[]
+    marker=[]
+    for i in statDict.keys():
+        sv.append(statDict[i]['SV%'])
+        sh.append(statDict[i]['Sh%'])
+        marker.append(i)
+
+    newData=False
+    if (os.path.exists('pdoplotdata/sv_data.txt')):
+        foname = open('pdoplotdata/sv_data.txt','r')
+        counter=0
+        for i in foname:
+            if(sv[counter]!=float(i.rstrip('\n'))):            
+                newData=True
+                break
+            counter+=1
+        foname.close()
+        
+    else:
+        newData = True   
+        fname = open('pdoplotdata/sv_data.txt','w')
+        for i in sv:
+            print(i,file=fname)
+        fname.close()
+
+    if(newData or (not os.path.exists('pdoplotdata/pdoplot.png'))):
+        fname = open('pdoplotdata/sv_data.txt','w')
+        for i in sv:
+            print(i,file=fname)
+        fname.close()
+        for team in statDict.keys():
+            statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
+            statDict[team]['img'] = imageio.imread(urllib.request.urlopen(statDict[team]['logo']).read())
+
+
+        plt.rcParams["figure.figsize"] = [9, 9]
+        plt.rcParams["figure.autolayout"] = True
+
+        fig, ax = plt.subplots()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        for x0, y0, path in zip(sh, sv, marker):
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
+        plt.yticks(np.arange(round(min(sv),2)-.01,max(sv)+.01,.02))
+        plt.ylim([min(sv),max(sv)])
+        plt.xlim([min(sh),max(sh)])
+        plt.xlabel('Sh%')
+        plt.ylabel('Sv%')
+        plt.title('PDO Breakdown')
+        plt.vlines(np.mean(sh),plt.ylim()[0],plt.ylim()[1])
+        plt.hlines(np.mean(sv),plt.xlim()[0],plt.xlim()[1])
+        plt.text(plt.xlim()[0]+.2,plt.ylim()[1]-.01,'Dull',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-1.5,plt.ylim()[1]-.01,'Lucky',fontsize=15,color='gray')
+        plt.text(plt.xlim()[0]+.2,plt.ylim()[0]+.01,'Unlucky',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-1.5,plt.ylim()[0]+.01,'Fun',fontsize=15,color='gray')
+        plt.grid()
+        plt.savefig('pdoplotdata/pdoplot.png')
+
+    return "pdoplotdata/pdoplot.png"
     
+def generateCorsiPlot(gender):
+    if(gender=='Mens'):
+        url = "https://www.collegehockeynews.com/stats/"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    logoDict={"Air Force" : "images/logos/afa.png",
+            "Alabama Huntsville" : "images/logos/alh.png",
+            "Alaska Anchorage" : "images/logos/aka.png",
+            "Alaska" : "images/logos/akf.png",
+            "American Int'l" : "images/logos/aic.png",
+            "Arizona State" : "images/logos/asu.png",
+            "Army" : "images/logos/arm.png",
+            "Bemidji State" : "images/logos/bmj.png",
+            "Bentley" : "images/logos/ben.png",
+            "Boston College" : "images/logos/bc_.png",
+            "Boston University" : "images/logos/bu_.png",
+            "Bowling Green" : "images/logos/bgs.png",
+            "Brown" : "images/logos/brn.png",
+            "Canisius" : "images/logos/cns.png",
+            "Clarkson" : "images/logos/clk.png",
+            "Colgate" : "images/logos/clg.png",
+            "Colorado College" : "images/logos/cc_.png",
+            "Cornell" : "images/logos/cor.png",
+            "Dartmouth" : "images/logos/dar.png",
+            "Denver" : "images/logos/den.png",
+            "Ferris State" : "images/logos/fsu.png",
+            "Franklin Pierce" : "images/logos/fpu.png",
+            "Harvard" : "images/logos/har.png",
+            "Holy Cross" : "images/logos/hcr.png",
+            "Lake Superior" : "images/logos/lss.png",
+            "Lindenwood" : "images/logos/lin.png",
+            "Long Island" : "images/logos/liu.png",
+            "Maine" : "images/logos/mne.png",
+            "Massachusetts" : "images/logos/uma.png",
+            "Mercyhurst" : "images/logos/mrc.png",
+            "Merrimack" : "images/logos/mer.png",
+            "Miami" : "images/logos/mia.png",
+            "Michigan State" : "images/logos/msu.png",
+            "Michigan Tech" : "images/logos/mtu.png",
+            "Michigan" : "images/logos/mic.png",
+            "Minnesota-Duluth" : "images/logos/mnd.png",
+            "Minnesota State" : "images/logos/mns.png",
+            "Minnesota" : "images/logos/min.png",
+            "New Hampshire" : "images/logos/unh.png",
+            "Niagara" : "images/logos/nia.png",
+            "North Dakota" : "images/logos/ndk.png",
+            "Northeastern" : "images/logos/noe.png",
+            "Northern Michigan" : "images/logos/nmu.png",
+            "Notre Dame" : "images/logos/ndm.png",
+            "Ohio State" : "images/logos/osu.png",
+            "Omaha" : "images/logos/uno.png",
+            "Penn State" : "images/logos/psu.png",
+            "Post" : "images/logos/pst.png",
+            "Princeton" : "images/logos/prn.png",
+            "Providence" : "images/logos/prv.png",
+            "Quinnipiac" : "images/logos/qui.png",
+            "RIT" : "images/logos/rit.png",
+            "Rensselaer" : "images/logos/ren.png",
+            "Robert Morris" : "images/logos/rmu.png",
+            "Sacred Heart" : "images/logos/sac.png",
+            "Saint Anselm" : "images/logos/sta.png",
+            "Saint Michael's" : "images/logos/stm.png",
+            "St. Cloud State" : "images/logos/stc.png",
+            "St. Lawrence" : "images/logos/stl.png",
+            "St. Thomas" : "images/logos/stt.png",
+            "Syracuse" : "images/logos/syr.png",
+            "Connecticut" : "images/logos/con.png",
+            "Mass.-Lowell" : "images/logos/uml.png",
+            "Union" : "images/logos/uni.png",
+            "Vermont" : "images/logos/ver.png",
+            "Western Michigan" : "images/logos/wmu.png",
+            "Wisconsin" : "images/logos/wis.png",
+            "Yale" : "images/logos/yal.png"}
+            
+    advStats=soup.find('table',{'id':'advanced'})
+    tbod=advStats.find('tbody')
+    aHeaders=['Rk','Team','GP','SATTOT','SATATOT','CF%TOT','SATEV','SATAEV','CF%EV','SATPP','SATAPP','CF%PP','SATCL','SATACL','CF%CL']
+    statDict={}
+    for row in tbod.find_all('tr'):
+        col=row.find_all('td',{'class':None})
+        col+=(row.find_all('td',{'class':'t c'}))
+        teamDict ={}
+        for i in range(len(col)):
+            val = col[i].get_text()
+            if(val.isnumeric() or val.replace('.', '', 1).isdigit()):
+                val=float(val)
+               
+            teamDict[aHeaders[i]] = val
+        statDict[col[1].get_text()] = teamDict 
+
+    for team in statDict.keys():
+        statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
+        statDict[team]['img'] = imageio.imread(statDict[team]['logo'])
+        
+    cf=[]
+    ca=[]
+    marker=[]
+    for i in statDict.keys():
+        cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
+        ca.append(statDict[i]['SATAEV']/statDict[i]['GP'])
+        marker.append(i)
+        
+
+    newData=False
+    if (os.path.exists('pdoplotdata/cf_data.txt')):
+        foname = open('pdoplotdata/cf_data.txt','r')
+        counter=0
+        for i in foname:
+            if(cf[counter]!=float(i.rstrip('\n'))):            
+                newData=True
+                break
+            counter+=1
+        foname.close()
+        
+    else:
+        newData = True   
+        fname = open('pdoplotdata/cf_data.txt','w')
+        for i in cf:
+            print(i,file=fname)
+        fname.close()
+
+    if(newData or (not os.path.exists('pdoplotdata/corsiplot.png'))):
+        fname = open('pdoplotdata/cf_data.txt','w')
+        for i in cf:
+            print(i,file=fname)
+        fname.close()
+        for team in statDict.keys():
+            statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
+            statDict[team]['img'] = imageio.imread(urllib.request.urlopen(statDict[team]['logo']).read())
+
+        plt.rcParams["figure.figsize"] = [9, 9]
+        plt.rcParams["figure.autolayout"] = True
+
+        fig, ax = plt.subplots()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        for x0, y0, path in zip(cf, ca, marker):
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        plt.xticks(np.arange(round(min(cf))-1,max(cf)+1,5))
+        plt.yticks(np.arange(round(min(ca))-1,max(ca)+1,5))
+        plt.ylim([min(ca)-1,max(ca)+1])
+        plt.xlim([min(cf)-1,max(cf)+1])
+        plt.xlabel('Cf/60')
+        plt.ylabel('Ca/60')
+        plt.title('Team Shot Rates')
+        plt.vlines(np.mean(ca),plt.ylim()[0],plt.ylim()[1])
+        plt.hlines(np.mean(cf),plt.xlim()[0],plt.xlim()[1])
+        plt.text(plt.xlim()[0]+2,plt.ylim()[1]-2,'Dull',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-5,plt.ylim()[1]-2,'Good',fontsize=15,color='gray')
+        plt.text(plt.xlim()[0]+2,plt.ylim()[0]+1,'Bad',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-5,plt.ylim()[0]+1,'Fun',fontsize=15,color='gray')
+        plt.grid()
+        plt.savefig('pdoplotdata/corsiplot.png')
+
+    return "pdoplotdata/corsiplot.png"
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
