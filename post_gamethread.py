@@ -22,8 +22,11 @@ except:
     
 if(scorebot.gameDate  == ''):
     exit()
+    
 scoreDate = scorebot.gameDate
-sDate = scoreDate.split(' ')
+
+
+sDate = scoreDate.split(',')
 day = sDate[0]
 altDate = sDate[1]+" "+sDate[2];
 isTodayScores = False
@@ -35,11 +38,11 @@ else:
 
 if(scoreboard == ""):
     exit()
-    
+ 
 updateTime =  datetime.now()
 updateTime = updateTime.strftime("%Y-%m-%d %H:%M:%S ET")
-dateString="{}, {} {} {}".format(day,sDate[1],ordinaltg(date.today().day),date.today().year)
-
+#dateString="{}, {} {} {}".format(day,sDate[1],ordinaltg(date.today().day),date.today().year)
+dateString =  scorebot.gameDate
 # https://www.youtube.com/watch?v=QvmJxKbgxr8
 # https://www.youtube.com/watch?v=o0YWRXJsMyM
 header = '''
@@ -68,38 +71,35 @@ Brought to you by /u/LocksTheFox
 footer='''
 ***
 ***
-#Streaming Quick Links
+#Quick links for streaming only/locally televised games
 
-Home team determines the rights to the telecast
+Home Team/Conference | Service
+---|---
+[Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha) | [FloHockey](https://www.flohockey.tv/) ($$$)
+[Big Ten](#f/bigten), [Penn State](#f/pennstate) women, [WCHA](#f/wcha) | [B1G+](https://www.bigtenplus.com/) ($$$)
+[ECAC](#f/ecachockey) | [ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$), [Ivy International Stream](https://portal.stretchinternet.com/ivy/)^2 ($$$), [ECAC International Stream](https://portal.stretchinternet.com/ecachockey/)^2 ($$$), [RPItv](http://rpitv.org/)^3
+[Hockey East](#f/hockeyeast) | [SportsLive](https://www.collegesportslive.com/hockeyeast/)^4, [Hockey East on NESN](https://www.collegesportslive.com/NESN/)^4
+[NCHC](#f/nchc) | [NCHC.tv](https://www.nchc.tv)^4 ($$$)
+[Arizona State](#f/arizonastate) | [ASU Live Stream](https://pac-12.com/live/arizona-state-university)^5, [Pac12 Insider](https://pac-12.com/live?networks=P12I) 
+[Franklin Pierce](#f/franklinpierce), [St Anselm](#f/stanselm), [Saint Michael's](#f/stmichaels) | [NE-10 Now](https://portal.stretchinternet.com/ne10/)
+[Lindenwood](#f/lindenwood), [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  | [CHA Digitial Network](https://portal.stretchinternet.com/cha/) ($$$)
+[Long Island](#f/liu) | [NEC Front Row](http://necfrontrow.com/schools/LIU)
+[Post](#f/post) | [CACC Network](https://www.caccnetwork.com/post/)
+[Sacred Heart](#f/sacredheart) women | N/A^6
+[Syracuse](#f/syracuse) | [Cuse TV](https://cuse.com/watch/)
 
-|TV Network Streams^1 | Paid Streams^2 | Free Streams^2
-|:-:|:-:|:-:|
-[Altitude Now](https://www.altitudenow.com/) | [BTN+](https://www.btnplus.com/) | [CACC Network](http://caccnetwork.com/post/)
-[AT&T SportsNet Rocky Mountain](https://rockymountain-attsn.att.com/)  | [CHA Digital Network](https://portal.stretchinternet.com/cha/)| [Cuse TV](https://cuse.com/watch)
-[CBSSN](http://www.cbssports.com/cbs-sports-network/) | [ESPN+](http://www.espn.com/watch/espnplus)  | [NE-10 Now](https://portal.stretchinternet.com/ne10/) 
-[Fox Sports](https://www.foxsports.com/live)^3 | [FloHockey.tv](https://www.flohockey.tv/)  | [NEC Front Row](http://necfrontrow.com/schools.php?title=LIU) 
-[Fox Sports Go](https://www.foxsportsgo.com/)^4 | [NCHC.tv](https://www.nchc.tv/)  | [Pac-12 Live Stream](https://pac-12.com/sports/schedule/network/live-stream/)
-[NBC Sports](https://www.nbcsports.com/live) | [TSN Direct](https://www.tsn.ca/live)^5  | [RPItv YouTube Page](https://www.youtube.com/user/RPITV)
-[NESNGo](https://nesngo.nesn.com/) | | [College Sports Live] (https://www.collegesportslive.com/hockeyeast/)^6 |
-[WatchESPN](http://www.espn.com/watch/?categoryId=25) |  |
 
-
-1: Requires Authenticated Login  
-2: Potentially Subject to blackout if televised in your area    
-3: Games on FS1/FS2/BTN  
-4: Games on Fox Sports Regionals (Rebrand following sale to Sinclair pending)  
-5: Available as direct subscription or with TSN cable subscription (CA only) 
-
-6: Non-NESN games, games on NESN are found [here](https://www.collegesportslive.com/NESN/) (blacked out in NESN's tv territory, or at least in theory)
+1: US Only  
+2: International only; ECAC International does not include the Ivies or RPI  
+3: Currently simulcasting on ESPN+, possible future geoblocking unknown  
+4: Select HEA and NCHC games also available on the CBS Sports App; HEA on NESN games blacked out in New England on all ViacomCBS servcies  
+5: Link to main live stream; ASU maintains separate pages for additional streams in the event of multiple simultaneous sports being streamed  
+6: Sacred Heart opts not to air any home women's contests
 
 ***
-***
+**Discuss whatever you wish.  You can trash talk, but please keep it civil!**
 
-##Shamelessly stolen from /r/hockey's GDT notes:
-
-* Discuss whatever you wish.  You can trash talk, but please keep it civil!
-* Turning comment sort to 'new' will help you see the newest posts.
-* Try [Chrome Refresh](https://chrome.google.com/webstore/detail/chrome-refresh/aifhnlnghddfdaccgbbpbhjfkmncekmn) or [Firefox ReloadEvery](http://reloadevery.mozdev.org/)
+**Turning comment sort to 'new' will help you see the newest posts.**
 '''
 text=''
 est = pytz.timezone('US/Eastern')
@@ -124,7 +124,6 @@ else:
     vid="https://www.youtube.com/watch?v=o0YWRXJsMyM"
     
 body = header.format(vid) + scoreboard + footer
-
 try:
     for submission in subreddit.hot(limit=20):
       if(submission.title.find("[Game Thread] "+day)>=0 and submission.title.find(day)>=0):

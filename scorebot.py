@@ -3,6 +3,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import urllib.request, urllib.error, urllib.parse
 global gameDate
+import re
 gameDate=''
 def getLeagueName(name):
     leagueNames={'WC': "WCHA",
@@ -40,11 +41,14 @@ def getFlair(team):
          "Miami" : "miamioh",
          "Lake Superior" : "lakesuperiorstate",
          "Long Island University" : "liu",
+         "Long Island" : "liu",
          "Alaska" : "alaskafairbanks",
          "Rensselaer" : "rpi2",
          "Providence" : "providence2",
          "Massachusetts" : "umass",
          "UMass Lowell": "massachusettslowell",
+         "Mass Lowell" : "massachusettslowell",
+         "Mass.-Lowell" : "massachusettslowell",
          "UConn": "connecticut",
          "Omaha": "nebraskaomaha",
          "Army West Point": "army",
@@ -65,7 +69,7 @@ def getFlair(team):
  
 
 def getScores():
-    global gameList
+    global gameList,gameDate
     gameList = []
     gameDict={}
     leagues = set()
@@ -84,24 +88,56 @@ def getScores():
         soup = BeautifulSoup(html, 'html.parser')
         data =soup.find_all('div',{'class':'confGroup'})
 
+        gameDate = soup.find('p',{'class':'date'}).get_text()
 
         for conf in data:
             conference=conf.find('h2').get_text()
             games=conf.find_all('table',{'id':'mainscore'})
-            for i in games:
+            gClass=conf.find_all('div',{'class':'game'})
+            tvList=[]
+            for i in gClass:
+                para=i.find_all('p',{'class','meta'})
+                if(para==[]):
+                     tvList.append(' ')
+                else:
+                
+                    text=para[0].get_text()
+                    if('TV' in text):
+                        m=re.search('TV: (.*)',text)
+                        tvList.append(m.group(1))
+                    else:
+                        tvList.append(' ')
+
+            
+            gCount = 0
+
+            for i in games:          
                 gameData=i.find_all('td')
                 tv=''
-                gameDict = {'awayTeam' : gameData[1].get_text(),
-                'awayScore': gameData[2].get_text(),
-                'homeTeam' : gameData[5].get_text(),
-                'homeScore': gameData[6].get_text(),
-                'league' : conference,
-                'status' : gameData[3].get_text(separator=" "),
-                'm_w': gender,
-                'tv' : tv}
+                if(tvList!=[]):
+                    tv=tvList[gCount]
+                tv=tv.rstrip(' ')
+                if(gender=='Men'):
+                    gameDict = {'awayTeam' : gameData[2].get_text(),
+                    'awayScore': gameData[3].get_text(),
+                    'homeTeam' : gameData[7].get_text(),
+                    'homeScore': gameData[8].get_text(),
+                    'league' : conference,
+                    'status' : gameData[4].get_text(separator=" "),
+                    'm_w': gender,
+                    'tv' : tv}
+                elif(gender=='Women'):
+                    gameDict = {'awayTeam' : gameData[1].get_text(),
+                    'awayScore': gameData[2].get_text(),
+                    'homeTeam' : gameData[5].get_text(),
+                    'homeScore': gameData[6].get_text(),
+                    'league' : conference,
+                    'status' : gameData[3].get_text(separator=" "),
+                    'm_w': gender,
+                    'tv' : tv}
                 leagues.add(conference)
                 gameList.append(gameDict)
-                    
+                gCount+=1
                 
    
 def generateScoreboard():
