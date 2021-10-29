@@ -3012,11 +3012,32 @@ async def on_message(message):
     
     if(message.content.startswith('?pdoplot') or message.content.startswith('?pdo')):
         gender='Mens'        
-        await message.channel.send(file=discord.File(generatePDOPlot(gender)))
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePDOPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+        
+    if(message.content.startswith('?pdwoplot') or message.content.startswith('?pdwo') or message.content.startswith('?wpdo') or message.content.startswith('?wpdoplot')):
+        gender='Womens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePDOPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?corsiplot') or message.content.startswith('?corsi')):
         gender='Mens'        
-        await message.channel.send(file=discord.File(generateCorsiPlot(gender)))
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+        
+                
+    if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
+        gender='Womens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?scoreboard')):
             await message.channel.send("http://www.collegehockeyinc.com/nationalscores.php")
@@ -3438,235 +3459,222 @@ def getCat():
     return j[0]['url']
 
 def getSchedule(team,opt,gender):
-    
-    global season
-    teamDict = {"Air Force" : "schedules/afa",
-        "Alabama Huntsville" : "schedules/alh",
-        "Alaska Anchorage" : "schedules/aka",
-        "Alaska" : "schedules/akf",
-        "American International" : "schedules/aic",
-        "Arizona State" : "schedules/asu",
-        "Army West Point" : "schedules/arm",
-        "Bemidji State" : "schedules/bmj",
-        "Bentley" : "schedules/ben",
-        "Boston College" : "schedules/bc_",
-        "Boston University" : "schedules/bu_",
-        "Bowling Green" : "schedules/bgs",
-        "Brown" : "schedules/brn",
-        "Canisius" : "schedules/cns",
-        "Clarkson" : "schedules/clk",
-        "Colgate" : "schedules/clg",
-        "Colorado College" : "schedules/cc_",
-        "Cornell" : "schedules/cor",
-        "Dartmouth" : "schedules/dar",
-        "Denver" : "schedules/den",
-        "Ferris State" : "schedules/fsu",
-        "Franklin Pierce" : "schedules/fpu",
-        "Harvard" : "schedules/har",
-        "Holy Cross" : "schedules/hcr",
-        "Lake Superior State" : "schedules/lss",
-        "Lindenwood" : "schedules/lin",
-        "Long Island University" : "schedules/liu",
-        "Maine" : "schedules/mne",
-        "Massachusetts" : "schedules/uma",
-        "Mercyhurst" : "schedules/mrc",
-        "Merrimack" : "schedules/mer",
-        "Miami" : "schedules/mia",
-        "Michigan State" : "schedules/msu",
-        "Michigan Tech" : "schedules/mtu",
-        "Michigan" : "schedules/mic",
-        "Minnesota Duluth" : "schedules/mnd",
-        "Minnesota State" : "schedules/mns",
-        "Minnesota" : "schedules/min",
-        "New Hampshire" : "schedules/unh",
-        "Niagara" : "schedules/nia",
-        "North Dakota" : "schedules/ndk",
-        "Northeastern" : "schedules/noe",
-        "Northern Michigan" : "schedules/nmu",
-        "Notre Dame" : "schedules/ndm",
-        "Ohio State" : "schedules/osu",
-        "Omaha" : "schedules/uno",
-        "Penn State" : "schedules/psu",
-        "Post" : "schedules/pst",
-        "Princeton" : "schedules/prn",
-        "Providence" : "schedules/prv",
-        "Quinnipiac" : "schedules/qui",
-        "RIT" : "schedules/rit",
-        "Rensselaer" : "schedules/ren",
-        "Robert Morris" : "schedules/rmu",
-        "Sacred Heart" : "schedules/sac",
-        "Saint Anselm" : "schedules/sta",
-        "Saint Michael's" : "schedules/stm",
-        "St. Cloud State" : "schedules/stc",
-        "St. Lawrence" : "schedules/stl",
-        "Syracuse" : "schedules/syr",
-        "UConn" : "schedules/con",
-        "UMass Lowell" : "schedules/uml",
-        "Union" : "schedules/uni",
-        "Vermont" : "schedules/ver",
-        "Western Michigan" : "schedules/wmu",
-        "Wisconsin" : "schedules/wis",
-        "Yale" : "schedules/yal"}
-              
+    teamDict = {"Air Force" : "team/Air-Force/1/",
+        "American Int'l" : "team/American-Intl/5/",
+        "Arizona State" : "team/Arizona-State/61/",
+        "Army" : "team/Army/6/",
+        "Bemidji State" : "team/Bemidji-State/7/",
+        "Bentley" : "team/Bentley/8/",
+        "Boston College" : "team/Boston-College/9/",
+        "Boston University" : "team/Boston-University/10/",
+        "Bowling Green" : "team/Bowling-Green/11/",
+        "Brown" : "team/Brown/12/",
+        "Canisius" : "team/Canisius/13/",
+        "Clarkson" : "team/Clarkson/14/",
+        "Colgate" : "team/Colgate/15/",
+        "Colorado College" : "team/Colorado-College/16/",
+        "Connecticut" : "team/Connecticut/17/",
+        "Cornell" : "team/Cornell/18/",
+        "Dartmouth" : "team/Dartmouth/19/",
+        "Denver" : "team/Denver/20/",
+        "Ferris State" : "team/Ferris-State/21/",
+        "Franklin Pierce" : "team/Franklin-Pierce/406/",
+        "Harvard" : "team/Harvard/22/",
+        "Holy Cross" : "team/Holy-Cross/23/",
+        "Lake Superior" : "team/Lake-Superior/24/",
+        "Lindenwood" : "team/Lindenwood/433/",
+        "Long Island" : "team/Arizona-State/62/",
+        "Long Island" : "team/Long-Island/62/",
+        "Maine" : "team/Maine/25/",
+        "Mass.-Lowell" : "team/Mass-Lowell/26/",
+        "Massachusetts" : "team/Massachusetts/27/",
+        "Mercyhurst" : "team/Mercyhurst/28/",
+        "Merrimack" : "team/Merrimack/29/",
+        "Miami" : "team/Miami/30/",
+        "Michigan State" : "team/Michigan-State/32/",
+        "Michigan Tech" : "team/Michigan-Tech/33/",
+        "Michigan" : "team/Michigan/31/",
+        "Minnesota State" : "team/Minnesota-State/35/",
+        "Minnesota" : "team/Minnesota/34/",
+        "Minnesota-Duluth" : "team/Minnesota-Duluth/36/",
+        "New Hampshire" : "team/New-Hampshire/38/",
+        "Niagara" : "team/Niagara/39/",
+        "North Dakota" : "team/North-Dakota/40/",
+        "Northeastern" : "team/Northeastern/41/",
+        "Northern Michigan" : "team/Northern-Michigan/42/",
+        "Notre Dame" : "team/Notre-Dame/43/",
+        "Ohio State" : "team/Ohio-State/44/",
+        "Omaha" : "team/Omaha/37/",
+        "Penn State" : "team/Penn-State/60/",
+        "Post" : "team/Post/434/",
+        "Princeton" : "team/Princeton/45/",
+        "Providence" : "team/Providence/46/",
+        "Quinnipiac" : "team/Quinnipiac/47/",
+        "RIT" : "team/RIT/49/",
+        "Rensselaer" : "team/Rensselaer/48/",
+        "Robert Morris" : "team/Robert-Morris/50/",
+        "Sacred Heart" : "team/Sacred-Heart/51/",
+        "Saint Anselm" : "team/Saint-Anselm/419/",
+        "Saint Michael's" : "team/Saint-Michaels/421/",
+        "St. Cloud State" : "team/St-Cloud-State/52/",
+        "St. Lawrence" : "team/St-Lawrence/53/",
+        "St. Thomas" : "team/St-Thomas/63/",
+        "Syracuse" : "team/Syracuse/423/",
+        "Union" : "team/Union/54/",
+        "Vermont" : "team/Vermont/55/",
+        "Western Michigan" : "team/Western-Michigan/57/",
+        "Wisconsin" : "team/Wisconsin/58/",
+        "Yale" : "team/Yale/59/"}
+
+
     decTeam = decodeTeam(team)
-    decTeam2 = ''
-    if(scorebot.isD1(decTeam,decTeam,gender)):
-        url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    decTeam2 = '' 
+    if(decTeam in chnDiffs.keys()):
+        decTeam=chnDiffs[decTeam]
+    if(scorebot.isD1(decTeam,decTeam,gender) or decTeam in chnDiffs.values()):
+       if(gender=="Men"):
+          sched='schedules'
+       elif(gender=="Women"):
+          sched='women'
+       url = "https://www.collegehockeynews.com/{}/{}".format(sched,teamDict[decTeam])
     else:
         return ":regional_indicator_x: Team Not Found"
+        
     if(opt.isnumeric()):
         numGames = int(opt)
     else:
         decTeam2 = decodeTeam(opt)
+        if(decTeam2 in chnDiffs.keys()):
+            decTeam2 = chnDiffs[decTeam2]
         numGames=10
             
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find_all('table')[1]
+           
+
+    schedule = soup.find('table',{'class':'data schedule'})
+    gameList=schedule.find_all('tr')
+    games = []
+    for i in gameList:
+        col=i.find_all('td')
+        if(len(col)==1):
+            month=col[0].get_text().split(' ')[0]
+            continue
+        counter=0
+        col=col[0].get_text().rstrip('\n\n')
+        col=col.replace('\xa0',' ')
+        colData=col.split('\n')
+        date=(month[:3]+' '+colData[0]).split('\t')[0]
+        date=date.split(' ')
+        date="{}, {} {}".format(date[2],date[0],date[1])
+        result=colData[1].split('\t')
+        time=colData[-1].rstrip(' ')
+        loc=colData[3]
+        opp=colData[4]
+        if(loc==''):
+            opp=opp.upper()
+        if(len(result)>2):
+            score=result[1]+' '+result[2]
+            result=result[0]
+            if(decTeam2.lower()==opp.lower()):
+                games.append("{} {} {} {}\n".format(date,opp,score,result))
+        elif(decTeam2!='' and decTeam2.lower()==opp.lower()):
+            games.append("{} {} {}\n".format(date,opp,time))
+        elif(decTeam2==''):
+            games.append("{} {} {}\n".format(date,opp,time))
+            
     gameLine = '```\n'
     counter=0
-    format = "%A, %B %d %y"
-    firstHalf = ["September", "October", "November", "December"]
-    secHalf = ["January", "February", "March", "April"]
-    for i in table.find_all('tr'):
-        game=i.find_all('td')
-        if(decTeam2 != ''):
-            if(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
-                date=game[1].get_text()  
-                opp=game[3].get_text()
-                time=game[6].get_text()
-                date = date.replace('\xa0','')
-                month = date.split(' ')[1]
-                if(month in firstHalf):
-                    date+=" " + season[:2]
-                elif(month in secHalf):
-                    date+=" " + season[-2:]
-               
-                dt = datetime.datetime.strptime(date,format)
-                date=dt.strftime('%a, %b %-d')
-                if(opp.lower() == decTeam2.lower()):
-                    gameLine+="{} {} {}\n".format(date,opp,time)
-            elif(len(game)>=7 and "Overall" in game[-1].get_text() or "Sheet" in game[-1].get_text()):
-                date=game[1].get_text()  
-                opp=game[3].get_text()
-                time=game[6].get_text()
-                date = date.replace('\xa0','')
-                month = date.split(' ')[1]
-                if(month in firstHalf):
-                    date+=" " + season[:2]
-                elif(month in secHalf):
-                    date+=" " + season[-2:]
-               
-                dt = datetime.datetime.strptime(date,format)
-                date=dt.strftime('%a, %b %-d')
-                result=''
-                if(opp.lower() == decTeam2.lower()):
-                    for i in range(5,11):
-                        result+=game[i].get_text()
-                    gameLine += "{} {} {}\n".format(date,opp,result)
-            
-        elif(len(game)>=7 and "Overall" not in game[-1].get_text() and "Sheet" not in game[-1].get_text()):
-            
-            date=game[1].get_text()  
-            opp=game[3].get_text()
-            time=game[6].get_text()
-            date = date.replace('\xa0','')
-            month = date.split(' ')[1]
-            if(month in firstHalf):
-                date+=" " + season[:2]
-            elif(month in secHalf):
-                date+=" " + season[-2:]
-               
-            dt = datetime.datetime.strptime(date,format)
-            date=dt.strftime('%a, %b %-d')
-            
-            if(dt.date()<datetime.datetime.now().date()):
-                continue
-            gameLine+="{} {} {}\n".format(date,opp,time)
-            counter+=1
-        if(numGames<=counter):
+    for i in games:
+        gameLine += i
+        counter+=1
+        if(counter>=numGames):
             break
-            
     gameLine +='```'
     if(gameLine=='```\n```'):
         return 'No Schedule Found'
+    
     return gameLine
     
 def getResults(team,opt,gender):
-    
-    teamDict = {"Air Force" : "schedules/afa",
-        "Alabama Huntsville" : "schedules/alh",
-        "Alaska Anchorage" : "schedules/aka",
-        "Alaska" : "schedules/akf",
-        "American International" : "schedules/aic",
-        "Arizona State" : "schedules/asu",
-        "Army West Point" : "schedules/arm",
-        "Bemidji State" : "schedules/bmj",
-        "Bentley" : "schedules/ben",
-        "Boston College" : "schedules/bc_",
-        "Boston University" : "schedules/bu_",
-        "Bowling Green" : "schedules/bgs",
-        "Brown" : "schedules/brn",
-        "Canisius" : "schedules/cns",
-        "Clarkson" : "schedules/clk",
-        "Colgate" : "schedules/clg",
-        "Colorado College" : "schedules/cc_",
-        "Cornell" : "schedules/cor",
-        "Dartmouth" : "schedules/dar",
-        "Denver" : "schedules/den",
-        "Ferris State" : "schedules/fsu",
-        "Franklin Pierce" : "schedules/fpu",
-        "Harvard" : "schedules/har",
-        "Holy Cross" : "schedules/hcr",
-        "Lake Superior State" : "schedules/lss",
-        "Lindenwood" : "schedules/lin",
-        "Long Island University" : "schedules/liu",
-        "Maine" : "schedules/mne",
-        "Massachusetts" : "schedules/uma",
-        "Mercyhurst" : "schedules/mrc",
-        "Merrimack" : "schedules/mer",
-        "Miami" : "schedules/mia",
-        "Michigan State" : "schedules/msu",
-        "Michigan Tech" : "schedules/mtu",
-        "Michigan" : "schedules/mic",
-        "Minnesota Duluth" : "schedules/mnd",
-        "Minnesota State" : "schedules/mns",
-        "Minnesota" : "schedules/min",
-        "New Hampshire" : "schedules/unh",
-        "Niagara" : "schedules/nia",
-        "North Dakota" : "schedules/ndk",
-        "Northeastern" : "schedules/noe",
-        "Northern Michigan" : "schedules/nmu",
-        "Notre Dame" : "schedules/ndm",
-        "Ohio State" : "schedules/osu",
-        "Omaha" : "schedules/uno",
-        "Penn State" : "schedules/psu",
-        "Post" : "schedules/pst",
-        "Princeton" : "schedules/prn",
-        "Providence" : "schedules/prv",
-        "Quinnipiac" : "schedules/qui",
-        "RIT" : "schedules/rit",
-        "Rensselaer" : "schedules/ren",
-        "Robert Morris" : "schedules/rmu",
-        "Sacred Heart" : "schedules/sac",
-        "Saint Anselm" : "schedules/sta",
-        "Saint Michael's" : "schedules/stm",
-        "St. Cloud State" : "schedules/stc",
-        "St. Lawrence" : "schedules/stl",
-        "Syracuse" : "schedules/syr",
-        "UConn" : "schedules/con",
-        "UMass Lowell" : "schedules/uml",
-        "Union" : "schedules/uni",
-        "Vermont" : "schedules/ver",
-        "Western Michigan" : "schedules/wmu",
-        "Wisconsin" : "schedules/wis",
-        "Yale" : "schedules/yal"}
-              
-    decTeam = decodeTeam(team)
-    if(scorebot.isD1(decTeam,decTeam,gender)):
-       url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    teamDict = {"Air Force" : "team/Air-Force/1/",
+        "American Int'l" : "team/American-Intl/5/",
+        "Arizona State" : "team/Arizona-State/61/",
+        "Army" : "team/Army/6/",
+        "Bemidji State" : "team/Bemidji-State/7/",
+        "Bentley" : "team/Bentley/8/",
+        "Boston College" : "team/Boston-College/9/",
+        "Boston University" : "team/Boston-University/10/",
+        "Bowling Green" : "team/Bowling-Green/11/",
+        "Brown" : "team/Brown/12/",
+        "Canisius" : "team/Canisius/13/",
+        "Clarkson" : "team/Clarkson/14/",
+        "Colgate" : "team/Colgate/15/",
+        "Colorado College" : "team/Colorado-College/16/",
+        "Connecticut" : "team/Connecticut/17/",
+        "Cornell" : "team/Cornell/18/",
+        "Dartmouth" : "team/Dartmouth/19/",
+        "Denver" : "team/Denver/20/",
+        "Ferris State" : "team/Ferris-State/21/",
+        "Franklin Pierce" : "team/Franklin-Pierce/406/",
+        "Harvard" : "team/Harvard/22/",
+        "Holy Cross" : "team/Holy-Cross/23/",
+        "Lake Superior" : "team/Lake-Superior/24/",
+        "Lindenwood" : "team/Lindenwood/433/",
+        "Long Island" : "team/Arizona-State/62/",
+        "Long Island" : "team/Long-Island/62/",
+        "Maine" : "team/Maine/25/",
+        "Mass.-Lowell" : "team/Mass-Lowell/26/",
+        "Massachusetts" : "team/Massachusetts/27/",
+        "Mercyhurst" : "team/Mercyhurst/28/",
+        "Merrimack" : "team/Merrimack/29/",
+        "Miami" : "team/Miami/30/",
+        "Michigan State" : "team/Michigan-State/32/",
+        "Michigan Tech" : "team/Michigan-Tech/33/",
+        "Michigan" : "team/Michigan/31/",
+        "Minnesota State" : "team/Minnesota-State/35/",
+        "Minnesota" : "team/Minnesota/34/",
+        "Minnesota-Duluth" : "team/Minnesota-Duluth/36/",
+        "New Hampshire" : "team/New-Hampshire/38/",
+        "Niagara" : "team/Niagara/39/",
+        "North Dakota" : "team/North-Dakota/40/",
+        "Northeastern" : "team/Northeastern/41/",
+        "Northern Michigan" : "team/Northern-Michigan/42/",
+        "Notre Dame" : "team/Notre-Dame/43/",
+        "Ohio State" : "team/Ohio-State/44/",
+        "Omaha" : "team/Omaha/37/",
+        "Penn State" : "team/Penn-State/60/",
+        "Post" : "team/Post/434/",
+        "Princeton" : "team/Princeton/45/",
+        "Providence" : "team/Providence/46/",
+        "Quinnipiac" : "team/Quinnipiac/47/",
+        "RIT" : "team/RIT/49/",
+        "Rensselaer" : "team/Rensselaer/48/",
+        "Robert Morris" : "team/Robert-Morris/50/",
+        "Sacred Heart" : "team/Sacred-Heart/51/",
+        "Saint Anselm" : "team/Saint-Anselm/419/",
+        "Saint Michael's" : "team/Saint-Michaels/421/",
+        "St. Cloud State" : "team/St-Cloud-State/52/",
+        "St. Lawrence" : "team/St-Lawrence/53/",
+        "St. Thomas" : "team/St-Thomas/63/",
+        "Syracuse" : "team/Syracuse/423/",
+        "Union" : "team/Union/54/",
+        "Vermont" : "team/Vermont/55/",
+        "Western Michigan" : "team/Western-Michigan/57/",
+        "Wisconsin" : "team/Wisconsin/58/",
+        "Yale" : "team/Yale/59/"}
+      
+    team=decodeTeam(team)  
+    if(team in chnDiffs.keys()):
+        team=chnDiffs[team]
+    if(scorebot.isD1(team,team,gender) or team in chnDiffs.values()):
+       if(gender=="Men"):
+          sched='schedules'
+       elif(gender=="Women"):
+          sched='women'
+       url = "https://www.collegehockeynews.com/{}/{}".format(sched,teamDict[team])
     else:
         return ":regional_indicator_x: Team Not Found"
     if(opt.isnumeric()):
@@ -3677,34 +3685,33 @@ def getResults(team,opt,gender):
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find_all('table')[1]
+    
+    schedule = soup.find('table',{'class':'data schedule'})
+    gameList=schedule.find_all('tr')
     gameLine = '```\n'
-    counter=0
     games = []
-    format = "%A, %B %d %y"
-    firstHalf = ["September", "October", "November", "December"]
-    secHalf = ["January", "February", "March", "April"]
-    for i in table.find_all('tr'):
-        game=i.find_all('td')
-        if(len(game)>=7 and "Overall" in game[-1].get_text() or "Sheet" in game[-1].get_text()):
-            counter+=1
-            date=game[1].get_text()  
-            opp=game[3].get_text()
-            time=game[6].get_text()
-            result=''
-            date = date.replace('\xa0','')
-            month = date.split(' ')[1]
-            if(month in firstHalf):
-                date+=" " + season[:2]
-            elif(month in secHalf):
-                date+=" " + season[-2:]
-               
-            dt = datetime.datetime.strptime(date,format)
-            date=dt.strftime('%a, %b %-d')
-            for i in range(5,11):
-                result+=game[i].get_text()
-            gamesData = "{} {} {}\n".format(date,opp,result)
-            games.append(gamesData)
+    for i in gameList:
+        col=i.find_all('td')
+        if(len(col)==1):
+            month=col[0].get_text().split(' ')[0]
+            continue
+        counter=0
+        col=col[0].get_text().rstrip('\n\n')
+        col=col.replace('\xa0',' ')
+        colData=col.split('\n')
+        date=(month[:3]+' '+colData[0]).split('\t')[0]
+        date=date.split(' ')
+        date="{}, {} {}".format(date[2],date[0],date[1])
+        result=colData[1].split('\t')
+        time=colData[-1].rstrip(' ')
+        loc=colData[3]
+        opp=colData[4]
+        if(loc==''):
+            opp=opp.upper()
+        if(len(result)>2):
+            score=result[1]+' '+result[2]
+            result=result[0]
+            games.append("{} {} {} {}\n".format(date,opp,score,result))
             
     numGames *= -1
     gamesToReport = games[numGames:]
@@ -3971,6 +3978,12 @@ def generateScoreline(team, gender):
 def generatePDOPlot(gender):
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
+        svFileName = 'pdoplotdata/sv_data.txt'
+        pdoPlotName ='pdoplotdata/pdoplot.png'
+    if(gender=='Womens'):
+        url = "https://www.collegehockeynews.com/women/stats.php"
+        svFileName = 'pdoplotdata/w_sv_data.txt'
+        pdoPlotName ='pdoplotdata/wpdoplot.png'
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4072,8 +4085,9 @@ def generatePDOPlot(gender):
         marker.append(i)
 
     newData=False
-    if (os.path.exists('pdoplotdata/sv_data.txt')):
-        foname = open('pdoplotdata/sv_data.txt','r')
+
+    if (os.path.exists(svFileName)):
+        foname = open(svFileName,'r')
         counter=0
         for i in foname:
             if(sv[counter]!=float(i.rstrip('\n'))):            
@@ -4084,13 +4098,13 @@ def generatePDOPlot(gender):
         
     else:
         newData = True   
-        fname = open('pdoplotdata/sv_data.txt','w')
+        fname = open(svFileName,'w')
         for i in sv:
             print(i,file=fname)
         fname.close()
 
-    if(newData or (not os.path.exists('pdoplotdata/pdoplot.png'))):
-        fname = open('pdoplotdata/sv_data.txt','w')
+    if(newData or (not os.path.exists(pdoPlotName))):
+        fname = open(svFileName,'w')
         for i in sv:
             print(i,file=fname)
         fname.close()
@@ -4122,13 +4136,19 @@ def generatePDOPlot(gender):
         plt.text(plt.xlim()[0]+.2,plt.ylim()[0]+.01,'Unlucky',fontsize=15,color='gray')
         plt.text(plt.xlim()[1]-1.5,plt.ylim()[0]+.01,'Fun',fontsize=15,color='gray')
         plt.grid()
-        plt.savefig('pdoplotdata/pdoplot.png')
+        plt.savefig(pdoPlotName)
 
-    return "pdoplotdata/pdoplot.png"
+    return pdoPlotName
     
 def generateCorsiPlot(gender):
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
+        cfFileName = 'pdoplotdata/cf_data.txt'
+        corsiFileName = 'pdoplotdata/corsiplot.png'
+    if(gender=='Womens'):
+        url = "https://www.collegehockeynews.com/women/stats.php"
+        cfFileName = 'pdoplotdata/wcf_data.txt'
+        corsiFileName ='pdoplotdata/wcorsiplot.png'
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4218,10 +4238,6 @@ def generateCorsiPlot(gender):
             teamDict[aHeaders[i]] = val
         statDict[col[1].get_text()] = teamDict 
 
-    for team in statDict.keys():
-        statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
-        statDict[team]['img'] = imageio.imread(statDict[team]['logo'])
-        
     cf=[]
     ca=[]
     marker=[]
@@ -4232,11 +4248,11 @@ def generateCorsiPlot(gender):
         
 
     newData=False
-    if (os.path.exists('pdoplotdata/cf_data.txt')):
-        foname = open('pdoplotdata/cf_data.txt','r')
+    if (os.path.exists(cfFileName)):
+        foname = open(cfFileName,'r')
         counter=0
         for i in foname:
-            if(cf[counter]!=float(i.rstrip('\n'))):            
+            if(cf[counter]!=float(i.rstrip('\n'))):  
                 newData=True
                 break
             counter+=1
@@ -4244,13 +4260,13 @@ def generateCorsiPlot(gender):
         
     else:
         newData = True   
-        fname = open('pdoplotdata/cf_data.txt','w')
+        fname = open(cfFileName,'w')
         for i in cf:
             print(i,file=fname)
         fname.close()
 
-    if(newData or (not os.path.exists('pdoplotdata/corsiplot.png'))):
-        fname = open('pdoplotdata/cf_data.txt','w')
+    if(newData or (not os.path.exists(corsiFileName))):
+        fname = open(cfFileName,'w')
         for i in cf:
             print(i,file=fname)
         fname.close()
@@ -4269,20 +4285,20 @@ def generateCorsiPlot(gender):
            ax.add_artist(ab)
         plt.xticks(np.arange(round(min(cf))-1,max(cf)+1,5))
         plt.yticks(np.arange(round(min(ca))-1,max(ca)+1,5))
-        plt.ylim([min(ca)-1,max(ca)+1])
+        plt.ylim([max(ca)+1,min(ca)-1])
         plt.xlim([min(cf)-1,max(cf)+1])
         plt.xlabel('Cf/60')
         plt.ylabel('Ca/60')
         plt.title('Team Shot Rates')
         plt.vlines(np.mean(ca),plt.ylim()[0],plt.ylim()[1])
         plt.hlines(np.mean(cf),plt.xlim()[0],plt.xlim()[1])
-        plt.text(plt.xlim()[0]+2,plt.ylim()[1]-2,'Dull',fontsize=15,color='gray')
-        plt.text(plt.xlim()[1]-5,plt.ylim()[1]-2,'Good',fontsize=15,color='gray')
-        plt.text(plt.xlim()[0]+2,plt.ylim()[0]+1,'Bad',fontsize=15,color='gray')
-        plt.text(plt.xlim()[1]-5,plt.ylim()[0]+1,'Fun',fontsize=15,color='gray')
+        plt.text(plt.xlim()[0]+2,plt.ylim()[1]+2,'Dull',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-5,plt.ylim()[1]+2,'Good',fontsize=15,color='gray')
+        plt.text(plt.xlim()[0]+2,plt.ylim()[0]-2,'Bad',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-5,plt.ylim()[0]-2,'Fun',fontsize=15,color='gray')
         plt.grid()
-        plt.savefig('pdoplotdata/corsiplot.png')
+        plt.savefig(corsiFileName)
 
-    return "pdoplotdata/corsiplot.png"
+    return corsiFileName
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
