@@ -429,7 +429,7 @@ def getJeer(role):
         return "";
  
 def getPairwise(opt):
-
+    global chnDiffs
     #return "Pairwise is currently unavailable for the 2020-21 Season, use ?mpwr for an approximation"
     url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
     f=urllib.request.urlopen(url)
@@ -442,15 +442,6 @@ def getPairwise(opt):
         if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
             pairwise.append(link.get_text())       
 
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
     teams = []
     start = 0
     splitopt = opt.split(',')
@@ -514,6 +505,7 @@ def getPairwise(opt):
     rankings += "```"
     return rankings
 def getKRACH(opt):
+    global chnDiffs
     url = "https://www.collegehockeynews.com/ratings/krach.php"
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -531,15 +523,6 @@ def getKRACH(opt):
             line=line.rstrip('!')
             krach.append(line.split("!")[1])       
 
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
     teams = []
     start = 0
     splitopt = opt.split(',')
@@ -597,9 +580,9 @@ def getKRACH(opt):
     return rankings
     
 def getMatchupHistory(team,opp,numGames):
-          
+    global chnDiffs
     minSeason=19001901
-    maxSeason=20202021
+    maxSeason=20212022
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
@@ -609,13 +592,6 @@ def getMatchupHistory(team,opp,numGames):
     if(team == '' or opp == ''):
         
         return "Enter Two Teams!"
-        
-    chnDiffs={"Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass Lowell",
-        "Omaha" : "Nebraska Omaha",
-        "American International" : "American Intl",
-        "Army West Point" : "Army",
-        "UConn" : "Connecticut"}
         
     team = decodeTeam(team)
     opp = decodeTeam(opp)
@@ -756,19 +732,13 @@ def getMatchupHistory(team,opp,numGames):
     return historyData
     
 def getWinProb(aTeam, aScore, hTeam, hScore, status):
+    global chnDiffs
+
     if('Final' in status):
         return ''
       
     return ''
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
+
         
     hTeam = decodeTeam(hTeam)
     aTeam = decodeTeam(aTeam)
@@ -872,15 +842,7 @@ def getKOdds(team1,team2):
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"
     
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
+    global chnDiffs
         
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
@@ -923,17 +885,8 @@ def getKOdds(team1,team2):
 def getKOdds3(team1,team2):
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"
-    
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
-        
+    global chnDiffs
+       
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
     if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
@@ -976,17 +929,9 @@ def getKOdds3(team1,team2):
 def getPWRComp(team1,team2):
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"
-        
-    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
-        "Lake Superior State" : "Lake Superior",
-        "UMass Lowell" : "Mass.-Lowell",
-        "Omaha" : "Nebraska-Omaha",
-        "American International" : "American Int'l",
-        "Army West Point" : "Army",
-        "Alabama Huntsville" : "Alabama-Huntsville",
-        "Alaska Anchorage" : "Alaska-Anchorage",
-        "UConn" : "Connecticut"}
-        
+    
+    global chnDiffs
+ 
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
     if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
@@ -1059,53 +1004,73 @@ def getStandings(conf, m_w):
     conf=conf.lower()
     conf=conf.replace(" ","")
     if(m_w == "Men"):
+        gender='reports'
         if(conf=="hea" or conf == "he" or conf == 'hockeyeast'):
-            conference = "heastm"
+            conference = 4
         elif(conf == "ivy"):
-            conference = "ivym"
+            conference = 3
         elif(conf == "atlantic" or conf == "ahc" or conf == "aha"):
-            conference = "atlantic"
+            conference = 0
         elif(conf == "bigten" or conf == "b10" or conf == "b1g" or conf == "big10" ):
-            conference = "bigten"
+            conference = 1
         elif(conf == "nchc"):
-            conference = "nchc"
-        elif(conf == "wcha"):
-            conference = "wcham"
+            conference = 5
+        elif(conf == "ccha"):
+            conference = 2
         elif(conf == "ecac"):
-            conference = "ecachm"
+            conference = 3
         elif(conf == "ind" or conf == "independent"):
-            conference = "indm1"
+            conference = 6
         else:
             return "I don't know that conference."
     elif(m_w == "Women"):
+        gender='women'
         if(conf=="hea" or conf == "he" or conf == 'hockeyeast'):
             conference = "heastw"
         elif(conf == "ivy"):
-            conference = "ivyw"
+            conference = 0
         elif(conf == "cha"):
-            conference = "chaw"
+            conference = 3
         elif(conf == "wcha"):
-            conference = "wchaw"
+            conference = 2
         elif(conf == "ecac"):
-            conference = "ecachw"
+            conference = 0
         elif(conf == "newha"):
-            conference = "newha"
+            conference = 4
         else:
             return "I don't know that conference."
     else:
         return "I don't know that conference."
 
-    url = "http://www.collegehockeystats.net/{}/standings/{}".format(season,conference)
+    url = "https://www.collegehockeynews.com/{}/standings.php".format(gender)
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    data =soup.get_text()
-    for i in soup.find_all('pre'):
-        data=i.get_text()
-        standings=data.replace(u'\xa0',u' ') 
-        standings = "```\n" + standings + "```"
-        return standings
+    confTab= soup.find_all('table')
+    
+    rows=confTab[conference].find('tbody').find_all('tr')
+    standings="```\n"
+    standings+= "{: <30}Conference\t\tOverall\n".format('')
+    standings+="{: <18}  Pts  GP  RW  RL  OW  OL | GP  W  L  T  OW  OL  GF  GA\n".format('')
+
+    for row in rows:
+        team=[]
+        for i in row.find_all('td'):
+              team.append(i.get_text())
+        team[1]="{: <18}".format(team[1])
+        if(team[7]==''):
+            team[7]='0'
+        if(team[8]==''):
+            team[8]='0'
+        if(team[17]==''):
+            team[17]='0'
+        if(team[18]==''):
+            team[18]='0'
+        standings+="{:<2} {:}{:<2}  {:<2}  {:<2}  {:<2}  {:<2}  {:<2} |  {:<2} {:<2} {:<2} {:<2}  {:<2}  {:<2} {:<2} {:<2}\n".format(team[0],team[1],team[3],team[2],team[5],team[6],team[7],team[8],team[10], team[11],team[12],team[13],team[17],team[18],team[19],team[20])
+
+    standings += "```"
+    return standings
         
     
 def getGamesOnTV():
@@ -3197,6 +3162,9 @@ async def on_message(message):
     if(message.content.startswith('?wisconsin')):
             await message.channel.send("https://media.giphy.com/media/Ox6839VK0vCPTakv8H/giphy.gif")
             
+    if(message.content.startswith('?colgate') or message.content.startswith('?gate')):
+            await message.channel.send("https://gfycat.com/agitatedslimyhyrax")        
+        
     if(message.content.startswith('?portal')):
             await message.channel.send(random.choice([ "https://tenor.com/view/chosen-toy-story-gif-7936264","https://media.giphy.com/media/ciadMxfm3135m/giphy.gif"]))      
                 
@@ -3302,6 +3270,7 @@ def decodeTeam(team):
         "cambridgewarcriminalfactory" : "Harvard",
         "cc" : "Colorado College",
         "cgate" : "Colgate",
+        "gate" : "Colgate",
         "chestnuthillcommunitycollege" : "Boston College",
         "chestnuthilluniversity" : "Boston College",
         "clarky" : "Clarkson",
@@ -3460,6 +3429,7 @@ def getCat():
 
 def getSchedule(team,opt,gender):
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
@@ -3483,7 +3453,6 @@ def getSchedule(team,opt,gender):
         "Holy Cross" : "team/Holy-Cross/23/",
         "Lake Superior" : "team/Lake-Superior/24/",
         "Lindenwood" : "team/Lindenwood/433/",
-        "Long Island" : "team/Arizona-State/62/",
         "Long Island" : "team/Long-Island/62/",
         "Maine" : "team/Maine/25/",
         "Mass.-Lowell" : "team/Mass-Lowell/26/",
@@ -3599,7 +3568,9 @@ def getSchedule(team,opt,gender):
     return gameLine
     
 def getResults(team,opt,gender):
+    global chnDiffs
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
@@ -3623,7 +3594,6 @@ def getResults(team,opt,gender):
         "Holy Cross" : "team/Holy-Cross/23/",
         "Lake Superior" : "team/Lake-Superior/24/",
         "Lindenwood" : "team/Lindenwood/433/",
-        "Long Island" : "team/Arizona-State/62/",
         "Long Island" : "team/Long-Island/62/",
         "Maine" : "team/Maine/25/",
         "Mass.-Lowell" : "team/Mass-Lowell/26/",
@@ -3978,12 +3948,12 @@ def generateScoreline(team, gender):
 def generatePDOPlot(gender):
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
-        svFileName = 'pdoplotdata/sv_data.txt'
-        pdoPlotName ='pdoplotdata/pdoplot.png'
+        svFileName = '/home/nmemme/discordBot/pdoplotdata/sv_data.txt'
+        pdoPlotName ='/home/nmemme/discordBot/pdoplotdata/pdoplot.png'
     if(gender=='Womens'):
         url = "https://www.collegehockeynews.com/women/stats.php"
-        svFileName = 'pdoplotdata/w_sv_data.txt'
-        pdoPlotName ='pdoplotdata/wpdoplot.png'
+        svFileName = '/home/nmemme/discordBot/pdoplotdata/w_sv_data.txt'
+        pdoPlotName ='/home/nmemme/discordBot/pdoplotdata/wpdoplot.png'
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4143,12 +4113,12 @@ def generatePDOPlot(gender):
 def generateCorsiPlot(gender):
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
-        cfFileName = 'pdoplotdata/cf_data.txt'
-        corsiFileName = 'pdoplotdata/corsiplot.png'
+        cfFileName = '/home/nmemme/discordBot/pdoplotdata/cf_data.txt'
+        corsiFileName = '/home/nmemme/discordBot/pdoplotdata/corsiplot.png'
     if(gender=='Womens'):
         url = "https://www.collegehockeynews.com/women/stats.php"
-        cfFileName = 'pdoplotdata/wcf_data.txt'
-        corsiFileName ='pdoplotdata/wcorsiplot.png'
+        cfFileName = '/home/nmemme/discordBot/pdoplotdata/wcf_data.txt'
+        corsiFileName ='/home/nmemme/discordBot/pdoplotdata/wcorsiplot.png'
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
