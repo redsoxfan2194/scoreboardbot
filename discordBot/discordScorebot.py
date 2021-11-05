@@ -1026,7 +1026,7 @@ def getStandings(conf, m_w):
     elif(m_w == "Women"):
         gender='women'
         if(conf=="hea" or conf == "he" or conf == 'hockeyeast'):
-            conference = "heastw"
+            conference = 1
         elif(conf == "ivy"):
             conference = 0
         elif(conf == "cha"):
@@ -1274,131 +1274,17 @@ def compareTeams(team1,team2):
     
 def getWPairwise(opt):
     
-    global teamDict,newha,season
-    #newha =['Saint Anselm','Franklin Pierce',"Saint Michael's"]   
-    newha = []
-    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
-      
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
+    url = "https://json-b.uscho.com/json/rankings/pairwise-rankings/d-i-women"
+    f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
-    parser.feed(html.decode("latin1"))
-    
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB': 0, 'cWins': 0}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "oWP": 0, "ooWP": 0, 'teamsPlayed': [], "uRPI" : 0, 'RPI': 0, 'QWB' : 0, 'cWins': 0}})
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-
-
-    
-    calcRPI()
-    teamList = [i for i in teamDict.keys() if scorebot.isD1(i,i,'Women') and i not in newha]
-
-    teamCombos=list(itertools.combinations(teamList,2))
-    for team1,team2 in teamCombos:
-        sumTeam1,sumTeam2 = compareTeams(team1,team2)
-        if(sumTeam1>sumTeam2):
-            teamDict[team1]['cWins']+=1
-        elif(sumTeam1<sumTeam2):
-            teamDict[team2]['cWins']+=1
-        else:
-            t1RPI,t2RPI = compareRPI(team1,team2)
-            if(t1RPI>t2RPI):
-                teamDict[team1]['cWins']+=1
-            elif(t1RPI<t2RPI):
-                teamDict[team2]['cWins']+=1
-    pwrDict ={}
-    for i in teamDict.keys():
-        if(scorebot.isD1(i,i,'Women')):
-            pwrDict[i] = [teamDict[i]['cWins'],teamDict[i]['RPI']]
+    soup = BeautifulSoup(html, 'html.parser')
+    site_json=json.loads(soup.text)
+    table=site_json['json']['dt1']['data']
+    pwr=[]
+    for row in table:
+        pwr.append(row[1])
         
-    sorted_pwr = sorted(pwrDict.items(), key=operator.itemgetter(1,1), reverse=True)
-    pwr = []
-    for i in sorted_pwr:
-        pwr.append(i[0])
     start = 0
     splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
@@ -3542,11 +3428,14 @@ def getSchedule(team,opt,gender):
         time=colData[-1].rstrip(' ')
         loc=colData[3]
         opp=colData[4]
+        ot=''
+        if(colData[2]!=''):
+            ot='('+colData[2].upper()+')'
         if(loc==''):
             opp=opp.upper()
         if(len(result)>2):
             score=result[1]+' '+result[2]
-            result=result[0]
+            result=result[0] + ' ' + ot
             if(decTeam2.lower()==opp.lower()):
                 games.append("{} {} {} {}\n".format(date,opp,score,result))
         elif(decTeam2!='' and decTeam2.lower()==opp.lower()):
@@ -3676,11 +3565,14 @@ def getResults(team,opt,gender):
         time=colData[-1].rstrip(' ')
         loc=colData[3]
         opp=colData[4]
+        ot=''
+        if(colData[2]!=''):
+            ot='('+colData[2].upper()+')'
         if(loc==''):
             opp=opp.upper()
         if(len(result)>2):
             score=result[1]+' '+result[2]
-            result=result[0]
+            result=result[0] + ' ' + ot
             games.append("{} {} {} {}\n".format(date,opp,score,result))
             
     numGames *= -1
