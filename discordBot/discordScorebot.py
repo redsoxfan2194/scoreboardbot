@@ -114,8 +114,6 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Alaska-Anchorage" : "<:uaa:761701504376766464>",
 "Connecticut" : "<:uconn:761701507782934548>"}
 
-    #scorebot.getScores()
-    #games=scorebot.gameList
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -172,7 +170,6 @@ def displayHelp():
 ?[wpwr / wkrach] <number> - displays Top <number> Pairwise Ranking / KRACH
 ?[wpwr / wkrach] <number>,<number2> - displays <number\> to <number2\> Pairwise Ranking / KRACH
 ?[wpwr / wkrach] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
-?[ckrach / dkrach] [top / bottom / bubble / <number> / team name] same as above but combines Men's and Women's games (ckrach includes Men's and Women's dkrach is only schools with both)
 ?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
     ''',
     '''
@@ -196,9 +193,9 @@ def displayHelp():
 ?[dog] - displays random dog pic
 ?[cat] - displays random cat pic
 
-Scores/Standings/TV Listings/Stats courtesy of collegehockeystats.net
+Scores/Standings/TV Listings/Stats courtesy of collegehockeynews.com
 Pairwise Rankings courtesy of collegehockeynews.com
-Women's Pairwise Rankings calculated using scores from collegehockeystats.net
+Women's Pairwise Rankings courtesy of uscho.com
 Women's KRACH calculations courtesy of lugnut92
 Cheers/Jeers courtesy of Student Sections across America
 Bot courtesy of redsoxfan2194
@@ -870,7 +867,7 @@ def getKOdds(team1,team2):
          value = cell.string
          if(value != None):
             line +=value + "!"
-        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line and 'Winning' not in line):
             line=line.rstrip('!')
             line=line.split("!")
             if(line[2]=='∞'):
@@ -1293,7 +1290,8 @@ def getWPairwise(opt):
     elif(opt.lower()=='full'):
         end = 41
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
-
+        if(decodeTeam=='UConn'):
+            decodeTeam='Connecticut'
         teamIdx=pwr.index(decodedTeam)
         if(teamIdx-2<0):
             start=0
@@ -1338,7 +1336,7 @@ def getWPairwise(opt):
     return rankings
         
 def getWKRACH(opt):
-    
+    return "Women's KRACH Currently Unavailable"
     global teamDict,season
     url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
       
@@ -1520,280 +1518,6 @@ def getWKRACH(opt):
                 end=swap+1   
     else:
         end = 8
-    rankings = "```\n"
-    for i in range(start,end):
-        rankings+="{}. {}\n".format(i+1,krach[i])
-    rankings += "```"
-    return rankings
-
-def getComboKRACH(type,opt):
-    
-    global teamDict,season
-    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
-      
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
-    html = f.read()
-    f.close()
-    parser.feed(html.decode("latin1"))
-
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-                
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-                
-    url = "http://www.collegehockeystats.net/{}/schedules/d1m".format(season)
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
-    html = f.read()
-    f.close()
-    parser.feed(html.decode("latin1"))
-
-    gameData=parser.return_data()
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Men') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Men')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])             
-
-    for team in teamDict.keys():
-        teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
-
-    converged = False
-    while(not converged):
-        for team in teamDict.keys():
-            tWFactor = 0
-            sumKrach = 0
-            for oppo in set(teamDict[team]['teamsPlayed']):
-                sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
-            newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
-            ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
-
-            if(ratio <= 0.00001):
-                converged=True
-            teamDict[team]['Rating']= newRating
-        if(converged):
-            break
-
-    for i in range(10):
-        scale_wins = 0
-        for team in teamDict.keys():
-            scale_wins += 100/(100 + teamDict[team]['Rating'])
-        scale = scale_wins/20
-        
-        for team in teamDict.keys():
-            teamDict[team]['Rating'] *= scale
-       
-        
-    krachDict ={}
-    dualKrachDict = {}
-    for i in teamDict.keys():
-        if(scorebot.isD1(i,i,'Women') or scorebot.isD1(i,i,'Men')):
-            krachDict[i] = teamDict[i]['Rating']
-        if(scorebot.isD1(i,i,'Women') and scorebot.isD1(i,i,'Men')):
-            dualKrachDict[i] = teamDict[i]['Rating']
-    sorted_krach = sorted(krachDict.items(), key=operator.itemgetter(1), reverse=True)
-    sorted_dkrach = sorted(dualKrachDict.items(), key=operator.itemgetter(1), reverse=True)
-    krach = []
-    
-    if(type=='Dual'):
-       for i in sorted_dkrach:
-            krach.append(i[0]) 
-        
-    elif(type=='Combo'):
-        for i in sorted_krach:
-            krach.append(i[0])
-              
-        
-    start = 0
-    decodedTeam = decodeTeam(opt)
-    if(opt.isnumeric()):
-        end = int(opt)
-    elif(opt.lower()=='full'):
-        end = len(krach)
-    elif((type=='Combo' and (scorebot.isD1(decodedTeam,decodedTeam,'Women') or scorebot.isD1(decodedTeam,decodedTeam,'Men'))) or (type=='Dual' and (scorebot.isD1(decodedTeam,decodedTeam,'Women') and scorebot.isD1(decodedTeam,decodedTeam,'Men')))):
-
-        teamIdx=krach.index(decodedTeam)
-        if(teamIdx-2<0):
-            start=0
-        else:
-            start = teamIdx-2
-        if(teamIdx+3>len(krach)-1):
-            end=len(krach)-1
-        else:
-            end = teamIdx+3
-    elif(opt.lower() == 'bubble'):
-        start = 5
-        end = 12
-    elif(opt.lower() == 'top'):
-        end = 4
-    elif(opt.lower() == 'bottom'):
-        start = len(krach)-5
-        end = len(krach)-1
-    else:
-        end = 10
     rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,krach[i])
@@ -2569,36 +2293,7 @@ async def on_message(message):
                 p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg) 
-                
-    if(message.content.startswith('?ckrach')):
-        opt = message.content.split('?ckrach ')
-        if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getComboKRACH, "Combo",'')
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
-        else:
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getComboKRACH, "Combo", opt[1])
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)  
-
-    if(message.content.startswith('?dkrach')):
-        opt = message.content.split('?dkrach ')
-        if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getComboKRACH, "Dual",'')
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
-        else:
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getComboKRACH, "Dual", opt[1])
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)  
+                 
                 
     if(message.content.startswith('?stand')):
         if(message.channel.name == 'game-night'):
@@ -3436,9 +3131,9 @@ def getSchedule(team,opt,gender):
         if(len(result)>2):
             score=result[1]+' '+result[2]
             result=result[0] + ' ' + ot
-            if(decTeam2.lower()==opp.lower()):
+            if(decTeam2.lower()==opp.lower().replace(" (nc)",'')):
                 games.append("{} {} {} {}\n".format(date,opp,score,result))
-        elif(decTeam2!='' and decTeam2.lower()==opp.lower()):
+        elif(decTeam2!='' and decTeam2.lower()==opp.lower().replace(" (nc)",'')):
             games.append("{} {} {}\n".format(date,opp,time))
         elif(decTeam2==''):
             games.append("{} {} {}\n".format(date,opp,time))
@@ -3587,185 +3282,138 @@ def getResults(team,opt,gender):
     
 def getStats(team,playerToFind,gender):
 
-    teamDict = {"Air Force" : "teamstats/afa",
-        "Alabama Huntsville" : "teamstats/alh",
-        "Alaska Anchorage" : "teamstats/aka",
-        "Alaska" : "teamstats/akf",
-        "American International" : "teamstats/aic",
-        "Arizona State" : "teamstats/asu",
-        "Army West Point" : "teamstats/arm",
-        "Bemidji State" : "teamstats/bmj",
-        "Bentley" : "teamstats/ben",
-        "Boston College" : "teamstats/bc_",
-        "Boston University" : "teamstats/bu_",
-        "Bowling Green" : "teamstats/bgs",
-        "Brown" : "teamstats/brn",
-        "Canisius" : "teamstats/cns",
-        "Clarkson" : "teamstats/clk",
-        "Colgate" : "teamstats/clg",
-        "Colorado College" : "teamstats/cc_",
-        "Cornell" : "teamstats/cor",
-        "Dartmouth" : "teamstats/dar",
-        "Denver" : "teamstats/den",
-        "Ferris State" : "teamstats/fsu",
-        "Franklin Pierce" : "teamstats/fpu",
-        "Harvard" : "teamstats/har",
-        "Holy Cross" : "teamstats/hcr",
-        "Lake Superior State" : "teamstats/lss",
-        "Lindenwood" : "teamstats/lin",
-        "Long Island University" : "teamstats/liu",
-        "Maine" : "teamstats/mne",
-        "Massachusetts" : "teamstats/uma",
-        "Mercyhurst" : "teamstats/mrc",
-        "Merrimack" : "teamstats/mer",
-        "Miami" : "teamstats/mia",
-        "Michigan State" : "teamstats/msu",
-        "Michigan Tech" : "teamstats/mtu",
-        "Michigan" : "teamstats/mic",
-        "Minnesota Duluth" : "teamstats/mnd",
-        "Minnesota State" : "teamstats/mns",
-        "Minnesota" : "teamstats/min",
-        "New Hampshire" : "teamstats/unh",
-        "Niagara" : "teamstats/nia",
-        "North Dakota" : "teamstats/ndk",
-        "Northeastern" : "teamstats/noe",
-        "Northern Michigan" : "teamstats/nmu",
-        "Notre Dame" : "teamstats/ndm",
-        "Ohio State" : "teamstats/osu",
-        "Omaha" : "teamstats/uno",
-        "Penn State" : "teamstats/psu",
-        "Post" : "teamstats/pst",
-        "Princeton" : "teamstats/prn",
-        "Providence" : "teamstats/prv",
-        "Quinnipiac" : "teamstats/qui",
-        "RIT" : "teamstats/rit",
-        "Rensselaer" : "teamstats/ren",
-        "Robert Morris" : "teamstats/rmu",
-        "Sacred Heart" : "teamstats/sac",
-        "Saint Anselm" : "teamstats/sta",
-        "Saint Michael's" : "teamstats/stm",
-        "St. Cloud State" : "teamstats/stc",
-        "St. Lawrence" : "teamstats/stl",
-        "Syracuse" : "teamstats/syr",
-        "UConn" : "teamstats/con",
-        "UMass Lowell" : "teamstats/uml",
-        "Union" : "teamstats/uni",
-        "Vermont" : "teamstats/ver",
-        "Western Michigan" : "teamstats/wmu",
-        "Wisconsin" : "teamstats/wis",
-        "Yale" : "teamstats/yal"}
-              
-    decTeam = decodeTeam(team)
-    if(scorebot.isD1(decTeam,decTeam,gender)):
-       url = "http://www.collegehockeystats.net/{}/{}{}".format(season,teamDict[decTeam],gender[0].lower())
+    global chnDiffs
+    teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska":"team/Alaska/4",
+        "American Int'l" : "team/American-Intl/5/",
+        "Arizona State" : "team/Arizona-State/61/",
+        "Army" : "team/Army/6/",
+        "Bemidji State" : "team/Bemidji-State/7/",
+        "Bentley" : "team/Bentley/8/",
+        "Boston College" : "team/Boston-College/9/",
+        "Boston University" : "team/Boston-University/10/",
+        "Bowling Green" : "team/Bowling-Green/11/",
+        "Brown" : "team/Brown/12/",
+        "Canisius" : "team/Canisius/13/",
+        "Clarkson" : "team/Clarkson/14/",
+        "Colgate" : "team/Colgate/15/",
+        "Colorado College" : "team/Colorado-College/16/",
+        "Connecticut" : "team/Connecticut/17/",
+        "Cornell" : "team/Cornell/18/",
+        "Dartmouth" : "team/Dartmouth/19/",
+        "Denver" : "team/Denver/20/",
+        "Ferris State" : "team/Ferris-State/21/",
+        "Franklin Pierce" : "team/Franklin-Pierce/406/",
+        "Harvard" : "team/Harvard/22/",
+        "Holy Cross" : "team/Holy-Cross/23/",
+        "Lake Superior" : "team/Lake-Superior/24/",
+        "Lindenwood" : "team/Lindenwood/433/",
+        "Long Island" : "team/Long-Island/62/",
+        "Maine" : "team/Maine/25/",
+        "Mass.-Lowell" : "team/Mass-Lowell/26/",
+        "Massachusetts" : "team/Massachusetts/27/",
+        "Mercyhurst" : "team/Mercyhurst/28/",
+        "Merrimack" : "team/Merrimack/29/",
+        "Miami" : "team/Miami/30/",
+        "Michigan State" : "team/Michigan-State/32/",
+        "Michigan Tech" : "team/Michigan-Tech/33/",
+        "Michigan" : "team/Michigan/31/",
+        "Minnesota State" : "team/Minnesota-State/35/",
+        "Minnesota" : "team/Minnesota/34/",
+        "Minnesota-Duluth" : "team/Minnesota-Duluth/36/",
+        "New Hampshire" : "team/New-Hampshire/38/",
+        "Niagara" : "team/Niagara/39/",
+        "North Dakota" : "team/North-Dakota/40/",
+        "Northeastern" : "team/Northeastern/41/",
+        "Northern Michigan" : "team/Northern-Michigan/42/",
+        "Notre Dame" : "team/Notre-Dame/43/",
+        "Ohio State" : "team/Ohio-State/44/",
+        "Omaha" : "team/Omaha/37/",
+        "Penn State" : "team/Penn-State/60/",
+        "Post" : "team/Post/434/",
+        "Princeton" : "team/Princeton/45/",
+        "Providence" : "team/Providence/46/",
+        "Quinnipiac" : "team/Quinnipiac/47/",
+        "RIT" : "team/RIT/49/",
+        "Rensselaer" : "team/Rensselaer/48/",
+        "Robert Morris" : "team/Robert-Morris/50/",
+        "Sacred Heart" : "team/Sacred-Heart/51/",
+        "Saint Anselm" : "team/Saint-Anselm/419/",
+        "Saint Michael's" : "team/Saint-Michaels/421/",
+        "St. Cloud State" : "team/St-Cloud-State/52/",
+        "St. Lawrence" : "team/St-Lawrence/53/",
+        "St. Thomas" : "team/St-Thomas/63/",
+        "Syracuse" : "team/Syracuse/423/",
+        "Union" : "team/Union/54/",
+        "Vermont" : "team/Vermont/55/",
+        "Western Michigan" : "team/Western-Michigan/57/",
+        "Wisconsin" : "team/Wisconsin/58/",
+        "Yale" : "team/Yale/59/"}
+      
+    team=decodeTeam(team)  
+    if(team in chnDiffs.keys()):
+        team=chnDiffs[team]
+    if(scorebot.isD1(team,team,gender) or team in chnDiffs.values()):
+       if(gender=="Men"):
+          stats='stats'
+       elif(gender=="Women"):
+          stats='women/stats'
+       url = "https://www.collegehockeynews.com/{}/{}".format(stats,teamDict[team])
     else:
         return ":regional_indicator_x: Team Not Found"
-
+        
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    tab = soup.find_all("table")
-    skatersTab=tab[2]
-    tabRows=skatersTab.find_all('tr')
-    
-    statsDict={"number" : 0,
-    "name" : 1,
-    "pos" : 2,
-    "yr" : 3,
-    "overall_gp" : 4,
-    "overall_goals" : 5,
-    "overall_assists" : 6,
-    "overall_pts" : 7,
-    "overall_pen" : 8,
-    "overall_ppg" : 9,
-    "overall_shg" : 10,
-    "overall_gwg" : 11,
-    "overall_plusminus" : 12,
-    "overall_sog" : 13,
-    "conf_gp" : 14,
-    "conf_goals" : 15,
-    "conf_assists" : 16,
-    "conf_pts" : 17,
-    "conf_pen" : 18,
-    "conf_ppg" : 19,
-    "conf_shg" : 20,
-    "conf_gwg" : 21,
-    "conf_plusminus" : 22,
-    "conf_sog" : 23,
-    "career_gp" : 24,
-    "career_goals" : 25,
-    "career_assists" : 26,
-    "career_pts" : 27}
-    
-    gStatsDict={"number" : 0,
-    "name" : 1,
-    "yr" : 2,
-    "gp" : 3,
-    "mins" : 4,
-    "ga" : 5,
-    "saves" : 6,
-    "shots" : 7,
-    "saveperc" : 8,
-    "gaa" : 9,
-    "record" : 10,
-    "winpec" : 11,
-    "gs" : 12,
-    "so" : 13}
-    
-    skaterRows=skatersTab.find_all('tr', class_=lambda x: x != 'chssmallbold')
-    skaterDict_name={}
-    skaterDict_number={}
-    for i in range(1,len(skaterRows)):
-        playerDict={}
-        if("Bench" in skaterRows[i].get_text()):
-            break
-        for d in statsDict.keys():
-            playerDict[d] = skaterRows[i].find_all('td')[statsDict[d]].get_text().lstrip(' ').rstrip(' ').replace('\xa0','N/A')
-        skaterDict_name[skaterRows[i].find_all('td')[statsDict['name']].get_text().upper()]=playerDict
-        skaterDict_number[skaterRows[i].find_all('td')[statsDict['number']].get_text().lstrip(' ').rstrip(' ')]=playerDict
-       
-    goalieTab=tab[3]
-    goalieRows=goalieTab.find_all('tr', class_=lambda x: x != 'chssmallbold')
-    goalieDict_name={}
-    goalieDict_number={}
-    for i in range(1,len(goalieRows)):
-        playerDict={}
-        if("Open Net" in goalieRows[i].get_text() or "##" in goalieRows[i].get_text()):
-            break
-        for d in gStatsDict.keys():
-            playerDict[d] = goalieRows[i].find_all('td')[gStatsDict[d]].get_text().lstrip(' ').rstrip(' ').replace('\xa0','N/A')
-        goalieDict_name[goalieRows[i].find_all('td')[gStatsDict['name']].get_text().upper()]=playerDict
-        goalieDict_number[goalieRows[i].find_all('td')[gStatsDict['number']].get_text().lstrip(' ').rstrip(' ')]=playerDict
+    skateTable = soup.find('table',{'id':'skaters'})
+    gTable = soup.find('table',{'id':'goalies'})
+    skbod=skateTable.find('tbody')
+    skrows=skbod.find_all('tr')
+    gbod=gTable.find('tbody')
+    grows=gbod.find_all('tr')
+    goalieHeader='Name\t\tYr\tGP\tMin\tGA\tSV%\tGAA\tRecord\tSO\n'
+    goalieDict={}
+    for goalie in grows:
+        col=goalie.find_all('td')
+        name,yr=col[0].get_text().lstrip('\n').rstrip('\t\t').split(', ')
+        gp=col[1].get_text()
+        record="{}-{}-{}".format(col[2].get_text(),col[3].get_text(),col[4].get_text())
+        ga=col[5].get_text()
+        mins=col[6].get_text()
+        gaa=col[7].get_text()
+        so=col[8].get_text()
+        sv=col[10].get_text()
+        goalieDict[name]="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(name,yr,gp,mins,ga,sv,gaa,record,so)
 
-    skateHeader="##\tName\t\tPos\tYR\tGP\tG\tA\tPts\tPEN/MIN\t+/-\n"
-    goalieHeader="##\tName\t\tYR\tGP\tMinutes\tGA\tSave%\tGAA\tRecord\tGS\tSO\n"
-    if(playerToFind.isnumeric()):
-        if(playerToFind in goalieDict_number.keys()):
-            player= goalieDict_number[playerToFind]            
-            goalStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['yr'],player['gp'],player['mins'],player['ga'],player['saveperc'],player['gaa'],player['record'],player['gs'],player['so'])
-            return "```\n" + goalieHeader + goalStatLine + "```"
-        elif(playerToFind in skaterDict_number.keys()):
-            player = skaterDict_number[playerToFind]
-            skateStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['pos'],player['yr'],player['overall_gp'],player['overall_goals'],player['overall_assists'],player['overall_pts'],player['overall_pen'],player['overall_plusminus'])
-            return "```\n" + skateHeader+skateStatLine + "```"
-        else:
-            return "Player Not Found"
+    skaterHeader='Name\t\tPos\tYr\tGP\tG\tA\tPts\tPIM\t+/-\n'
+    skaterDict={}
+    for skater in skrows:
+        col=skater.find_all('td')
+        name,pos,yr=col[0].get_text().lstrip('\n').rstrip('\t\t').split(', ')
+        gp=col[1].get_text()
+        g=col[2].get_text()
+        a=col[3].get_text()
+        pts=col[4].get_text()
+        pim=col[8].get_text()
+        p_m=col[12].get_text()
+        skaterDict[name]='{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(name,pos,yr,gp,g,a,pts,pim,p_m)
+    
+    playerToFind=playerToFind.upper()
+    statLine=''
+    for goalie in goalieDict.keys():
+        if(re.match(".*"+playerToFind.upper()+".*",goalie.upper())):
+            statLine+=goalieDict[goalie]
+    if(statLine==''):
+        for skater in skaterDict.keys():
+            if(re.match(".*"+playerToFind.upper()+".*",skater.upper())):
+                statLine+=skaterDict[skater]
     else:
-        playerToFind=playerToFind.upper()
-        goalie=(dict(filter(lambda item: playerToFind in item[0], goalieDict_name.items())))
-        skater=(dict(filter(lambda item: playerToFind in item[0], skaterDict_name.items())))
-        if(goalie != {}):
-            player = list(goalie.values())[0]
-            goalStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['yr'],player['gp'],player['mins'],player['ga'],player['saveperc'],player['gaa'],player['record'],player['gs'],player['so'])
-            return "```\n" + goalieHeader + goalStatLine + "```"
-        elif(skater != {}):
-            player=list(skater.values())[0]
-            skateStatLine="{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(player['number'],player['name'],player['pos'],player['yr'],player['overall_gp'],player['overall_goals'],player['overall_assists'],player['overall_pts'],player['overall_pen'],player['overall_plusminus'])
-            return "```\n" + skateHeader + skateStatLine + "```"
-        else:
-            return "Player Not Found"
- 
+        return "```\n" + goalieHeader + statLine + "```"
+    if(statLine==''):
+        return "Player Not Found"
+    else:
+        return "```\n" + skaterHeader + statLine + "```"
 def getHEPI(gender):
     url = "http://hockeyeastonline.com/{}/standings/index.php".format(gender)
     f=urllib.request.urlopen(url)
