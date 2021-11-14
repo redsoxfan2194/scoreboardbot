@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import imageio
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import networkx as nx
 
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '2122'
@@ -186,6 +187,7 @@ def displayHelp():
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[pdoplot] - displays PDO plot (note may take a few minutes to generate)
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
+?[chain/whosbetter] [team1],[team2] - displays transitive win chain from team 1 to team 2 
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of available roles
 ?[roles] [role/team name] - adds role to user
@@ -1291,7 +1293,7 @@ def getWPairwise(opt):
         end = 41
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
         if(decodeTeam=='UConn'):
-            decodeTeam='Connecticut'
+            decodedTeam='Connecticut'
         teamIdx=pwr.index(decodedTeam)
         if(teamIdx-2<0):
             start=0
@@ -2576,7 +2578,36 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?chain')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?chain ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+            
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getTransitiveWinChain, team1,team2)
+            p.shutdown()
+        await message.channel.send(msg)
         
+    if(message.content.startswith('?whosbetter')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?whosbetter ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+            
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getTransitiveWinChain, team1,team2)
+            p.shutdown()
+        await message.channel.send(msg)                   
                 
     if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
         gender='Womens'        
@@ -2687,9 +2718,12 @@ async def on_message(message):
     if(message.content.startswith('?rpi')):
             await message.channel.send("https://imgur.com/uAndWDQ")
             
-    if(message.content.startswith('?umass')):
+    if(message.content.startswith('?umass') and not message.content.startswith('?umassamherst')):
             await message.channel.send("When they beat Providence tonight it will be legitimate proof that UMass deserves all of the recognition that it has received. They are 6-1 on the season and 3-0 in the conference which is an extremely impressive feat considering 2 years ago the team was not even ranked nationally.")
-     
+            
+    if(message.content.startswith('?umassamherst')):
+            await message.channel.send('https://cdn.discordapp.com/attachments/523161681484972062/909470794625712158/unknown.png')  
+    
     if(message.content.startswith('?amherst')):
             await message.channel.send("If you are being recruited and want to play in a program that wins championships, develops you on and off the ice, invests in your long-term success and prepares you for pro hockey, there’s no better place than @UMassHockey. Believe it.")  
     if(message.content.startswith('?cornell')):
@@ -3810,5 +3844,74 @@ def generateCorsiPlot(gender):
         plt.savefig(corsiFileName)
 
     return corsiFileName
+    
+def getTransitiveWinChain(team1,team2):
+    if(team1 == '' or team2 == ''):
+        return "Enter Two Teams!"
+    
+    global chnDiffs
+ 
+    team1 = decodeTeam(team1)
+    team2 = decodeTeam(team2)
+    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+        if(team1 in chnDiffs.keys()):       
+            team1=chnDiffs[team1]
+    else:
+        return "Team 1 Not Found"
+    
+    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+        if(team2 in chnDiffs.keys()):       
+            team2=chnDiffs[team2]
+    else:
+        return "Team 2 Not Found"
+    if(team1 == team2):
+        return "Enter Two Different Teams!"
+        
+    url = "https://www.collegehockeynews.com/schedules/composite.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    games= soup.find('pre')
+    LossDict={}
+    gList=games.get_text().split('\n')
+    for i in gList:
+        m=re.search(r"^(\S*) (\S* ?\S* \S*)\s*(\S*) (?:at|vs) (\S* ?\S* \S*)\s*(\S*)\s*(\S*)  ([a-z]*)",i)
+        if(m.group(3)==''):
+            break
+        aTeam=m.group(2).rstrip(' ')
+        aScore=int(m.group(3))
+        hTeam=m.group(4).rstrip(' ')
+        hScore=int(m.group(5))
+        if(m.group(6)=='ot'):
+            conf=m.group(7)
+        else:
+            conf=m.group(6) 
+        if(conf=='ex'):
+            continue
+        if(aScore<hScore):
+            if(hTeam not in LossDict.keys()):
+                LossDict[hTeam]=set()
+                LossDict[hTeam].add(aTeam)
+            else:
+                LossDict[hTeam].add(aTeam)
+        elif(aScore>hScore):
+            if(aTeam not in LossDict.keys()):
+                LossDict[aTeam]=set()
+                LossDict[aTeam].add(hTeam)
+            else:
+                LossDict[aTeam].add(hTeam)
+    
+    G=nx.DiGraph(LossDict,directed=True)
+    try:
+        shortPath=nx.algorithms.shortest_path(G,team1,team2)
+    except:
+        return "```No Win Chains Found```"
+    pathStr=''
+    for i in range(len(shortPath)):
+        pathStr+=shortPath[i]
+        if(i<len(shortPath)-1):
+            pathStr+=' > '
+    return '```\n'+pathStr+'```'
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
