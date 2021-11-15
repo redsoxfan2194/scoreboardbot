@@ -187,7 +187,8 @@ def displayHelp():
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[pdoplot] - displays PDO plot (note may take a few minutes to generate)
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
-?[chain/whosbetter] [team1],[team2] - displays transitive win chain from team 1 to team 2 
+?[chain/whosbetter] [team1],[team2] - displays men's transitive win chain from team 1 to team 2 
+?[wchain] [team1],[team2] - displays women's transitive win chain from team 1 to team 2 
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of available roles
 ?[roles] [role/team name] - adds role to user
@@ -2608,7 +2609,21 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, getTransitiveWinChain, team1,team2)
             p.shutdown()
         await message.channel.send(msg)                   
-                
+    if(message.content.startswith('?wchain')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?wchain ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+            
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, getWTransitiveWinChain, team1,team2)
+            p.shutdown()
+        await message.channel.send(msg)                   
+                           
     if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
         gender='Womens'        
         with cf.ProcessPoolExecutor(1) as p:
@@ -3913,5 +3928,104 @@ def getTransitiveWinChain(team1,team2):
         if(i<len(shortPath)-1):
             pathStr+=' > '
     return '```\n'+pathStr+'```'
+    
+def getWTransitiveWinChain(team1,team2):
+    if(team1 == '' or team2 == ''):
+        return "Enter Two Teams!"
+    
+    global chnDiffs
+ 
+    team1 = decodeTeam(team1)
+    team2 = decodeTeam(team2)
+    if(team1=='UConn'):
+            team1='Connecticut'
+    if(team2=='UConn'):
+            team2='Connecticut'
+    if(not scorebot.isD1(team1,team1,'Women')):
+        return "Team 1 Not Found"
+    
+    if(not scorebot.isD1(team2,team2,'Women')):
+        return "Team 2 Not Found"
+    if(team1 == team2):
+        return "Enter Two Different Teams!"
+        
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2021-2022/gameday/"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    site_json=json.loads(soup.text)
+    gameDayList=site_json['json']['dates']
+    dateFile='/home/nmemme/discordBot/chaindata/latestDate.txt'
+    dataFile='/home/nmemme/discordBot/chaindata/gameData.json'
+    latestData=''
+    if(os.path.exists(dateFile)):
+        fname=open(dateFile,'r')
+        latestData=fname.read().rstrip('\n')
+    LossDict={}
+    gData={}
+    for i in gameDayList:
+        if(datetime.date.fromisoformat(i)>datetime.date.today()):
+            fname=open(dateFile,'w')
+            print(datetime.date.today(),file=fname)
+            fname.close()
+            break
+        if(not os.path.exists(dataFile) or datetime.date.fromisoformat(latestData)<datetime.date.today()):
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2021-2022/gameday/{}/0".format(i)
+            f=urllib.request.urlopen(url)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            site_json=json.loads(soup.text)
+            gData[i]=site_json['json']['data']
+    if(not os.path.exists(dataFile) or datetime.date.fromisoformat(latestData)<datetime.date.today()):
+        with open(dataFile, 'w') as f:
+            json.dump(gData, f)
+    if(os.path.exists(dataFile)):
+        f=open(dataFile,'r')
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        site_json=json.loads(soup.text)
+        for i in site_json.keys():
+            gameList=site_json[i]
+            for game in gameList:
+                if(game['vscore']=='' or game['hscore']==''):
+                    continue
+                pattern = r'[0-9]'
+                game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
+                game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
+                game['home_name'] = game['home_name'].lstrip(' ')
+                game['vis_name'] = game['vis_name'].lstrip(' ')
+                aTeam=game['vis_name']
+                aScore=int(game['vscore'])
+                hTeam=game['home_name']
+                hScore=int(game['hscore'])
+                if(game['type']=='ex'):
+                    continue
+                if(aScore<hScore):
+                    if(hTeam not in LossDict.keys()):
+                        LossDict[hTeam]=set()
+                        LossDict[hTeam].add(aTeam)
+                    else:
+                        LossDict[hTeam].add(aTeam)
+                elif(aScore>hScore):
+                    if(aTeam not in LossDict.keys()):
+                        LossDict[aTeam]=set()
+                        LossDict[aTeam].add(hTeam)
+                    else:
+                        LossDict[aTeam].add(hTeam)
+    G=nx.DiGraph(LossDict,directed=True)
+    try:
+        shortPath=nx.algorithms.shortest_path(G,team1,team2)
+    except:
+        return "```No Win Chains Found```"
+    pathStr=''
+    for i in range(len(shortPath)):
+        pathStr+=shortPath[i]
+        if(i<len(shortPath)-1):
+            pathStr+=' > '
+    return '```\n'+pathStr+'```'
+    
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
