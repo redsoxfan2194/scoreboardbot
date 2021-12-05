@@ -445,12 +445,14 @@ def getPairwise(opt):
     teams = []
     start = 0
     splitopt = opt.split(',')
-
+    maxTeams=len(pairwise)
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
+        if(end>maxTeams):
+            end=maxTeams
     elif(opt.lower()=='full'):
-        end = 60
+        end = maxTeams
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Men') or decodedTeam in chnDiffs.keys()):
         if(decodedTeam in chnDiffs.keys()):        
             teamIdx=pairwise.index(chnDiffs[decodedTeam])
@@ -460,8 +462,8 @@ def getPairwise(opt):
             start=0
         else:
             start = teamIdx-2
-        if(teamIdx+3>60):
-            end=60
+        if(teamIdx+3>maxTeams):
+            end=maxTeams
         else:
             end = teamIdx+3
     elif(opt.lower() == 'bubble'):
@@ -470,8 +472,8 @@ def getPairwise(opt):
     elif(opt.lower() == 'top'):
         end = 4
     elif(opt.lower() == 'bottom'):
-        start = 55
-        end = 60
+        start = maxTeams-5
+        end = maxTeams
         
     elif(len(splitopt)==2):
         if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
@@ -482,10 +484,10 @@ def getPairwise(opt):
             else:
                 start=0
                 
-            if(eOpt<=60):
+            if(eOpt<=maxTeams):
                 end = eOpt
             else:
-                end=60
+                end=maxTeams
             
             if(sOpt>eOpt):
                 swap=start
@@ -519,7 +521,7 @@ def getKRACH(opt):
          value = cell.string
          if(value != None):
             line +=value + "!"
-        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line and 'Winning' not in line):
             line=line.rstrip('!')
             krach.append(line.split("!")[1])       
 
@@ -527,10 +529,13 @@ def getKRACH(opt):
     start = 0
     splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
+    maxTeams=len(krach)
     if(opt.isnumeric()):
         end = int(opt)
+        if(end>maxTeams):
+            end=maxTeams
     elif(opt.lower()=='full'):
-        end = 60
+        end = maxTeams
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Men') or decodedTeam in chnDiffs.keys()):
         if(decodedTeam in chnDiffs.keys()):        
             teamIdx=krach.index(chnDiffs[decodedTeam])
@@ -540,8 +545,8 @@ def getKRACH(opt):
             start=0
         else:
             start = teamIdx-2
-        if(teamIdx+3>60):
-            end=60
+        if(teamIdx+3>maxTeams):
+            end=maxTeams
         else:
             end = teamIdx+3
     elif(opt.lower() == 'bubble'):
@@ -550,8 +555,8 @@ def getKRACH(opt):
     elif(opt.lower() == 'top'):
         end = 4
     elif(opt.lower() == 'bottom'):
-        start = 55
-        end = 60
+        start = maxTeams-5
+        end = maxTeams
     elif(len(splitopt)==2):
         if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
             sOpt=int(splitopt[0])
@@ -561,10 +566,10 @@ def getKRACH(opt):
             else:
                 start=0
                 
-            if(eOpt<=60):
+            if(eOpt<=maxTeams):
                 end = eOpt
             else:
-                end=60
+                end=maxTeams
             
             if(sOpt>eOpt):
                 swap=start
@@ -1286,32 +1291,37 @@ def getWPairwise(opt):
         pwr.append(row[1])
         
     start = 0
+    maxTeams=len(pwr)
     splitopt = opt.split(',')
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
+        if(end>maxTeams):
+            end=maxTeams
     elif(opt.lower()=='full'):
-        end = 41
+        end = maxTeams
     elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
-        if(decodeTeam=='UConn'):
+        if(decodedTeam=='UConn'):
             decodedTeam='Connecticut'
+        if(decodedTeam=="Long Island University"):
+            decodedTeam='LIU'
         teamIdx=pwr.index(decodedTeam)
         if(teamIdx-2<0):
             start=0
         else:
             start = teamIdx-2
-        if(teamIdx+3>41):
-            end=41
+        if(teamIdx+3>maxTeams):
+            end=maxTeams
         else:
             end = teamIdx+3
     elif(opt.lower() == 'bubble'):
-        start = 5
-        end = 12
+        start = 8
+        end = 15
     elif(opt.lower() == 'top'):
         end = 4
     elif(opt.lower() == 'bottom'):
-        start = 35
-        end = 41
+        start = maxTeams-5
+        end = maxTeams
     elif(len(splitopt)==2):
         if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
             sOpt=int(splitopt[0])
@@ -1321,17 +1331,17 @@ def getWPairwise(opt):
             else:
                 start=0
                 
-            if(eOpt<=41):
+            if(eOpt<=maxTeams):
                 end = eOpt
             else:
-                end=41
+                end=maxTeams
             
             if(sOpt>eOpt):
                 swap=start
                 start=end-1
                 end=swap+1
     else:
-        end = 8
+        end = 11
     rankings = "```\n"
     for i in range(start,end):
         rankings+="{}. {}\n".format(i+1,pwr[i])
@@ -3151,9 +3161,16 @@ def getSchedule(team,opt,gender):
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-           
-
+    
     schedule = soup.find('table',{'class':'data schedule'})
+    factbox = soup.find('div',{'class':'factbox'})
+    fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
+    noteLookup={}
+    for entry in fb:
+        entry=entry.replace('ppd. (COVID Protocols)','ppd.')
+        row=re.split(r'(\d+) ',entry)
+        row.pop(0)
+        noteLookup[row[0]]=re.split(r'  –.*',row[1])[0]
     gameList=schedule.find_all('tr')
     games = []
     for i in gameList:
@@ -3169,6 +3186,11 @@ def getSchedule(team,opt,gender):
         date=date.split(' ')
         date="{}, {} {}".format(date[2],date[0],date[1])
         result=colData[1].split('\t')
+        spec=''
+        if(len(colData[0].split('\t'))>1):
+            spec=(colData[0].split('\t')[1])
+            if(spec!=''):
+                spec='('+noteLookup[spec]+')'
         time=colData[-1].rstrip(' ')
         loc=colData[3]
         opp=colData[4]
@@ -3181,11 +3203,11 @@ def getSchedule(team,opt,gender):
             score=result[1]+' '+result[2]
             result=result[0] + ' ' + ot
             if(decTeam2.lower()==opp.lower().replace(" (nc)",'')):
-                games.append("{} {} {} {}\n".format(date,opp,score,result))
+                games.append("{} {} {} {} {}\n".format(date,opp,score,result,spec))
         elif(decTeam2!='' and decTeam2.lower()==opp.lower().replace(" (nc)",'')):
-            games.append("{} {} {}\n".format(date,opp,time))
-        elif(decTeam2==''):
-            games.append("{} {} {}\n".format(date,opp,time))
+            games.append("{} {} {} {}\n".format(date,opp,time,spec))
+        elif(decTeam2=='' and 'ppd' not in spec):
+            games.append("{} {} {} {}\n".format(date,opp,time,spec))
             
     gameLine = '```\n'
     counter=0
@@ -3290,6 +3312,14 @@ def getResults(team,opt,gender):
     soup = BeautifulSoup(html, 'html.parser')
     
     schedule = soup.find('table',{'class':'data schedule'})
+    factbox = soup.find('div',{'class':'factbox'})
+    fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
+    noteLookup={}
+    for entry in fb:
+        entry=entry.replace('ppd. (COVID Protocols)','ppd.')
+        row=re.split(r'(\d+) ',entry)
+        row.pop(0)
+        noteLookup[row[0]]=re.split(r'  –.*',row[1])[0]
     gameList=schedule.find_all('tr')
     gameLine = '```\n'
     games = []
@@ -3306,6 +3336,11 @@ def getResults(team,opt,gender):
         date=date.split(' ')
         date="{}, {} {}".format(date[2],date[0],date[1])
         result=colData[1].split('\t')
+        spec=''
+        if(len(colData[0].split('\t'))>1):
+            spec=(colData[0].split('\t')[1])
+            if(spec!=''):
+                spec='('+noteLookup[spec]+')'
         time=colData[-1].rstrip(' ')
         loc=colData[3]
         opp=colData[4]
@@ -3317,8 +3352,9 @@ def getResults(team,opt,gender):
         if(len(result)>2):
             score=result[1]+' '+result[2]
             result=result[0] + ' ' + ot
-            games.append("{} {} {} {}\n".format(date,opp,score,result))
-            
+            games.append("{} {} {} {} {}\n".format(date,opp,score,result,spec))
+        elif('ppd' in spec):
+            games.append("{} {} {} {}\n".format(date,opp,time,spec))
     numGames *= -1
     gamesToReport = games[numGames:]
     for i in gamesToReport:
@@ -3515,6 +3551,7 @@ def generateScoreline(team, gender):
             if(len(gameData)>=8):
                 awayTeam=gameData[2].get_text()
                 awayScore=gameData[3].get_text()
+                homePwr=gameData[6].get_text()
                 homeTeam=gameData[7].get_text()
                 homeScore=gameData[8].get_text()
                 status=gameData[4].get_text(separator=" ")
@@ -3524,7 +3561,6 @@ def generateScoreline(team, gender):
                 homeTeam=gameData[5].get_text()
                 homeScore=gameData[6].get_text()
                 status=gameData[3].get_text(separator=" ")
-            
             if(team==homeTeam or team==awayTeam):
                 if(awayTeam in flairlist):
                     awayTeam = flairlist[awayTeam] + " " + awayTeam
@@ -3681,8 +3717,9 @@ def generatePDOPlot(gender):
         for x0, y0, path in zip(sh, sv, marker):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
-        plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
-        plt.yticks(np.arange(round(min(sv),2)-.01,max(sv)+.01,.02))
+        #plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
+        plt.xticks(np.arange(np.floor(round(min(sh),2))-1,np.floor(max(sh)+1)))
+        #plt.yticks(np.arange(round(min(sv),2)-.01,max(sv)+.01,.02))
         plt.ylim([min(sv),max(sv)])
         plt.xlim([min(sh),max(sh)])
         plt.xlabel('Sh%')
@@ -3890,10 +3927,16 @@ def getTransitiveWinChain(team1,team2):
     games= soup.find('pre')
     LossDict={}
     gList=games.get_text().split('\n')
+    counter =0
     for i in gList:
         m=re.search(r"^(\S*) (\S* ?\S* \S*)\s*(\S*) (?:at|vs) (\S* ?\S* \S*)\s*(\S*)\s*(\S*)  ([a-z]*)",i)
-        if(m.group(3)==''):
+        if(counter>5):
             break
+        if(m.group(3)==''):
+            counter+=1
+            continue
+        else:
+            counter=0
         aTeam=m.group(2).rstrip(' ')
         aScore=int(m.group(3))
         hTeam=m.group(4).rstrip(' ')
@@ -3921,7 +3964,7 @@ def getTransitiveWinChain(team1,team2):
     try:
         shortPath=nx.algorithms.shortest_path(G,team1,team2)
     except:
-        return "```No Win Chains Found```"
+        return "```\nNo Win Chains Found```"
     pathStr=''
     for i in range(len(shortPath)):
         pathStr+=shortPath[i]
@@ -3937,10 +3980,7 @@ def getWTransitiveWinChain(team1,team2):
  
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
-    if(team1=='UConn'):
-            team1='Connecticut'
-    if(team2=='UConn'):
-            team2='Connecticut'
+   
     if(not scorebot.isD1(team1,team1,'Women')):
         return "Team 1 Not Found"
     
@@ -3948,7 +3988,16 @@ def getWTransitiveWinChain(team1,team2):
         return "Team 2 Not Found"
     if(team1 == team2):
         return "Enter Two Different Teams!"
-        
+    
+    if(team1=='UConn'):
+            team1='Connecticut'
+    if(team2=='UConn'):
+            team2='Connecticut'
+         
+    if(team1=="Long Island University"):
+            team1='LIU'
+    if(team2=="Long Island University"):
+            team2='LIU'
     url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2021-2022/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -4019,7 +4068,7 @@ def getWTransitiveWinChain(team1,team2):
     try:
         shortPath=nx.algorithms.shortest_path(G,team1,team2)
     except:
-        return "```No Win Chains Found```"
+        return "```\nNo Win Chains Found```"
     pathStr=''
     for i in range(len(shortPath)):
         pathStr+=shortPath[i]
