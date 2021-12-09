@@ -3068,6 +3068,7 @@ def getCat():
     return j[0]['url']
 
 def getSchedule(team,opt,gender):
+    global season
     teamDict = {"Air Force" : "team/Air-Force/1/",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
@@ -3135,7 +3136,8 @@ def getSchedule(team,opt,gender):
         "Wisconsin" : "team/Wisconsin/58/",
         "Yale" : "team/Yale/59/"}
 
-
+    firstHalf = ["September", "October", "November", "December"]
+    secHalf = ["January", "February", "March", "April"]
     decTeam = decodeTeam(team)
     decTeam2 = '' 
     if(decTeam in chnDiffs.keys()):
@@ -3170,7 +3172,7 @@ def getSchedule(team,opt,gender):
         entry=entry.replace('ppd. (COVID Protocols)','ppd.')
         row=re.split(r'(\d+) ',entry)
         row.pop(0)
-        noteLookup[row[0]]=re.split(r'  –.*',row[1])[0]
+        noteLookup[row[0]]=re.split(r' *–.*',row[1])[0]
     gameList=schedule.find_all('tr')
     games = []
     for i in gameList:
@@ -3206,8 +3208,16 @@ def getSchedule(team,opt,gender):
                 games.append("{} {} {} {} {}\n".format(date,opp,score,result,spec))
         elif(decTeam2!='' and decTeam2.lower()==opp.lower().replace(" (nc)",'')):
             games.append("{} {} {} {}\n".format(date,opp,time,spec))
-        elif(decTeam2=='' and 'ppd' not in spec):
-            games.append("{} {} {} {}\n".format(date,opp,time,spec))
+        elif(decTeam2==''):
+            if('ppd' in spec):
+                if(month in firstHalf):
+                    newDate=date+" " + season[:2]
+                elif(month in secHalf):
+                    newDate=date+" " + season[-2:]                
+                if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()):
+                    games.append("{} {} {} {}\n".format(date,opp,time,spec))
+            else:
+                games.append("{} {} {} {}\n".format(date,opp,time,spec))
             
     gameLine = '```\n'
     counter=0
@@ -3223,7 +3233,7 @@ def getSchedule(team,opt,gender):
     return gameLine
     
 def getResults(team,opt,gender):
-    global chnDiffs
+    global chnDiffs,season
     teamDict = {"Air Force" : "team/Air-Force/1/",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
@@ -3290,7 +3300,9 @@ def getResults(team,opt,gender):
         "Western Michigan" : "team/Western-Michigan/57/",
         "Wisconsin" : "team/Wisconsin/58/",
         "Yale" : "team/Yale/59/"}
-      
+        
+    firstHalf = ["September", "October", "November", "December"]
+    secHalf = ["January", "February", "March", "April"]
     team=decodeTeam(team)  
     if(team in chnDiffs.keys()):
         team=chnDiffs[team]
@@ -3319,7 +3331,7 @@ def getResults(team,opt,gender):
         entry=entry.replace('ppd. (COVID Protocols)','ppd.')
         row=re.split(r'(\d+) ',entry)
         row.pop(0)
-        noteLookup[row[0]]=re.split(r'  –.*',row[1])[0]
+        noteLookup[row[0]]=re.split(r' *–.*',row[1])[0]
     gameList=schedule.find_all('tr')
     gameLine = '```\n'
     games = []
@@ -3354,7 +3366,12 @@ def getResults(team,opt,gender):
             result=result[0] + ' ' + ot
             games.append("{} {} {} {} {}\n".format(date,opp,score,result,spec))
         elif('ppd' in spec):
-            games.append("{} {} {} {}\n".format(date,opp,time,spec))
+            if(month in firstHalf):
+                newDate=date+" " + season[:2]
+            elif(month in secHalf):
+               newDate=date+" " + season[-2:]
+            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')<datetime.datetime.today()):
+                games.append("{} {} {} {}\n".format(date,opp,time,spec))
     numGames *= -1
     gamesToReport = games[numGames:]
     for i in gamesToReport:
