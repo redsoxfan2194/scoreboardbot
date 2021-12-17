@@ -180,6 +180,7 @@ def displayHelp():
 ?[msched / wsched] [team],<number> - displays next <number> games of the team entered (All Caps denotes [team] is home)
 ?[msched / wsched] [team],[team2] - displays results and head to head schedule of teams entered (All Caps denotes [team] is home)
 ?[mstats / wstats] [team],[player name/number] - displays player stats of given player
+?[teamstats / mteamstats / wteamstats] [team] - displays situational record and special team stats
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
 ?[history] [team1],[team2] - displays Matchup history and recent results
@@ -389,7 +390,7 @@ def getJeer(role):
     "Providence Friars" : ["https://widget.campusexplorer.com/media/original/media-7CA07320.jpg"],
     "UMass Lowell River Hawks" : ["What's a River Hawk?","Low\nLower\nLowest\nLowell"],
     "UMass Minutemen" : ["Please Don't Riot!", "We Last Longer!","Think of those couches...they have family", "Embarrassment of the Commonwealth", "https://i.imgur.com/u1SCJ73.gifv"],
-    "Boston University Terriers" : ["Sucks to BU!", "Screw BU!"],
+    "Boston University Terriers" : ["Sucks to BU!", "Screw BU!","*A* Boston University"],
     "Northeastern Huskies" : ["Northleastern", "North! Eastern! Sucks!"],
     "Colgate Raiders" : ["Crest is Best!"],
     "Cornell Big Red" : ["Harvard Rejects!", "```\nUp above Cayuga's waters, there's an awful smell;\nThirty thousand Harvard rejects call themselves Cornell.\nFlush the toilet, flush the toilet,\nFlush them all to hell!\nThirty thousand Harvard rejects call themselves Cornell!```"],
@@ -2168,7 +2169,40 @@ async def on_message(message):
             p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
+    if message.content.startswith('?teamstats '):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            team = message.content.split('?teamstats ')[1]
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getTeamStats, team, "Men")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
             
+    if message.content.startswith('?mteamstats '):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            team = message.content.split('?mteamstats ')[1]
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getTeamStats, team, "Men")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+    
+    if message.content.startswith('?wteamstats '):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            team = message.content.split('?wteamstats ')[1]
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getTeamStats, team, "Women")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+
+           
     if message.content.startswith('?thanksbot'):
         msg = "You're Welcome {0.author.mention}!".format(message)
         for i in range(len(message.author.roles)):
@@ -2201,6 +2235,7 @@ async def on_message(message):
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
             msg = "Go {}!".format(teamName)
+            
         await message.channel.send(msg)
         
     if message.content.startswith('?jeer '):
@@ -2687,16 +2722,21 @@ async def on_message(message):
             await message.channel.send("F'IN HAWKS")
             
     if(message.content.startswith('?jerry')):
-            await message.channel.send("https://imgur.com/a/mejC6E2")
-            #await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
-    
+            #await message.channel.send("https://imgur.com/a/mejC6E2")
+            await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
+           # await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918644377524523008/jerry.png")
+            #await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918854291228336148/jerry2.png")
+            
+    #if(message.content.startswith('?bcot') or message.content.startswith('?❌❌ot')):
     if(message.content.startswith('?bcot')):
             await message.channel.send('"free" "hockey" in "Boston"')  
 
     if(message.content.startswith('?oti')):
             await message.channel.send('**ON THE ICE**')             
 
+    #if((message.content.startswith('?bc') and not message.content.startswith('?bcot')) or (message.content.startswith('?❌❌') and not message.content.startswith('?❌❌ot'))):
     if(message.content.startswith('?bc') and not message.content.startswith('?bcot')):
+     
             await message.channel.send("https://media.giphy.com/media/E327kKMf0RKHAB1jpu/giphy.gif")
 
     if(message.content.startswith('?uconn')):
@@ -2831,8 +2871,9 @@ async def on_message(message):
     if(message.content.startswith('?beanpawt')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/761742817025327114/IMG_20201002_201354.jpg")
         
+    #if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege') or message.content.startswith('?❌oston❌ollege') or message.content.startswith('?❌hestnuthilluniversity') or message.content.startswith('?❌hestnuthill❌ommunity❌ollege')):
     if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege')):
-        await message.channel.send("https://media.giphy.com/media/cnEz7n3MhAIbESshGd/giphy.gif")
+       await message.channel.send("https://media.giphy.com/media/cnEz7n3MhAIbESshGd/giphy.gif")
    
     if(message.content.startswith('?puckman')):
         await message.channel.send("https://media.discordapp.net/attachments/519719563294801922/716448834703589397/mascotmadness.png")
@@ -3035,6 +3076,7 @@ def decodeTeam(team):
         "jackbox" : "Jackbox",
         "usa" : "USA",
         "chaos" : "Chaos"}
+        #"❌❌" : "Boston College"}
 
     if team in dict:
         return dict[team]
@@ -3166,7 +3208,9 @@ def getSchedule(team,opt,gender):
     
     schedule = soup.find('table',{'class':'data schedule'})
     factbox = soup.find('div',{'class':'factbox'})
-    fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
+    fb=[]
+    if(factbox!=None):
+        fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
     noteLookup={}
     for entry in fb:
         entry=entry.replace('ppd. (COVID Protocols)','ppd.')
@@ -3209,15 +3253,12 @@ def getSchedule(team,opt,gender):
         elif(decTeam2!='' and decTeam2.lower()==opp.lower().replace(" (nc)",'')):
             games.append("{} {} {} {}\n".format(date,opp,time,spec))
         elif(decTeam2==''):
-            if('ppd' in spec):
-                if(month in firstHalf):
+            if(month in firstHalf):
                     newDate=date+" " + season[:2]
-                elif(month in secHalf):
-                    newDate=date+" " + season[-2:]                
-                if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()):
+            elif(month in secHalf):
+                    newDate=date+" " + season[-2:]            
+            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()):
                     games.append("{} {} {} {}\n".format(date,opp,time,spec))
-            else:
-                games.append("{} {} {} {}\n".format(date,opp,time,spec))
             
     gameLine = '```\n'
     counter=0
@@ -3325,7 +3366,9 @@ def getResults(team,opt,gender):
     
     schedule = soup.find('table',{'class':'data schedule'})
     factbox = soup.find('div',{'class':'factbox'})
-    fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
+    fb=[]
+    if(factbox!=None):
+        fb=factbox.get_text().lstrip('\n').rstrip('\n').split('\n')
     noteLookup={}
     for entry in fb:
         entry=entry.replace('ppd. (COVID Protocols)','ppd.')
@@ -4093,5 +4136,114 @@ def getWTransitiveWinChain(team1,team2):
             pathStr+=' > '
     return '```\n'+pathStr+'```'
     
+def getTeamStats(team,gender):
+
+    global chnDiffs
+    teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska":"team/Alaska/4",
+        "American Int'l" : "team/American-Intl/5/",
+        "Arizona State" : "team/Arizona-State/61/",
+        "Army" : "team/Army/6/",
+        "Bemidji State" : "team/Bemidji-State/7/",
+        "Bentley" : "team/Bentley/8/",
+        "Boston College" : "team/Boston-College/9/",
+        "Boston University" : "team/Boston-University/10/",
+        "Bowling Green" : "team/Bowling-Green/11/",
+        "Brown" : "team/Brown/12/",
+        "Canisius" : "team/Canisius/13/",
+        "Clarkson" : "team/Clarkson/14/",
+        "Colgate" : "team/Colgate/15/",
+        "Colorado College" : "team/Colorado-College/16/",
+        "Connecticut" : "team/Connecticut/17/",
+        "Cornell" : "team/Cornell/18/",
+        "Dartmouth" : "team/Dartmouth/19/",
+        "Denver" : "team/Denver/20/",
+        "Ferris State" : "team/Ferris-State/21/",
+        "Franklin Pierce" : "team/Franklin-Pierce/406/",
+        "Harvard" : "team/Harvard/22/",
+        "Holy Cross" : "team/Holy-Cross/23/",
+        "Lake Superior" : "team/Lake-Superior/24/",
+        "Lindenwood" : "team/Lindenwood/433/",
+        "Long Island" : "team/Long-Island/62/",
+        "Maine" : "team/Maine/25/",
+        "Mass.-Lowell" : "team/Mass-Lowell/26/",
+        "Massachusetts" : "team/Massachusetts/27/",
+        "Mercyhurst" : "team/Mercyhurst/28/",
+        "Merrimack" : "team/Merrimack/29/",
+        "Miami" : "team/Miami/30/",
+        "Michigan State" : "team/Michigan-State/32/",
+        "Michigan Tech" : "team/Michigan-Tech/33/",
+        "Michigan" : "team/Michigan/31/",
+        "Minnesota State" : "team/Minnesota-State/35/",
+        "Minnesota" : "team/Minnesota/34/",
+        "Minnesota-Duluth" : "team/Minnesota-Duluth/36/",
+        "New Hampshire" : "team/New-Hampshire/38/",
+        "Niagara" : "team/Niagara/39/",
+        "North Dakota" : "team/North-Dakota/40/",
+        "Northeastern" : "team/Northeastern/41/",
+        "Northern Michigan" : "team/Northern-Michigan/42/",
+        "Notre Dame" : "team/Notre-Dame/43/",
+        "Ohio State" : "team/Ohio-State/44/",
+        "Omaha" : "team/Omaha/37/",
+        "Penn State" : "team/Penn-State/60/",
+        "Post" : "team/Post/434/",
+        "Princeton" : "team/Princeton/45/",
+        "Providence" : "team/Providence/46/",
+        "Quinnipiac" : "team/Quinnipiac/47/",
+        "RIT" : "team/RIT/49/",
+        "Rensselaer" : "team/Rensselaer/48/",
+        "Robert Morris" : "team/Robert-Morris/50/",
+        "Sacred Heart" : "team/Sacred-Heart/51/",
+        "Saint Anselm" : "team/Saint-Anselm/419/",
+        "Saint Michael's" : "team/Saint-Michaels/421/",
+        "St. Cloud State" : "team/St-Cloud-State/52/",
+        "St. Lawrence" : "team/St-Lawrence/53/",
+        "St. Thomas" : "team/St-Thomas/63/",
+        "Syracuse" : "team/Syracuse/423/",
+        "Union" : "team/Union/54/",
+        "Vermont" : "team/Vermont/55/",
+        "Western Michigan" : "team/Western-Michigan/57/",
+        "Wisconsin" : "team/Wisconsin/58/",
+        "Yale" : "team/Yale/59/"}
+      
+    team=decodeTeam(team)  
+    if(team in chnDiffs.keys()):
+        team=chnDiffs[team]
+    if(scorebot.isD1(team,team,gender) or team in chnDiffs.values()):
+       if(gender=="Men"):
+          stats='stats'
+       elif(gender=="Women"):
+          stats='women/stats'
+       url = "https://www.collegehockeynews.com/{}/{}/details".format(stats,teamDict[team])
+    else:
+        return ":regional_indicator_x: Team Not Found"
+        
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    tables = soup.find_all('table',{'class':'data'})
+    records=tables[0]
+    specialTeams=tables[1]
+    recordStr='```\n{}\nSituation Records\n'.format(team)
+    for i in records.find_all('tr'):
+        extra=False
+        if("After 1" in i.get_text() and "After 2" in i.get_text()):
+            extra=True
+        for d in i.find_all('td'):
+            if(extra and "After 2" in d.get_text()):
+                break
+            recordStr+=d.get_text()+' '
+        recordStr+='\n'
+    recordStr+='\nSpecial Teams\n'   
+    for i in specialTeams.find_all('tr'):
+        for d in i.find_all('td'):
+            if(d.get_text()=='\xa0'):
+                recordStr+='\t\t'
+            else:
+                recordStr+=d.get_text()+'\t'
+        recordStr+='\n'
+    recordStr+='```'
+    return recordStr
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
