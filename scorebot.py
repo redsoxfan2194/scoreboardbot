@@ -21,9 +21,19 @@ def getLeagueName(name):
         return 'N/A'
     return leagueNames[name]
 def isD1(team1,team2,m_w):
-    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence", "St. Thomas","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
+    chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
+        "Lake Superior State" : "Lake Superior",
+        "UMass Lowell" : "Mass.-Lowell",
+        "American International" : "American Int'l",
+        "Army West Point" : "Army",
+        "Alabama Huntsville" : "Alabama-Huntsville",
+        "Alaska Anchorage" : "Alaska-Anchorage",
+        "UConn" : "Connecticut",
+        "Long Island University": "Long Island",
+        "St Thomas" : "St. Thomas"}
+    validMTeams = ["Air Force","Alabama Huntsville","Alaska","Alaska Anchorage","American International","Arizona State","Army","Army West Point","Bemidji State","Bentley","Boston College","Boston University","Bowling Green","Brown","Canisius","Clarkson","Colgate","Colorado College","Connecticut","UConn","Cornell","Dartmouth","Denver","Ferris State","Harvard","Holy Cross","Long Island", "Long Island University","Lake Superior State","Maine","Massachusetts","Mercyhurst","Merrimack","Miami","Michigan","Michigan State","Michigan Tech","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Niagara","North Dakota","Northeastern","Northern Michigan","Notre Dame","Ohio State","Omaha","Penn State","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","St. Cloud State","St. Lawrence", "St. Thomas","UMass Lowell","Union","Vermont","Western Michigan","Wisconsin","Yale"]
     validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood", "Long Island University","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence", "St. Thomas","Syracuse","Union","Vermont","Wisconsin","Yale"]
-    if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams)):
+    if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams or team1 in chnDiffs.values() or team2 in chnDiffs.values())):
         return True
     if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams)):
         return True
@@ -166,7 +176,7 @@ def generateScoreboard():
     scoreboard += "#Men's Scores\n"
     numGames = 0
     for league in sorted(mGamesByLeague.keys()):
-        scoreboard += "**{}**\n".format(league)
+        scoreboard += "\n**{}**\n".format(league)
         scoreboard += "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in mGamesByLeague[league]:
             if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
@@ -178,7 +188,7 @@ def generateScoreboard():
     numGames = 0
     scoreboard += "#Women's Scores\n"
     for league in sorted(wGamesByLeague.keys()):
-        scoreboard += "**{}**\n".format(league)
+        scoreboard += "\n**{}**\n".format(league)
         scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
