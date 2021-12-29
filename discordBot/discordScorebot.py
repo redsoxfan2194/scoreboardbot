@@ -183,6 +183,8 @@ def displayHelp():
 ?[teamstats / mteamstats / wteamstats] [team] - displays situational record and special team stats
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
+    ''',
+    '''
 ?[history] [team1],[team2] - displays Matchup history and recent results
 ?[history] [team1],[team2],<number> - displays Matchup history and recent results
 ?[whatsontv] - displays list of Today's games broadcasted on TV
@@ -1904,8 +1906,8 @@ async def on_message(message):
 
     if message.content.startswith('!help') or message.content.startswith('?help'):
        helpStr = displayHelp()
-       await message.author.send(helpStr[0])
-       await message.author.send(helpStr[1])
+       for i in helpStr:
+           await message.author.send(i)
     if not message.content.startswith('?'):
         return
                 
