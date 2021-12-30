@@ -400,7 +400,7 @@ def getJeer(role):
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
-    "Michigan Wolverines" : ["```\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio\nWe're from Ohio...O-H\nWe're from Ohio...I-O\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio```"],
+    "Michigan Wolverines" : ["Corn Colored Cowards","```\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio\nWe're from Ohio...O-H\nWe're from Ohio...I-O\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio```"],
     "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!", "https://youtu.be/OCbuRA_D3KU"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
     "RPI Engineers" : ["KRACH is Better!"],
@@ -2266,8 +2266,11 @@ async def on_message(message):
         if(jeer!=""):
             msg="{}".format(jeer)
         else:
-            msg = "I don't know that jeer."
-        await message.channel.send(msg)
+            #msg = "I don't know that jeer."
+            teamName=team
+            if(convertTeamtoDisRole(team) != ""):
+                teamName = convertTeamtoDisRole(team)
+            msg = "Boo {}".format(teamName)
      
     if(message.content.startswith('?pwr')):
         opt = message.content.split('?pwr ')
@@ -3259,7 +3262,7 @@ def getSchedule(team,opt,gender):
                     newDate=date+" " + season[:2]
             elif(month in secHalf):
                     newDate=date+" " + season[-2:]            
-            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()):
+            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()-datetime.timedelta(1)):
                     games.append("{} {} {} {}\n".format(date,opp,time,spec))
             
     gameLine = '```\n'
