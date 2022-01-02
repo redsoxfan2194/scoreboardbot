@@ -2847,6 +2847,9 @@ async def on_message(message):
     if(message.content.startswith('?wisconsin')):
             await message.channel.send("https://media.giphy.com/media/Ox6839VK0vCPTakv8H/giphy.gif")
             
+    if(message.content.startswith('?brown')):
+            await message.channel.send("https://media.giphy.com/media/fLtALB76zhWJULcZZn/giphy.gif")
+            
     if(message.content.startswith('?colgate') or message.content.startswith('?gate')):
             await message.channel.send("https://gfycat.com/agitatedslimyhyrax")        
         
