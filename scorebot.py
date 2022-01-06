@@ -77,14 +77,45 @@ def getFlair(team):
     
     return "[](#f/{}){}".format(flairFormat,team)    
  
-
+def getPpdGames(gender):
+        if gender=='Men':
+            url = "https://www.collegehockeynews.com/schedules/"
+        elif gender == 'Women':
+            url = "https://www.collegehockeynews.com/women/schedule.php"
+        f=urllib.request.urlopen(url)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        body = soup.find('tbody')
+        rows = body.find_all('tr')
+        dateStr=datetime.today().strftime('%A, %B %-d, %Y')
+        foundToday=False
+        ppdGames=[]
+        gameDict={}
+        for i in rows:
+            col=i.find_all('td')            
+            if(len(col[0].get_text().split(','))>1):
+                if(foundToday):
+                    break  
+                if(col[0].get_text()==dateStr):
+                    foundToday=True
+            if(foundToday and len(col)>1):
+                awayTeam=col[0].get_text().replace('\xa0','')
+                homeTeam=col[3].get_text().replace('\xa0','')
+                status=col[9].get_text()
+                if('ppd' in status or 'cnld' in status):
+                    gameDict={'aTeam':awayTeam,'hTeam':homeTeam}
+                    ppdGames.append(gameDict)
+        return ppdGames
 def getScores():
     global gameList,gameDate
     gameList = []
+    ppdGames=[]
     gameDict={}
     leagues = set()
     genders=['Men','Women']
     for gender in genders:
+        ppdGames=getPpdGames(gender)
         if gender=='Men':
             url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
             #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
@@ -146,7 +177,12 @@ def getScores():
                     'm_w': gender,
                     'tv' : tv}
                 leagues.add(conference)
-                gameList.append(gameDict)
+                for ppd in ppdGames:
+                    if(ppd['aTeam'] == gameDict['awayTeam'] and ppd['hTeam'] == gameDict['homeTeam']):
+                        postponed=True
+                        break
+                if(not postponed):
+                    gameList.append(gameDict)
                 gCount+=1
                 
    
