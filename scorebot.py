@@ -177,6 +177,7 @@ def getScores():
                     'm_w': gender,
                     'tv' : tv}
                 leagues.add(conference)
+                postponed=False
                 for ppd in ppdGames:
                     if(ppd['aTeam'] == gameDict['awayTeam'] and ppd['hTeam'] == gameDict['homeTeam']):
                         postponed=True
@@ -239,4 +240,5 @@ if __name__ == '__main__':
     #global gameDate
     scoreboard=generateScoreboard()
     #getScores()
-    print(scoreboard)
+    if(scoreboard):
+        print(scoreboard)
