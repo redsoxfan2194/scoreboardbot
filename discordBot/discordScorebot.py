@@ -2256,6 +2256,7 @@ async def on_message(message):
                 teamName = convertTeamtoDisRole(team)
             msg = "Boo {}".format(teamName)
         await message.channel.send(msg)
+        
     if message.content.startswith('?boo '):
         teamChoice = message.content.split('?boo ')
         jeer = ""
@@ -2271,7 +2272,8 @@ async def on_message(message):
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
             msg = "Boo {}".format(teamName)
-     
+        await message.channel.send(msg)
+        
     if(message.content.startswith('?pwr')):
         opt = message.content.split('?pwr ')
         if(len(opt)==1):
@@ -2735,6 +2737,9 @@ async def on_message(message):
     #if(message.content.startswith('?bcot') or message.content.startswith('?❌❌ot')):
     if(message.content.startswith('?bcot')):
             await message.channel.send('"free" "hockey" in "Boston"')  
+            
+    if(message.content.startswith('?bcot')):
+            await message.channel.send('"free" "hockey"')  
 
     if(message.content.startswith('?oti')):
             await message.channel.send('**ON THE ICE**')             
