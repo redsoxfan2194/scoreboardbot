@@ -115,6 +115,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Alaska-Anchorage" : "<:uaa:761701504376766464>",
 "Connecticut" : "<:uconn:761701507782934548>"}
 
+logoDict={}
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -2274,7 +2275,7 @@ async def on_message(message):
             msg = "Boo {}".format(teamName)
         await message.channel.send(msg)
         
-    if(message.content.startswith('?pwr')):
+    if(message.content.startswith('?pwr') and not message.content.startswith('?pwrplot')):
         opt = message.content.split('?pwr ')
         if(len(opt)==1):
             with cf.ProcessPoolExecutor(1) as p:
@@ -2629,6 +2630,13 @@ async def on_message(message):
         gender='Mens'        
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?pwrplot')):
+        gender='Mens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
@@ -3656,75 +3664,7 @@ def generatePDOPlot(gender):
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    logoDict={"Air Force" : "images/logos/afa.png",
-            "Alabama Huntsville" : "images/logos/alh.png",
-            "Alaska Anchorage" : "images/logos/aka.png",
-            "Alaska" : "images/logos/akf.png",
-            "American Int'l" : "images/logos/aic.png",
-            "Arizona State" : "images/logos/asu.png",
-            "Army" : "images/logos/arm.png",
-            "Bemidji State" : "images/logos/bmj.png",
-            "Bentley" : "images/logos/ben.png",
-            "Boston College" : "images/logos/bc_.png",
-            "Boston University" : "images/logos/bu_.png",
-            "Bowling Green" : "images/logos/bgs.png",
-            "Brown" : "images/logos/brn.png",
-            "Canisius" : "images/logos/cns.png",
-            "Clarkson" : "images/logos/clk.png",
-            "Colgate" : "images/logos/clg.png",
-            "Colorado College" : "images/logos/cc_.png",
-            "Cornell" : "images/logos/cor.png",
-            "Dartmouth" : "images/logos/dar.png",
-            "Denver" : "images/logos/den.png",
-            "Ferris State" : "images/logos/fsu.png",
-            "Franklin Pierce" : "images/logos/fpu.png",
-            "Harvard" : "images/logos/har.png",
-            "Holy Cross" : "images/logos/hcr.png",
-            "Lake Superior" : "images/logos/lss.png",
-            "Lindenwood" : "images/logos/lin.png",
-            "Long Island" : "images/logos/liu.png",
-            "Maine" : "images/logos/mne.png",
-            "Massachusetts" : "images/logos/uma.png",
-            "Mercyhurst" : "images/logos/mrc.png",
-            "Merrimack" : "images/logos/mer.png",
-            "Miami" : "images/logos/mia.png",
-            "Michigan State" : "images/logos/msu.png",
-            "Michigan Tech" : "images/logos/mtu.png",
-            "Michigan" : "images/logos/mic.png",
-            "Minnesota-Duluth" : "images/logos/mnd.png",
-            "Minnesota State" : "images/logos/mns.png",
-            "Minnesota" : "images/logos/min.png",
-            "New Hampshire" : "images/logos/unh.png",
-            "Niagara" : "images/logos/nia.png",
-            "North Dakota" : "images/logos/ndk.png",
-            "Northeastern" : "images/logos/noe.png",
-            "Northern Michigan" : "images/logos/nmu.png",
-            "Notre Dame" : "images/logos/ndm.png",
-            "Ohio State" : "images/logos/osu.png",
-            "Omaha" : "images/logos/uno.png",
-            "Penn State" : "images/logos/psu.png",
-            "Post" : "images/logos/pst.png",
-            "Princeton" : "images/logos/prn.png",
-            "Providence" : "images/logos/prv.png",
-            "Quinnipiac" : "images/logos/qui.png",
-            "RIT" : "images/logos/rit.png",
-            "Rensselaer" : "images/logos/ren.png",
-            "Robert Morris" : "images/logos/rmu.png",
-            "Sacred Heart" : "images/logos/sac.png",
-            "Saint Anselm" : "images/logos/sta.png",
-            "Saint Michael's" : "images/logos/stm.png",
-            "St. Cloud State" : "images/logos/stc.png",
-            "St. Lawrence" : "images/logos/stl.png",
-            "St. Thomas" : "images/logos/stt.png",
-            "Syracuse" : "images/logos/syr.png",
-            "Connecticut" : "images/logos/con.png",
-            "Mass.-Lowell" : "images/logos/uml.png",
-            "Union" : "images/logos/uni.png",
-            "Vermont" : "images/logos/ver.png",
-            "Western Michigan" : "images/logos/wmu.png",
-            "Wisconsin" : "images/logos/wis.png",
-            "Yale" : "images/logos/yal.png"}
-            
+    
     standStats=soup.find('table',{'id':'standard'})
     thead=standStats.find('thead')
     headers = thead.find_all('th')
@@ -3776,10 +3716,10 @@ def generatePDOPlot(gender):
         for i in sv:
             print(i,file=fname)
         fname.close()
+        lDict=getLogoDict()
         for team in statDict.keys():
-            statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
-            statDict[team]['img'] = imageio.imread(urllib.request.urlopen(statDict[team]['logo']).read())
-
+            statDict[team]['logo'] = lDict[team]['logo']
+            statDict[team]['img'] = lDict[team]['img']
 
         plt.rcParams["figure.figsize"] = [9, 9]
         plt.rcParams["figure.autolayout"] = True
@@ -3822,75 +3762,6 @@ def generateCorsiPlot(gender):
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    logoDict={"Air Force" : "images/logos/afa.png",
-            "Alabama Huntsville" : "images/logos/alh.png",
-            "Alaska Anchorage" : "images/logos/aka.png",
-            "Alaska" : "images/logos/akf.png",
-            "American Int'l" : "images/logos/aic.png",
-            "Arizona State" : "images/logos/asu.png",
-            "Army" : "images/logos/arm.png",
-            "Bemidji State" : "images/logos/bmj.png",
-            "Bentley" : "images/logos/ben.png",
-            "Boston College" : "images/logos/bc_.png",
-            "Boston University" : "images/logos/bu_.png",
-            "Bowling Green" : "images/logos/bgs.png",
-            "Brown" : "images/logos/brn.png",
-            "Canisius" : "images/logos/cns.png",
-            "Clarkson" : "images/logos/clk.png",
-            "Colgate" : "images/logos/clg.png",
-            "Colorado College" : "images/logos/cc_.png",
-            "Cornell" : "images/logos/cor.png",
-            "Dartmouth" : "images/logos/dar.png",
-            "Denver" : "images/logos/den.png",
-            "Ferris State" : "images/logos/fsu.png",
-            "Franklin Pierce" : "images/logos/fpu.png",
-            "Harvard" : "images/logos/har.png",
-            "Holy Cross" : "images/logos/hcr.png",
-            "Lake Superior" : "images/logos/lss.png",
-            "Lindenwood" : "images/logos/lin.png",
-            "Long Island" : "images/logos/liu.png",
-            "Maine" : "images/logos/mne.png",
-            "Massachusetts" : "images/logos/uma.png",
-            "Mercyhurst" : "images/logos/mrc.png",
-            "Merrimack" : "images/logos/mer.png",
-            "Miami" : "images/logos/mia.png",
-            "Michigan State" : "images/logos/msu.png",
-            "Michigan Tech" : "images/logos/mtu.png",
-            "Michigan" : "images/logos/mic.png",
-            "Minnesota-Duluth" : "images/logos/mnd.png",
-            "Minnesota State" : "images/logos/mns.png",
-            "Minnesota" : "images/logos/min.png",
-            "New Hampshire" : "images/logos/unh.png",
-            "Niagara" : "images/logos/nia.png",
-            "North Dakota" : "images/logos/ndk.png",
-            "Northeastern" : "images/logos/noe.png",
-            "Northern Michigan" : "images/logos/nmu.png",
-            "Notre Dame" : "images/logos/ndm.png",
-            "Ohio State" : "images/logos/osu.png",
-            "Omaha" : "images/logos/uno.png",
-            "Penn State" : "images/logos/psu.png",
-            "Post" : "images/logos/pst.png",
-            "Princeton" : "images/logos/prn.png",
-            "Providence" : "images/logos/prv.png",
-            "Quinnipiac" : "images/logos/qui.png",
-            "RIT" : "images/logos/rit.png",
-            "Rensselaer" : "images/logos/ren.png",
-            "Robert Morris" : "images/logos/rmu.png",
-            "Sacred Heart" : "images/logos/sac.png",
-            "Saint Anselm" : "images/logos/sta.png",
-            "Saint Michael's" : "images/logos/stm.png",
-            "St. Cloud State" : "images/logos/stc.png",
-            "St. Lawrence" : "images/logos/stl.png",
-            "St. Thomas" : "images/logos/stt.png",
-            "Syracuse" : "images/logos/syr.png",
-            "Connecticut" : "images/logos/con.png",
-            "Mass.-Lowell" : "images/logos/uml.png",
-            "Union" : "images/logos/uni.png",
-            "Vermont" : "images/logos/ver.png",
-            "Western Michigan" : "images/logos/wmu.png",
-            "Wisconsin" : "images/logos/wis.png",
-            "Yale" : "images/logos/yal.png"}
-            
     advStats=soup.find('table',{'id':'advanced'})
     tbod=advStats.find('tbody')
     aHeaders=['Rk','Team','GP','SATTOT','SATATOT','CF%TOT','SATEV','SATAEV','CF%EV','SATPP','SATAPP','CF%PP','SATCL','SATACL','CF%CL']
@@ -3939,9 +3810,10 @@ def generateCorsiPlot(gender):
         for i in cf:
             print(i,file=fname)
         fname.close()
+        lDict=getLogoDict()
         for team in statDict.keys():
-            statDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoDict[team]
-            statDict[team]['img'] = imageio.imread(urllib.request.urlopen(statDict[team]['logo']).read())
+            statDict[team]['logo'] = lDict[team]['logo']
+            statDict[team]['img'] = lDict[team]['img']
 
         plt.rcParams["figure.figsize"] = [9, 9]
         plt.rcParams["figure.autolayout"] = True
@@ -4258,5 +4130,204 @@ def getTeamStats(team,gender):
         recordStr+='\n'
     recordStr+='```'
     return recordStr
+    
+def generatePairwisePlot(gender):
+    confDict={"Bentley" :"AHA",
+    "American Int'l" :"AHA",
+    "Canisius" :"AHA",
+    "Army" :"AHA",
+    "Sacred Heart" :"AHA",
+    "RIT" :"AHA",
+    "Niagara" :"AHA",
+    "Mercyhurst" :"AHA",
+    "Air Force" :"AHA",
+    "Holy Cross" :"AHA",
+    "Minnesota" :"Big Ten",
+    "Michigan" :"Big Ten",
+    "Notre Dame" :"Big Ten",
+    "Ohio State" :"Big Ten",
+    "Michigan State" :"Big Ten",
+    "Wisconsin" :"Big Ten",
+    "Penn State" :"Big Ten",
+    "Minnesota State" :"CCHA",
+    "Bemidji State" :"CCHA",
+    "Bowling Green" :"CCHA",
+    "Michigan Tech" :"CCHA",
+    "Lake Superior" :"CCHA",
+    "Northern Michigan" :"CCHA",
+    "Ferris State" :"CCHA",
+    "St. Thomas" :"CCHA",
+    "Harvard" :"ECAC",
+    "Cornell" :"ECAC",
+    "Quinnipiac" :"ECAC",
+    "Clarkson" :"ECAC",
+    "Rensselaer" :"ECAC",
+    "St. Lawrence" :"ECAC",
+    "Brown" :"ECAC",
+    "Colgate" :"ECAC",
+    "Union" :"ECAC",
+    "Dartmouth" :"ECAC",
+    "Princeton" :"ECAC",
+    "Yale" :"ECAC",
+    "Mass.-Lowell" :"Hockey East",
+    "Massachusetts" :"Hockey East",
+    "Northeastern" :"Hockey East",
+    "Providence" :"Hockey East",
+    "Boston College" :"Hockey East",
+    "Connecticut" :"Hockey East",
+    "Boston University" :"Hockey East",
+    "Merrimack" :"Hockey East",
+    "New Hampshire" :"Hockey East",
+    "Vermont" :"Hockey East",
+    "Maine" :"Hockey East",
+    "North Dakota" :"NCHC",
+    "Western Michigan" :"NCHC",
+    "Denver" :"NCHC",
+    "Minnesota-Duluth" :"NCHC",
+    "St. Cloud State" :"NCHC",
+    "Omaha" :"NCHC",
+    "Colorado College" :"NCHC",
+    "Miami" :"NCHC",
+    "Alaska" :"Independents",
+    "Arizona State" :"Independents",
+    "Long Island" :"Independents"}
+    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    data =soup.get_text()
+    pairwise = []
+    for link in soup.find_all('a'):
+        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
+            pairwise.append(link.get_text())
+    
+    counter=1
+    pwrDict={}
+    for i in pairwise:
+        pwrDict[i]=counter
+        counter+=1
+        
+    cDict={}
+    for team,conf in confDict.items():
+        if conf not in cDict.keys():
+            cDict[conf]=[]
+            cDict[conf].append(team)
+        else:
+            cDict[conf].append(team)     
+    statDict=getLogoDict()
+    pw=[]
+    pwx=[]
+    ticks=[]
+    marker=[]
+    counter=0
+    
+    fig, ax = plt.subplots(figsize=(9,9))
+    fig.tight_layout()
+    for k in cDict.keys():
+        ticks.append(k)
+        for i in cDict[k]:
+            pw.append(pwrDict[i])
+            pwx.append(counter)
+            marker.append(i)
+
+        counter+=1
+    for x0, y0, path in zip(pwx, pw, marker):
+       ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+       ax.add_artist(ab)
+    plt.xticks(range(0,7))
+    plt.hlines(15.5,0,6,linestyle='--',label='Cut Line',colors='black')
+    plt.legend()
+    plt.ylim([60,0])
+    plt.xlabel('Conference')
+    plt.ylabel('Pairwise Ranking')
+    plt.title('Conference Pairwise')
+    plt.grid(axis='y')
+    gca=plt.gca()
+    fig.patch.set_facecolor('lightgray')
+    fig.patch.set_alpha(1)
+    gca.axes.set_xticklabels(ticks);
+    pwrPlotName='/home/nmemme/discordBot/pdoplotdata/pwrplot.png'
+    plt.savefig(pwrPlotName)
+    return pwrPlotName
+    
+def getLogoDict():
+    global logoDict
+    logoLocDict={"Air Force" : "images/logos/afa.png",
+        "Alabama Huntsville" : "images/logos/alh.png",
+        "Alaska Anchorage" : "images/logos/aka.png",
+        "Alaska" : "images/logos/akf.png",
+        "American Int'l" : "images/logos/aic.png",
+        "Arizona State" : "images/logos/asu.png",
+        "Army" : "images/logos/arm.png",
+        "Bemidji State" : "images/logos/bmj.png",
+        "Bentley" : "images/logos/ben.png",
+        "Boston College" : "images/logos/bc_.png",
+        "Boston University" : "images/logos/bu_.png",
+        "Bowling Green" : "images/logos/bgs.png",
+        "Brown" : "images/logos/brn.png",
+        "Canisius" : "images/logos/cns.png",
+        "Clarkson" : "images/logos/clk.png",
+        "Colgate" : "images/logos/clg.png",
+        "Colorado College" : "images/logos/cc_.png",
+        "Cornell" : "images/logos/cor.png",
+        "Dartmouth" : "images/logos/dar.png",
+        "Denver" : "images/logos/den.png",
+        "Ferris State" : "images/logos/fsu.png",
+        "Franklin Pierce" : "images/logos/fpu.png",
+        "Harvard" : "images/logos/har.png",
+        "Holy Cross" : "images/logos/hcr.png",
+        "Lake Superior" : "images/logos/lss.png",
+        "Lindenwood" : "images/logos/lin.png",
+        "Long Island" : "images/logos/liu.png",
+        "Maine" : "images/logos/mne.png",
+        "Massachusetts" : "images/logos/uma.png",
+        "Mercyhurst" : "images/logos/mrc.png",
+        "Merrimack" : "images/logos/mer.png",
+        "Miami" : "images/logos/mia.png",
+        "Michigan State" : "images/logos/msu.png",
+        "Michigan Tech" : "images/logos/mtu.png",
+        "Michigan" : "images/logos/mic.png",
+        "Minnesota-Duluth" : "images/logos/mnd.png",
+        "Minnesota State" : "images/logos/mns.png",
+        "Minnesota" : "images/logos/min.png",
+        "New Hampshire" : "images/logos/unh.png",
+        "Niagara" : "images/logos/nia.png",
+        "North Dakota" : "images/logos/ndk.png",
+        "Northeastern" : "images/logos/noe.png",
+        "Northern Michigan" : "images/logos/nmu.png",
+        "Notre Dame" : "images/logos/ndm.png",
+        "Ohio State" : "images/logos/osu.png",
+        "Omaha" : "images/logos/uno.png",
+        "Penn State" : "images/logos/psu.png",
+        "Post" : "images/logos/pst.png",
+        "Princeton" : "images/logos/prn.png",
+        "Providence" : "images/logos/prv.png",
+        "Quinnipiac" : "images/logos/qui.png",
+        "RIT" : "images/logos/rit.png",
+        "Rensselaer" : "images/logos/ren.png",
+        "Robert Morris" : "images/logos/rmu.png",
+        "Sacred Heart" : "images/logos/sac.png",
+        "Saint Anselm" : "images/logos/sta.png",
+        "Saint Michael's" : "images/logos/stm.png",
+        "St. Cloud State" : "images/logos/stc.png",
+        "St. Lawrence" : "images/logos/stl.png",
+        "St. Thomas" : "images/logos/stt.png",
+        "Syracuse" : "images/logos/syr.png",
+        "Connecticut" : "images/logos/con.png",
+        "Mass.-Lowell" : "images/logos/uml.png",
+        "Union" : "images/logos/uni.png",
+        "Vermont" : "images/logos/ver.png",
+        "Western Michigan" : "images/logos/wmu.png",
+        "Wisconsin" : "images/logos/wis.png",
+        "Yale" : "images/logos/yal.png"}
+    if(len(logoDict)==0):
+        logoDict={}
+        for team in logoLocDict.keys():
+            logoDict[team]={}
+            logoDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoLocDict[team]
+            logoDict[team]['img'] = imageio.imread(urllib.request.urlopen(logoDict[team]['logo']).read())
+    return logoDict
+    
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
