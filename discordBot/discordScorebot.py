@@ -2928,6 +2928,13 @@ async def on_message(message):
     
     if(message.content.startswith('?metcalf')):
         await message.channel.send("Win your games and don’t worry about this!!")
+        
+    if(message.content.startswith('?adam') or message.content.startswith('?wodon')):
+        await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg")
+        
+    if(message.content.startswith('?ecac') or message.content.startswith('?ezac')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/498885742802632724/937154136900767764/EZAC_Hockey.png")
+   
     
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
