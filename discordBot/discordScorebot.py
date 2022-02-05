@@ -184,6 +184,7 @@ def displayHelp():
 ?[teamstats / mteamstats / wteamstats] [team] - displays situational record and special team stats
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
+?[scoreboard / mscoreboard / wscoreboard] - display full list of scores
     ''',
     '''
 ?[history] [team1],[team2] - displays Matchup history and recent results
@@ -621,8 +622,9 @@ def getMatchupHistory(team,opp,numGames):
         
         return "Enter Two Different Teams!"
 
-    team=team.replace('.','')
-    opp=opp.replace('.','')
+    team=team.replace('.','').replace('-',' ')
+    opp=opp.replace('.','').replace('-',' ')
+    
     '''
     url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
     f=urllib.request.urlopen(url)
@@ -653,7 +655,7 @@ def getMatchupHistory(team,opp,numGames):
             teamName=res.group(1)
             teamName=teamName.replace('-',' ')
             hrefDict[teamName]=idNum
-   
+            
     url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -2305,7 +2307,7 @@ async def on_message(message):
             if(len(msg)>0):
                 await message.channel.send(msg)
                
-    if(message.content.startswith('?wpwr')):
+    if(message.content.startswith('?wpwr') and not message.content.startswith('?wpwrplot')):
         opt = message.content.split('?wpwr ')
         if(len(opt)==1):
             with cf.ProcessPoolExecutor(1) as p:
@@ -2318,7 +2320,8 @@ async def on_message(message):
                 msg = await loop.run_in_executor(p, getWPairwise, opt[1])
                 p.shutdown()
             if(len(msg)>0):
-                await message.channel.send(msg) 
+                await message.channel.send(msg)
+ 
                 
     if(message.content.startswith('?krach')):
         opt = message.content.split('?krach ')
@@ -2639,7 +2642,13 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
-    
+  
+    if(message.content.startswith('?wpwrplot')):
+        gender='Womens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))  
     if(message.content.startswith('?chain')):
         team1= ''
         team2= ''
@@ -2691,8 +2700,19 @@ async def on_message(message):
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
-    if(message.content.startswith('?scoreboard')):
-            await message.channel.send("http://www.collegehockeyinc.com/nationalscores.php")
+    if(message.content.startswith('?scoreboard') or message.content.startswith('?mscoreboard')):
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateFullScoreboard, "Men")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
+    
+    if(message.content.startswith('?wscoreboard')):
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateFullScoreboard, "Women")
+            p.shutdown()
+        if(len(msg)>0):
+            await message.channel.send(msg)
      
     # gifs and stuff
     if(message.content.startswith('?bu')):
@@ -3658,6 +3678,55 @@ def generateScoreline(team, gender):
                 return scoreline
     return "No game scheduled for {} {}".format(team,gender)
 
+def generateFullScoreboard(gender):
+    if gender=='Men':
+        url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
+        #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
+    elif gender == 'Women':
+        url = "https://www.collegehockeynews.com/women/scoreboard.php"
+        #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
+        
+    f=urllib.request.urlopen(url,timeout=10)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    data =soup.find_all('div',{'class':'confGroup'})
+    gameList = []
+    nextbutton = soup.find('a',{'class':'button2 next'})
+    now = datetime.datetime.now()
+    if(nextbutton.get_text() == 'Today'  and now.hour>4):
+        url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
+        f=urllib.request.urlopen(url,timeout=10)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        data =soup.find_all('div',{'class':'confGroup'})
+    scoreline='```\n'
+    for conf in data:
+        conference=conf.find('h2').get_text()
+        games=conf.find_all('table',{'id':'mainscore'})
+        for i in games:
+
+            gameData=i.find_all('td')
+            if(len(gameData)>=8):
+                awayTeam=gameData[2].get_text()
+                awayScore=gameData[3].get_text()
+                homePwr=gameData[6].get_text()
+                homeTeam=gameData[7].get_text()
+                homeScore=gameData[8].get_text()
+                status=gameData[4].get_text(separator=" ")
+            if(len(gameData)==7):
+                awayTeam=gameData[1].get_text()
+                awayScore=gameData[2].get_text()
+                homeTeam=gameData[5].get_text()
+                homeScore=gameData[6].get_text()
+                status=gameData[3].get_text(separator=" ")
+            scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore,status)
+    if(scoreline=='```\n```'):
+        return 'No Games Today'
+    return scoreline+'```'
+
+
 def generatePDOPlot(gender):
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
@@ -4139,123 +4208,235 @@ def getTeamStats(team,gender):
     return recordStr
     
 def generatePairwisePlot(gender):
-    confDict={"Bentley" :"AHA",
-    "American Int'l" :"AHA",
-    "Canisius" :"AHA",
-    "Army" :"AHA",
-    "Sacred Heart" :"AHA",
-    "RIT" :"AHA",
-    "Niagara" :"AHA",
-    "Mercyhurst" :"AHA",
-    "Air Force" :"AHA",
-    "Holy Cross" :"AHA",
-    "Minnesota" :"Big Ten",
-    "Michigan" :"Big Ten",
-    "Notre Dame" :"Big Ten",
-    "Ohio State" :"Big Ten",
-    "Michigan State" :"Big Ten",
-    "Wisconsin" :"Big Ten",
-    "Penn State" :"Big Ten",
-    "Minnesota State" :"CCHA",
-    "Bemidji State" :"CCHA",
-    "Bowling Green" :"CCHA",
-    "Michigan Tech" :"CCHA",
-    "Lake Superior" :"CCHA",
-    "Northern Michigan" :"CCHA",
-    "Ferris State" :"CCHA",
-    "St. Thomas" :"CCHA",
-    "Harvard" :"ECAC",
-    "Cornell" :"ECAC",
-    "Quinnipiac" :"ECAC",
-    "Clarkson" :"ECAC",
-    "Rensselaer" :"ECAC",
-    "St. Lawrence" :"ECAC",
-    "Brown" :"ECAC",
-    "Colgate" :"ECAC",
-    "Union" :"ECAC",
-    "Dartmouth" :"ECAC",
-    "Princeton" :"ECAC",
-    "Yale" :"ECAC",
-    "Mass.-Lowell" :"Hockey East",
-    "Massachusetts" :"Hockey East",
-    "Northeastern" :"Hockey East",
-    "Providence" :"Hockey East",
-    "Boston College" :"Hockey East",
-    "Connecticut" :"Hockey East",
-    "Boston University" :"Hockey East",
-    "Merrimack" :"Hockey East",
-    "New Hampshire" :"Hockey East",
-    "Vermont" :"Hockey East",
-    "Maine" :"Hockey East",
-    "North Dakota" :"NCHC",
-    "Western Michigan" :"NCHC",
-    "Denver" :"NCHC",
-    "Minnesota-Duluth" :"NCHC",
-    "St. Cloud State" :"NCHC",
-    "Omaha" :"NCHC",
-    "Colorado College" :"NCHC",
-    "Miami" :"NCHC",
-    "Alaska" :"Independents",
-    "Arizona State" :"Independents",
-    "Long Island" :"Independents"}
-    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
-    f=urllib.request.urlopen(url)
-    html = f.read()
-    f.close()
-    soup = BeautifulSoup(html, 'html.parser')
-    data =soup.get_text()
-    pairwise = []
-    for link in soup.find_all('a'):
-        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
-            pairwise.append(link.get_text())
-    
-    counter=1
-    pwrDict={}
-    for i in pairwise:
-        pwrDict[i]=counter
-        counter+=1
-        
-    cDict={}
-    for team,conf in confDict.items():
-        if conf not in cDict.keys():
-            cDict[conf]=[]
-            cDict[conf].append(team)
-        else:
-            cDict[conf].append(team)     
-    statDict=getLogoDict()
-    pw=[]
-    pwx=[]
-    ticks=[]
-    marker=[]
-    counter=0
-    
-    fig, ax = plt.subplots(figsize=(9,9))
-    fig.tight_layout()
-    for k in cDict.keys():
-        ticks.append(k)
-        for i in cDict[k]:
-            pw.append(pwrDict[i])
-            pwx.append(counter)
-            marker.append(i)
 
-        counter+=1
-    for x0, y0, path in zip(pwx, pw, marker):
-       ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
-       ax.add_artist(ab)
-    plt.xticks(range(0,7))
-    plt.hlines(15.5,0,6,linestyle='--',label='Cut Line',colors='black')
-    plt.legend()
-    plt.ylim([60,0])
-    plt.xlabel('Conference')
-    plt.ylabel('Pairwise Ranking')
-    plt.title('Conference Pairwise')
-    plt.grid(axis='y')
-    gca=plt.gca()
-    fig.patch.set_facecolor('lightgray')
-    fig.patch.set_alpha(1)
-    gca.axes.set_xticklabels(ticks);
-    pwrPlotName='/home/nmemme/discordBot/pdoplotdata/pwrplot.png'
-    plt.savefig(pwrPlotName)
+    if(gender=='Mens'):
+        confDict={"Bentley" :"AHA",
+        "American Int'l" :"AHA",
+        "Canisius" :"AHA",
+        "Army" :"AHA",
+        "Sacred Heart" :"AHA",
+        "RIT" :"AHA",
+        "Niagara" :"AHA",
+        "Mercyhurst" :"AHA",
+        "Air Force" :"AHA",
+        "Holy Cross" :"AHA",
+        "Minnesota" :"Big Ten",
+        "Michigan" :"Big Ten",
+        "Notre Dame" :"Big Ten",
+        "Ohio State" :"Big Ten",
+        "Michigan State" :"Big Ten",
+        "Wisconsin" :"Big Ten",
+        "Penn State" :"Big Ten",
+        "Minnesota State" :"CCHA",
+        "Bemidji State" :"CCHA",
+        "Bowling Green" :"CCHA",
+        "Michigan Tech" :"CCHA",
+        "Lake Superior" :"CCHA",
+        "Northern Michigan" :"CCHA",
+        "Ferris State" :"CCHA",
+        "St. Thomas" :"CCHA",
+        "Harvard" :"ECAC",
+        "Cornell" :"ECAC",
+        "Quinnipiac" :"ECAC",
+        "Clarkson" :"ECAC",
+        "Rensselaer" :"ECAC",
+        "St. Lawrence" :"ECAC",
+        "Brown" :"ECAC",
+        "Colgate" :"ECAC",
+        "Union" :"ECAC",
+        "Dartmouth" :"ECAC",
+        "Princeton" :"ECAC",
+        "Yale" :"ECAC",
+        "Mass.-Lowell" :"Hockey East",
+        "Massachusetts" :"Hockey East",
+        "Northeastern" :"Hockey East",
+        "Providence" :"Hockey East",
+        "Boston College" :"Hockey East",
+        "Connecticut" :"Hockey East",
+        "Boston University" :"Hockey East",
+        "Merrimack" :"Hockey East",
+        "New Hampshire" :"Hockey East",
+        "Vermont" :"Hockey East",
+        "Maine" :"Hockey East",
+        "North Dakota" :"NCHC",
+        "Western Michigan" :"NCHC",
+        "Denver" :"NCHC",
+        "Minnesota-Duluth" :"NCHC",
+        "St. Cloud State" :"NCHC",
+        "Omaha" :"NCHC",
+        "Colorado College" :"NCHC",
+        "Miami" :"NCHC",
+        "Alaska" :"Independents",
+        "Arizona State" :"Independents",
+        "Long Island" :"Independents"}
+        url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
+        f=urllib.request.urlopen(url)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        data =soup.get_text()
+        pairwise = []
+        for link in soup.find_all('a'):
+            if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
+                pairwise.append(link.get_text())
+        
+        counter=1
+        pwrDict={}
+        for i in pairwise:
+            pwrDict[i]=counter
+            counter+=1
+            
+        cDict={}
+        for team,conf in confDict.items():
+            if conf not in cDict.keys():
+                cDict[conf]=[]
+                cDict[conf].append(team)
+            else:
+                cDict[conf].append(team)     
+        statDict=getLogoDict()
+        pw=[]
+        pwx=[]
+        ticks=[]
+        marker=[]
+        counter=0
+        
+        fig, ax = plt.subplots(figsize=(9,9))
+        fig.tight_layout()
+        for k in cDict.keys():
+            ticks.append(k)
+            for i in cDict[k]:
+                pw.append(pwrDict[i])
+                pwx.append(counter)
+                marker.append(i)
+
+            counter+=1
+        for x0, y0, path in zip(pwx, pw, marker):
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        plt.xticks(range(0,7))
+        plt.hlines(15.5,0,6,linestyle='--',label='Cut Line',colors='black')
+        plt.legend()
+        plt.ylim([len(pw)+2,0])
+        plt.xlabel('Conference')
+        plt.ylabel('Pairwise Ranking')
+        plt.title('Conference Pairwise')
+        plt.grid(axis='y')
+        gca=plt.gca()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        gca.axes.set_xticklabels(ticks);
+        pwrPlotName='/home/nmemme/discordBot/pdoplotdata/mpwrplot.png'
+        plt.savefig(pwrPlotName)
+        
+    elif(gender=='Womens'):
+        confDict={"Mercyhurst" : "CHA",
+        "Penn State" : "CHA",
+        "Syracuse" : "CHA",
+        "Lindenwood" : "CHA",
+        "RIT" : "CHA",
+        "Post" : "CHA",
+        "Harvard" : "ECAC",
+        "Quinnipiac" : "ECAC",
+        "Yale" : "ECAC",
+        "Colgate" : "ECAC",
+        "Clarkson" : "ECAC",
+        "St. Lawrence" : "ECAC",
+        "Cornell" : "ECAC",
+        "Princeton" : "ECAC",
+        "Rensselaer" : "ECAC",
+        "Dartmouth" : "ECAC",
+        "Brown" : "ECAC",
+        "Union" : "ECAC",
+        "Northeastern" : "Hockey East",
+        "Connecticut" : "Hockey East",
+        "Vermont" : "Hockey East",
+        "Boston College" : "Hockey East",
+        "Maine" : "Hockey East",
+        "Providence" : "Hockey East",
+        "Boston University" : "Hockey East",
+        "New Hampshire" : "Hockey East",
+        "Merrimack" : "Hockey East",
+        "Holy Cross" : "Hockey East",
+        "Long Island" : "NEWHA",
+        "Franklin Pierce" : "NEWHA",
+        "Saint Anselm" : "NEWHA",
+        "Sacred Heart" : "NEWHA",
+        "Saint Michael's" : "NEWHA",
+        "Minnesota" : "WCHA",
+        "Ohio State" : "WCHA",
+        "Wisconsin" : "WCHA",
+        "Minnesota-Duluth" : "WCHA",
+        "Minnesota State" : "WCHA",
+        "Bemidji State" : "WCHA",
+        "St. Cloud State" : "WCHA",
+        "St. Thomas" : "WCHA"}
+        url = "https://json-b.uscho.com/json/rankings/pairwise-rankings/d-i-women"
+        f=urllib.request.urlopen(url)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        site_json=json.loads(soup.text)
+        table=site_json['json']['dt1']['data']
+        pairwise=[]
+        for row in table:
+            if(row[1]=='LIU'):
+                row[1]="Long Island"
+            if(row[1]=='St. Anselm'):
+                row[1]="Saint Anselm" 
+            if(row[1]=="St. Michael's"):
+                row[1]="Saint Michael's" 
+            if(row[1]=="Minnesota Duluth"):
+                row[1]="Minnesota-Duluth" 
+            pairwise.append(row[1])
+            
+        counter=1
+        pwrDict={}
+        for i in pairwise:
+            pwrDict[i]=counter
+            counter+=1
+           
+        cDict={}
+        for team,conf in confDict.items():
+            if conf not in cDict.keys():
+                cDict[conf]=[]
+                cDict[conf].append(team)
+            else:
+                cDict[conf].append(team)
+                       
+        statDict=getLogoDict()
+        pw=[]
+        pwx=[]
+        ticks=[]
+        marker=[]
+        counter=0
+        
+        fig, ax = plt.subplots(figsize=(9,9))
+        fig.tight_layout()
+        for k in cDict.keys():
+            ticks.append(k)
+            for i in cDict[k]:
+                pw.append(pwrDict[i])
+                pwx.append(counter)
+                marker.append(i)
+
+            counter+=1
+        for x0, y0, path in zip(pwx, pw, marker):
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        plt.xticks(range(0,5))
+        plt.hlines(9.5,0,4,linestyle='--',label='Cut Line',colors='black')
+        #plt.legend()
+        plt.ylim([len(pw)+2,0])
+        plt.xlabel('Conference')
+        plt.ylabel('Pairwise Ranking')
+        plt.title('Conference Pairwise')
+        plt.grid(axis='y')
+        gca=plt.gca()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        gca.axes.set_xticklabels(ticks);
+        pwrPlotName='/home/nmemme/discordBot/pdoplotdata/wpwrplot.png'
+        plt.savefig(pwrPlotName)
     return pwrPlotName
     
 def getLogoDict():
