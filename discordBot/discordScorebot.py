@@ -4358,7 +4358,7 @@ def generatePairwisePlot(gender):
         "Holy Cross" : "Hockey East",
         "Long Island" : "NEWHA",
         "Franklin Pierce" : "NEWHA",
-        "Post" : "CHA",
+        "Post" : "NEWHA",
         "Saint Anselm" : "NEWHA",
         "Sacred Heart" : "NEWHA",
         "Saint Michael's" : "NEWHA",
