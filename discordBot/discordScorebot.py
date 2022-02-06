@@ -115,7 +115,85 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Alaska-Anchorage" : "<:uaa:761701504376766464>",
 "Connecticut" : "<:uconn:761701507782934548>"}
 
-logoDict={}
+def getLogoDict():
+
+    logoLocDict={"Air Force" : "images/logos/afa.png",
+        "Alabama Huntsville" : "images/logos/alh.png",
+        "Alaska Anchorage" : "images/logos/aka.png",
+        "Alaska" : "images/logos/akf.png",
+        "American Int'l" : "images/logos/aic.png",
+        "Arizona State" : "images/logos/asu.png",
+        "Army" : "images/logos/arm.png",
+        "Bemidji State" : "images/logos/bmj.png",
+        "Bentley" : "images/logos/ben.png",
+        "Boston College" : "images/logos/bc_.png",
+        "Boston University" : "images/logos/bu_.png",
+        "Bowling Green" : "images/logos/bgs.png",
+        "Brown" : "images/logos/brn.png",
+        "Canisius" : "images/logos/cns.png",
+        "Clarkson" : "images/logos/clk.png",
+        "Colgate" : "images/logos/clg.png",
+        "Colorado College" : "images/logos/cc_.png",
+        "Cornell" : "images/logos/cor.png",
+        "Dartmouth" : "images/logos/dar.png",
+        "Denver" : "images/logos/den.png",
+        "Ferris State" : "images/logos/fsu.png",
+        "Franklin Pierce" : "images/logos/fpu.png",
+        "Harvard" : "images/logos/har.png",
+        "Holy Cross" : "images/logos/hcr.png",
+        "Lake Superior" : "images/logos/lss.png",
+        "Lindenwood" : "images/logos/lin.png",
+        "Long Island" : "images/logos/liu.png",
+        "Maine" : "images/logos/mne.png",
+        "Massachusetts" : "images/logos/uma.png",
+        "Mercyhurst" : "images/logos/mrc.png",
+        "Merrimack" : "images/logos/mer.png",
+        "Miami" : "images/logos/mia.png",
+        "Michigan State" : "images/logos/msu.png",
+        "Michigan Tech" : "images/logos/mtu.png",
+        "Michigan" : "images/logos/mic.png",
+        "Minnesota-Duluth" : "images/logos/mnd.png",
+        "Minnesota State" : "images/logos/mns.png",
+        "Minnesota" : "images/logos/min.png",
+        "New Hampshire" : "images/logos/unh.png",
+        "Niagara" : "images/logos/nia.png",
+        "North Dakota" : "images/logos/ndk.png",
+        "Northeastern" : "images/logos/noe.png",
+        "Northern Michigan" : "images/logos/nmu.png",
+        "Notre Dame" : "images/logos/ndm.png",
+        "Ohio State" : "images/logos/osu.png",
+        "Omaha" : "images/logos/uno.png",
+        "Penn State" : "images/logos/psu.png",
+        "Post" : "images/logos/pst.png",
+        "Princeton" : "images/logos/prn.png",
+        "Providence" : "images/logos/prv.png",
+        "Quinnipiac" : "images/logos/qui.png",
+        "RIT" : "images/logos/rit.png",
+        "Rensselaer" : "images/logos/ren.png",
+        "Robert Morris" : "images/logos/rmu.png",
+        "Sacred Heart" : "images/logos/sac.png",
+        "Saint Anselm" : "images/logos/sta.png",
+        "Saint Michael's" : "images/logos/stm.png",
+        "St. Cloud State" : "images/logos/stc.png",
+        "St. Lawrence" : "images/logos/stl.png",
+        "St. Thomas" : "images/logos/stt.png",
+        "Syracuse" : "images/logos/syr.png",
+        "Connecticut" : "images/logos/con.png",
+        "Mass.-Lowell" : "images/logos/uml.png",
+        "Union" : "images/logos/uni.png",
+        "Vermont" : "images/logos/ver.png",
+        "Western Michigan" : "images/logos/wmu.png",
+        "Wisconsin" : "images/logos/wis.png",
+        "Yale" : "images/logos/yal.png"}
+        
+    logoDict={}
+    for team in logoLocDict.keys():
+        logoDict[team]={}
+        logoDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoLocDict[team]
+        logoDict[team]['img'] = imageio.imread(urllib.request.urlopen(logoDict[team]['logo']).read())
+    return logoDict
+    
+logoDict=getLogoDict()
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -2701,18 +2779,24 @@ async def on_message(message):
         await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?scoreboard') or message.content.startswith('?mscoreboard')):
-        with cf.ProcessPoolExecutor(1) as p:
-            msg = await loop.run_in_executor(p, generateFullScoreboard, "Men")
-            p.shutdown()
-        if(len(msg)>0):
-            await message.channel.send(msg)
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, generateFullScoreboard, "Men")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
     
     if(message.content.startswith('?wscoreboard')):
-        with cf.ProcessPoolExecutor(1) as p:
-            msg = await loop.run_in_executor(p, generateFullScoreboard, "Women")
-            p.shutdown()
-        if(len(msg)>0):
-            await message.channel.send(msg)
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, generateFullScoreboard, "Women")
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
      
     # gifs and stuff
     if(message.content.startswith('?bu')):
@@ -3722,12 +3806,14 @@ def generateFullScoreboard(gender):
                 homeScore=gameData[6].get_text()
                 status=gameData[3].get_text(separator=" ")
             scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore,status)
+    scoreline+='```'
     if(scoreline=='```\n```'):
         return 'No Games Today'
-    return scoreline+'```'
+    return scoreline
 
 
 def generatePDOPlot(gender):
+    global logoDict
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
         svFileName = '/home/nmemme/discordBot/pdoplotdata/sv_data.txt'
@@ -3792,7 +3878,7 @@ def generatePDOPlot(gender):
         for i in sv:
             print(i,file=fname)
         fname.close()
-        lDict=getLogoDict()
+        lDict=logoDict.copy()
         for team in statDict.keys():
             statDict[team]['logo'] = lDict[team]['logo']
             statDict[team]['img'] = lDict[team]['img']
@@ -3826,6 +3912,7 @@ def generatePDOPlot(gender):
     return pdoPlotName
     
 def generateCorsiPlot(gender):
+    global logoDict
     if(gender=='Mens'):
         url = "https://www.collegehockeynews.com/stats/"
         cfFileName = '/home/nmemme/discordBot/pdoplotdata/cf_data.txt'
@@ -3886,7 +3973,7 @@ def generateCorsiPlot(gender):
         for i in cf:
             print(i,file=fname)
         fname.close()
-        lDict=getLogoDict()
+        lDict=logoDict.copy()
         for team in statDict.keys():
             statDict[team]['logo'] = lDict[team]['logo']
             statDict[team]['img'] = lDict[team]['img']
@@ -4208,7 +4295,7 @@ def getTeamStats(team,gender):
     return recordStr
     
 def generatePairwisePlot(gender):
-
+    global logoDict
     if(gender=='Mens'):
         confDict={"Bentley" :"AHA",
         "American Int'l" :"AHA",
@@ -4293,7 +4380,7 @@ def generatePairwisePlot(gender):
                 cDict[conf].append(team)
             else:
                 cDict[conf].append(team)     
-        statDict=getLogoDict()
+        statDict=logoDict.copy()
         pw=[]
         pwx=[]
         ticks=[]
@@ -4403,7 +4490,7 @@ def generatePairwisePlot(gender):
             else:
                 cDict[conf].append(team)
                        
-        statDict=getLogoDict()
+        statDict=logoDict.copy()
         pw=[]
         pwx=[]
         ticks=[]
@@ -4424,7 +4511,7 @@ def generatePairwisePlot(gender):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         plt.xticks(range(0,5))
-        plt.hlines(9.5,0,4,linestyle='--',label='Cut Line',colors='black')
+        plt.hlines(10.5,0,4,linestyle='--',label='Cut Line',colors='black')
         #plt.legend()
         plt.ylim([len(pw)+2,0])
         plt.xlabel('Conference')
@@ -4438,84 +4525,6 @@ def generatePairwisePlot(gender):
         pwrPlotName='/home/nmemme/discordBot/pdoplotdata/wpwrplot.png'
         plt.savefig(pwrPlotName)
     return pwrPlotName
-    
-def getLogoDict():
-    global logoDict
-    logoLocDict={"Air Force" : "images/logos/afa.png",
-        "Alabama Huntsville" : "images/logos/alh.png",
-        "Alaska Anchorage" : "images/logos/aka.png",
-        "Alaska" : "images/logos/akf.png",
-        "American Int'l" : "images/logos/aic.png",
-        "Arizona State" : "images/logos/asu.png",
-        "Army" : "images/logos/arm.png",
-        "Bemidji State" : "images/logos/bmj.png",
-        "Bentley" : "images/logos/ben.png",
-        "Boston College" : "images/logos/bc_.png",
-        "Boston University" : "images/logos/bu_.png",
-        "Bowling Green" : "images/logos/bgs.png",
-        "Brown" : "images/logos/brn.png",
-        "Canisius" : "images/logos/cns.png",
-        "Clarkson" : "images/logos/clk.png",
-        "Colgate" : "images/logos/clg.png",
-        "Colorado College" : "images/logos/cc_.png",
-        "Cornell" : "images/logos/cor.png",
-        "Dartmouth" : "images/logos/dar.png",
-        "Denver" : "images/logos/den.png",
-        "Ferris State" : "images/logos/fsu.png",
-        "Franklin Pierce" : "images/logos/fpu.png",
-        "Harvard" : "images/logos/har.png",
-        "Holy Cross" : "images/logos/hcr.png",
-        "Lake Superior" : "images/logos/lss.png",
-        "Lindenwood" : "images/logos/lin.png",
-        "Long Island" : "images/logos/liu.png",
-        "Maine" : "images/logos/mne.png",
-        "Massachusetts" : "images/logos/uma.png",
-        "Mercyhurst" : "images/logos/mrc.png",
-        "Merrimack" : "images/logos/mer.png",
-        "Miami" : "images/logos/mia.png",
-        "Michigan State" : "images/logos/msu.png",
-        "Michigan Tech" : "images/logos/mtu.png",
-        "Michigan" : "images/logos/mic.png",
-        "Minnesota-Duluth" : "images/logos/mnd.png",
-        "Minnesota State" : "images/logos/mns.png",
-        "Minnesota" : "images/logos/min.png",
-        "New Hampshire" : "images/logos/unh.png",
-        "Niagara" : "images/logos/nia.png",
-        "North Dakota" : "images/logos/ndk.png",
-        "Northeastern" : "images/logos/noe.png",
-        "Northern Michigan" : "images/logos/nmu.png",
-        "Notre Dame" : "images/logos/ndm.png",
-        "Ohio State" : "images/logos/osu.png",
-        "Omaha" : "images/logos/uno.png",
-        "Penn State" : "images/logos/psu.png",
-        "Post" : "images/logos/pst.png",
-        "Princeton" : "images/logos/prn.png",
-        "Providence" : "images/logos/prv.png",
-        "Quinnipiac" : "images/logos/qui.png",
-        "RIT" : "images/logos/rit.png",
-        "Rensselaer" : "images/logos/ren.png",
-        "Robert Morris" : "images/logos/rmu.png",
-        "Sacred Heart" : "images/logos/sac.png",
-        "Saint Anselm" : "images/logos/sta.png",
-        "Saint Michael's" : "images/logos/stm.png",
-        "St. Cloud State" : "images/logos/stc.png",
-        "St. Lawrence" : "images/logos/stl.png",
-        "St. Thomas" : "images/logos/stt.png",
-        "Syracuse" : "images/logos/syr.png",
-        "Connecticut" : "images/logos/con.png",
-        "Mass.-Lowell" : "images/logos/uml.png",
-        "Union" : "images/logos/uni.png",
-        "Vermont" : "images/logos/ver.png",
-        "Western Michigan" : "images/logos/wmu.png",
-        "Wisconsin" : "images/logos/wis.png",
-        "Yale" : "images/logos/yal.png"}
-    if(len(logoDict)==0):
-        logoDict={}
-        for team in logoLocDict.keys():
-            logoDict[team]={}
-            logoDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoLocDict[team]
-            logoDict[team]['img'] = imageio.imread(urllib.request.urlopen(logoDict[team]['logo']).read())
-    return logoDict
-    
+        
 client.run(TOKEN)
 print("Ending... at",datetime.datetime.now())
