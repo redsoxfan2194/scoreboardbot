@@ -680,7 +680,10 @@ def getMatchupHistory(team,opp,numGames):
     if(team == '' or opp == ''):
         
         return "Enter Two Teams!"
-        
+
+    if((team.lower() == 'craig' or team.lower()=='schmackarys') and opp.lower() == 'craig' or opp.lower()=='schmackarys'):
+        return "```\nSchmackarys v Craig\n\nAll-Time Series:\nSchmackarys Leads 1-0\n\nRecent Results:\n2022-02-07 Schmackarys 1-0\n```"
+    
     team = decodeTeam(team)
     opp = decodeTeam(opp)
     if(scorebot.isD1(team,team,'Men') or team in chnDiffs.keys()):
@@ -703,21 +706,6 @@ def getMatchupHistory(team,opp,numGames):
     team=team.replace('.','').replace('-',' ')
     opp=opp.replace('.','').replace('-',' ')
     
-    '''
-    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
-    f=urllib.request.urlopen(url)
-    html = f.read()
-    f.close()
-    soup = BeautifulSoup(html, 'html.parser')
-    pairwise = []
-    hrefDict = {}
-    for link in soup.find_all('a'):
-        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
-            idNum=re.search('.*=(.*)',link['href'])
-            idNum=idNum.group(1)
-            hrefDict[link.get_text()]=idNum
-    #print(hrefDict)
-    '''
     url = "https://www.collegehockeynews.com/reports/teamindex-historical.php"
     f=urllib.request.urlopen(url)
     html = f.read()
@@ -766,6 +754,12 @@ def getMatchupHistory(team,opp,numGames):
             hTeam=gameData[4]
             hScoreTemp = gameData[5].split(' ')
             hScore=int(hScoreTemp[0])
+            
+            if(aTeam=='Nebraska-Omaha'):
+                aTeam='Omaha'
+            if(hTeam=='Nebraska-Omaha'):
+                hTeam='Omaha'
+            
             if(len(gameData)>=7):
                 if('ot' in gameData[6]):
                     loc=gameData[6]
