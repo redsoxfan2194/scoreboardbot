@@ -262,7 +262,7 @@ def displayHelp():
 ?[teamstats / mteamstats / wteamstats] [team] - displays situational record and special team stats
 ?[mres / wres / mform / wform] [team name] - displays previous 5 games of the team entered (All Caps denotes [team] is home)
 ?[mres / wres / mform / wform] [team],<number> - displays previous <number> games of the team entered (All Caps denotes [team] is home)
-?[scoreboard / mscoreboard / wscoreboard] - display full list of scores
+?[scoreboard / mscoreboard / wscoreboard] [conference/bubble] - display full list of scores
     ''',
     '''
 ?[history] [team1],[team2] - displays Matchup history and recent results
@@ -529,6 +529,7 @@ def getPairwise(opt):
     start = 0
     splitopt = opt.split(',')
     maxTeams=len(pairwise)
+    end=16
     decodedTeam = decodeTeam(opt)
     if(opt.isnumeric()):
         end = int(opt)
@@ -996,12 +997,13 @@ def getKOdds3(team1,team2):
          value = cell.string
          if(value != None):
             line +=value + "!"
-        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line):
+        if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line and 'Winning' not in line):
             line=line.rstrip('!')
             line=line.split("!")
             if(line[2]=='∞'):
                 line[2] = "inf"
             krach[line[1]]=float(line[2])
+    
     
     team1Odds = (krach[team1]**2 * (krach[team1] + 3 * krach[team2]))/((krach[team1] + krach[team2])**3)
     team2Odds = (krach[team2]**2 * (krach[team2] + 3 * krach[team1]))/((krach[team2] + krach[team1])**3)
@@ -2776,21 +2778,59 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, generateFullScoreboard, "Men")
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
+            opt = message.content.split('?scoreboard ')
+            if(len(opt)==1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", 'full')
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", opt[1])
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+        
+    if(message.content.startswith('?mscoreboard')):
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
+        else:
+        
+            opt = message.content.split('?mscoreboard ')
+            if(len(opt)==1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", 'full')
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", opt[1])
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+                               
     
     if(message.content.startswith('?wscoreboard')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, generateFullScoreboard, "Women")
-                p.shutdown()
-            if(len(msg)>0):
-                await message.channel.send(msg)
+        
+            opt = message.content.split('?wscoreboard ')
+            if(len(opt)==1):
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Women", 'full')
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+            else:
+                with cf.ProcessPoolExecutor(1) as p:
+                    msg = await loop.run_in_executor(p, generateFullScoreboard, "Women", opt[1])
+                    p.shutdown()
+                if(len(msg)>0):
+                    await message.channel.send(msg)
+                           
      
     # gifs and stuff
     if(message.content.startswith('?bu')):
@@ -2838,7 +2878,7 @@ async def on_message(message):
             #await message.channel.send("https://imgur.com/a/mejC6E2")
             await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
            # await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918644377524523008/jerry.png")
-            #await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918854291228336148/jerry2.png")
+            #await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918854291228336148/jerry2.png") #❌❌
             
     #if(message.content.startswith('?bcot') or message.content.startswith('?❌❌ot')):
     if(message.content.startswith('?bcot')):
@@ -3033,6 +3073,8 @@ async def on_message(message):
     if(message.content.startswith('?ecac') or message.content.startswith('?ezac')):
         await message.channel.send("https://cdn.discordapp.com/attachments/498885742802632724/937154136900767764/EZAC_Hockey.png")
    
+    if(message.content.startswith('?dop')):
+        await message.channel.send("https://media.giphy.com/media/YhqcCh3ZHTShimyvhK/giphy.gif")
     
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
@@ -3756,14 +3798,14 @@ def generateScoreline(team, gender):
                 return scoreline
     return "No game scheduled for {} {}".format(team,gender)
 
-def generateFullScoreboard(gender):
+def generateFullScoreboard(gender,opt):
     if gender=='Men':
         url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
         #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
     elif gender == 'Women':
         url = "https://www.collegehockeynews.com/women/scoreboard.php"
         #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
-        
+    
     f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
     f.close()
@@ -3780,11 +3822,53 @@ def generateFullScoreboard(gender):
         soup = BeautifulSoup(html, 'html.parser')
         data =soup.find_all('div',{'class':'confGroup'})
     scoreline='```\n'
+    if(gender=="Men"):
+        if(opt=="hea" or opt == "he" or opt == 'hockeyeast'):
+            opt = "Hockey East"
+        elif(opt == "atlantic" or opt == "ahc" or opt == "aha"):
+            opt = "Atlantic Hockey"
+        elif(opt == "bigten" or opt == "b10" or opt == "b1g" or opt == "big10" ):
+            opt = "Big Ten"
+        elif(opt == "nchc"):
+            opt = "NCHC"
+        elif(opt == "ccha"):
+            opt = "CCHA"
+        elif(opt == "ecac"):
+            opt = "ECAC"
+        elif(opt == "nc"):
+            opt = "Non-Conference"
+        elif(opt == 'bubble'):
+            bubble = getPairwise(opt)
+            bubble=bubble.replace('```','').rstrip('\n').lstrip('\n')
+            bubble=re.sub(r"(\d*\. )","",bubble)
+            opt = "Bubble"            
+        else:
+            opt = 'full'
+    elif(gender == "Women"):
+        if(opt=="hea" or opt == "he" or opt == 'hockeyeast'):
+            opt = "Hockey East"
+        elif(opt == "cha"):
+            opt = "CHA"
+        elif(opt == "wcha"):
+            opt = "WCHA"
+        elif(opt == "ecac"):
+            opt = "ECAC"
+        elif(opt == "newha"):
+            opt = "NEWHA"
+        elif(opt== 'bubble'):
+            bubble = getWPairwise(opt)
+            bubble=bubble.replace('```','').rstrip('\n').lstrip('\n')
+            bubble=re.sub(r"(\d*\. )","",bubble)
+            opt = "Bubble"
+        else:
+            opt='full'
     for conf in data:
         conference=conf.find('h2').get_text()
         games=conf.find_all('table',{'id':'mainscore'})
+        if(opt not in conference and (opt != 'full' and opt != 'Bubble')):
+            continue
         for i in games:
-
+            
             gameData=i.find_all('td')
             if(len(gameData)>=8):
                 awayTeam=gameData[2].get_text()
@@ -3799,6 +3883,8 @@ def generateFullScoreboard(gender):
                 homeTeam=gameData[5].get_text()
                 homeScore=gameData[6].get_text()
                 status=gameData[3].get_text(separator=" ")
+            if(opt=='Bubble' and not (awayTeam in bubble or homeTeam in bubble)):
+                continue
             scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore,status)
     scoreline+='```'
     if(scoreline=='```\n```'):
