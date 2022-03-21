@@ -393,7 +393,7 @@ def getCheer(role):
     cheerList = { "Boston University Terriers" : ["Go BU!", "Let's Go Terriers!", "BC Sucks!"],
     "Northeastern Huskies" : ["Go NU!", "#HowlinHuskies", "Go Huskies!"],
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
-    "Harvard Crimson" : ["Go Harvard!", "Fuck Harvard!"],
+    "Harvard Crimson" : ["Go Harvard!", "Fuck Harvard!", "Go Crimson!"],
     "New Hampshire Wildcats" : ["I Believe in UNH!","Go Wildcats!"],
     "Maine Black Bears" : ["Let's go Black Bears!", "Fill the steins to Dear Ol' Maine!"],
     "Boston College Eagles" : ["Go BC!", "BC Sucks!", "Go Eagles!", "Sucks to BU!"],
@@ -438,6 +438,8 @@ def getCheer(role):
     "Northern Michigan Wildcats" : ["Go 'Cats, Go 'Cats, Go 'Cats, GO!", " Tech Still Sucks!"],
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
+    "Western Michigan Broncos" : ["Go Broncos!", "Let's Ride", "#StanHorsies"],
+    
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
     "Red Sox" : ["Go Red Sox!", "Yankees Suck!"],
     "Portal" : ["PRAISE PORTAL"],
@@ -502,6 +504,8 @@ def getJeer(role):
     "Army Black Knights" : ["Woops", "Ring Knockers", "https://www.dictionary.com/e/slang/circle-game/"],
     "Air Force Falcons" : ["Ring Knockers", "Chair Force"],
     "LIU Sharks" : ["Baby Shark Doo doo, doo doo doo doo"],
+    "Penn State Nittany Lions" : ["Pennsylvania Commonwealth University"],
+    "Western Michigan Broncos" : ["Broncnos"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "Craig" : ["Imagine being named Craig"],
     "Yankees" : ["Yankees Suck!"],
@@ -1987,7 +1991,7 @@ async def on_message(message):
            await message.author.send(i)
     if not message.content.startswith('?'):
         return
-                
+    message.content = message.content.lower()         
     loop = asyncio.get_event_loop()
     
     if message.content.startswith('?getgttitle') and message.author.name == 'memmdog':
@@ -2875,8 +2879,8 @@ async def on_message(message):
             await message.channel.send("F'IN HAWKS")
             
     if(message.content.startswith('?jerry')):
-            #await message.channel.send("https://imgur.com/a/mejC6E2")
-            await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
+            await message.channel.send("https://imgur.com/a/mejC6E2")
+            #await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
            # await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918644377524523008/jerry.png")
             #await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918854291228336148/jerry2.png") #❌❌
             
@@ -2884,7 +2888,7 @@ async def on_message(message):
     if(message.content.startswith('?bcot')):
             await message.channel.send('"free" "hockey" in "Boston"')  
             
-    if(message.content.startswith('?bcot')):
+    if((message.content.startswith('?ot') and not message.content.startswith('?oti')) or message.content.startswith('?3v3ot') or message.content.startswith('?rsot') or message.content.startswith('?regularseasonot')):
             await message.channel.send('"free" "hockey"')  
 
     if(message.content.startswith('?oti')):
@@ -2978,7 +2982,8 @@ async def on_message(message):
             await message.channel.send("https://www.youtube.com/watch?v=-B2vE1Yl2_c")
             
     if(message.content.startswith('?mtu')):
-            await message.channel.send("https://www.youtube.com/watch?v=FZQ6VNWvmOc")
+            random.seed(int(datetime.datetime.now()))
+            await message.channel.send(random.choice(["https://www.youtube.com/watch?v=FZQ6VNWvmOc","https://youtu.be/6a79Ej7WK5Q?t=44"]))
     
     if(message.content.startswith('?northeastern') and not message.content.startswith('?northeasternwins')):
             await message.channel.send("https://media.giphy.com/media/jt8C9VdM1Xo6SY2Yib/giphy.gif")
@@ -3020,6 +3025,9 @@ async def on_message(message):
         #for i in message.guild.emojis:
         #   print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
+    if(message.content.startswith('?lucia') or message.content.startswith('?ccharef')): 
+        await message.channel.send('https://cdn.discordapp.com/attachments/523161681484972062/955134694251446302/lucia.png')    
+        
     
     if(message.content.startswith('?beanpot') and not message.content.startswith('?beanpottrot')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
@@ -3040,8 +3048,11 @@ async def on_message(message):
     if(message.content.startswith('?playoffot') or message.content.startswith('?playoffOT') ):
         await message.channel.send("https://twitter.com/jon_bois/status/456616952153128960")    
    
-    if(message.content.startswith('?merrimack') or message.content.startswith('?mack') ):
-        await message.channel.send("Is Merrimack College a respectable institution?")   
+    if(message.content.startswith('?merrimack')):
+        await message.channel.send("https://www.youtube.com/watch?v=tU-9xtFEuk0")
+
+    if(message.content.startswith('?mack') ):
+        await message.channel.send("Is Merrimack College a respectable institution?")           
 
     if(message.content.startswith('?btn+')):
         await message.channel.send("There are no non-paid streams for BTN+ games available, might I suggest locating the team's radio broadcast")  
@@ -3076,8 +3087,14 @@ async def on_message(message):
     if(message.content.startswith('?dop')):
         await message.channel.send("https://media.giphy.com/media/YhqcCh3ZHTShimyvhK/giphy.gif")
     
+    if(message.content.startswith('?crasa')):
+        await message.channel.send("https://media.giphy.com/media/ogRXLar48tLdC8xRLS/giphy.gif")
+        
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
+    
+    if(message.content.startswith('?stateofhockey')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/952601392126779432/IMG_5275.png")    
         
 @client.event
 async def on_ready():
