@@ -439,7 +439,7 @@ def getCheer(role):
     "USA" : ["U! S! A!, U! S! A!"],
     "American International Yellow Jackets" : ["Mr. Fucking Bee", "Get Stung!", "Buzz Buzz"],
     "Western Michigan Broncos" : ["Go Broncos!", "Let's Ride", "#StanHorsies"],
-    
+    "TEAM CHAOS": ["CHAOS REIGNS"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
     "Red Sox" : ["Go Red Sox!", "Yankees Suck!"],
     "Portal" : ["PRAISE PORTAL"],
@@ -482,7 +482,7 @@ def getJeer(role):
     "Louisiana State University Tigers" :["Louisiana State University and Agricultural and Mechanical College"],
     "Wisconsin Badgers" : ["Dirty Sconnies", "https://i.imgur.com/sljug4m.jpg"],
     "Michigan State Spartans" : ["Poor Sparty"],
-    "Michigan Wolverines" : ["Corn Colored Cowards","```\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio\nWe're from Ohio...O-H\nWe're from Ohio...I-O\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio```"],
+    "Michigan Wolverines" : ["Corn Colored Cowards"],#"```\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio\nWe're from Ohio...O-H\nWe're from Ohio...I-O\nO, we don't give a damn for the whole state of Michigan\nThe whole state of Michigan, the whole state of Michigan\nWe don't give a damn for the whole state of Michigan, we're from Ohio```"],
     "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!", "https://youtu.be/OCbuRA_D3KU"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
     "RPI Engineers" : ["KRACH is Better!"],
@@ -708,8 +708,9 @@ def getMatchupHistory(team,opp,numGames):
         
         return "Enter Two Different Teams!"
 
-    team=team.replace('.','').replace('-',' ')
-    opp=opp.replace('.','').replace('-',' ')
+    team=team.replace('.','').replace('-',' ').replace("'","")
+    opp=opp.replace('.','').replace('-',' ').replace("'","")
+    
     
     url = "https://www.collegehockeynews.com/reports/teamindex-historical.php"
     f=urllib.request.urlopen(url)
@@ -1991,7 +1992,7 @@ async def on_message(message):
            await message.author.send(i)
     if not message.content.startswith('?'):
         return
-    message.content = message.content.lower()         
+                
     loop = asyncio.get_event_loop()
     
     if message.content.startswith('?getgttitle') and message.author.name == 'memmdog':
@@ -2045,7 +2046,11 @@ async def on_message(message):
             p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
-            
+   
+    # everything after this is case insensitive
+    message.content = message.content.lower()   
+    
+    
     if message.content.startswith('?score '):
         team = decodeTeam(message.content.split('?score ')[1])
         with cf.ProcessPoolExecutor(1) as p:
@@ -2982,7 +2987,6 @@ async def on_message(message):
             await message.channel.send("https://www.youtube.com/watch?v=-B2vE1Yl2_c")
             
     if(message.content.startswith('?mtu')):
-            random.seed(int(datetime.datetime.now()))
             await message.channel.send(random.choice(["https://www.youtube.com/watch?v=FZQ6VNWvmOc","https://youtu.be/6a79Ej7WK5Q?t=44"]))
     
     if(message.content.startswith('?northeastern') and not message.content.startswith('?northeasternwins')):
@@ -2996,6 +3000,9 @@ async def on_message(message):
             
     if(message.content.startswith('?almostchaos')):
             await message.channel.send("https://media.giphy.com/media/26ybwvTX4DTkwst6U/giphy.gif")
+    
+    if(message.content.startswith('?chaos')):
+            await message.channel.send("https://tenor.com/view/chaos-gif-22919457")
 
     if(message.content.startswith('?russia')):
             await message.channel.send("https://media.giphy.com/media/W3keAf3qh6MwXZ8ddc/giphy.mp4")
@@ -3025,6 +3032,10 @@ async def on_message(message):
         #for i in message.guild.emojis:
         #   print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
+        
+    if(message.content.startswith('?hea') and not message.content.startswith('?hearef')): 
+        await message.channel.send('https://cdn.discordapp.com/attachments/523161681484972062/955960853046374410/Ex5WTvfXEAQrCkq.png')
+        
     if(message.content.startswith('?lucia') or message.content.startswith('?ccharef')): 
         await message.channel.send('https://cdn.discordapp.com/attachments/523161681484972062/955134694251446302/lucia.png')    
         
@@ -3037,6 +3048,9 @@ async def on_message(message):
         
     if(message.content.startswith('?beanpawt')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/761742817025327114/IMG_20201002_201354.jpg")
+        
+    if(message.content.startswith('?fuckharvard')):
+        await message.channel.send("https://media.discordapp.net/attachments/523161681484972062/958168339576913940/8j9gyUV.jpg")
         
     #if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege') or message.content.startswith('?❌oston❌ollege') or message.content.startswith('?❌hestnuthilluniversity') or message.content.startswith('?❌hestnuthill❌ommunity❌ollege')):
     if(message.content.startswith('?bostoncollege') or message.content.startswith('?chestnuthilluniversity') or message.content.startswith('?chestnuthillcommunitycollege')):
@@ -3087,14 +3101,26 @@ async def on_message(message):
     if(message.content.startswith('?dop')):
         await message.channel.send("https://media.giphy.com/media/YhqcCh3ZHTShimyvhK/giphy.gif")
     
+    if(message.content.startswith('?levi')):
+        await message.channel.send("https://media.giphy.com/media/jnLhnGcoErH5bQFcJI/giphy.gif")
+        
+    if(message.content.startswith('?duluth')):
+        await message.channel.send("https://media.giphy.com/media/pLQ3kOUCxHNbDpFNbQ/giphy.gif")
+    
     if(message.content.startswith('?crasa')):
-        await message.channel.send("https://media.giphy.com/media/ogRXLar48tLdC8xRLS/giphy.gif")
+        await message.channel.send("https://media.giphy.com/media/ogRXLar48tLdC8xRLS/giphy.gif")    
+        
+    if(message.content.startswith('?michigan')):
+            await message.channel.send("https://media.giphy.com/media/nJB57VXFHAr65qbNO1/giphy.gif")
         
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
     
     if(message.content.startswith('?stateofhockey')):
-        await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/952601392126779432/IMG_5275.png")    
+        await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/952601392126779432/IMG_5275.png")   
+
+    if(message.content.startswith('?redwasright')):
+        await message.channel.send("```\nAll hail Red Sox Fan\nWe sing in jubilee (in jubilee)\nAll hail Red Sox Fan\nProud hater of BC (of BC)\nAll hail Red Sox Fan\nAnnoyer of JD\nThrough the years\nWe ever will proclaim\nTop mod of our hockey```") 
         
 @client.event
 async def on_ready():
@@ -4137,7 +4163,7 @@ def getTransitiveWinChain(team1,team2):
         m=re.search(r"^(\S*) (\S* ?\S* \S*)\s*(\S*) (?:at|vs) (\S* ?\S* \S*)\s*(\S*)\s*(\S*)  ([a-z]*)",i)
         if(counter>5):
             break
-        if(m.group(3)==''):
+        if(m==None or m.group(3)==''):
             counter+=1
             continue
         else:
