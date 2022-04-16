@@ -40,6 +40,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Alaska" : "<:alaska:761701457077600266>",
 "Army West Point" : "<:army:761701458311381003>",
 "Arizona State" : "<:asu:761701459200704532>",
+"Augustana" : "<:augustana:964983803393245275>",
 "Boston College" : "<:bc:666831654727188481>",
 "Bemidji State" : "<:bemidji:684982886956400658>",
 "Bentley" : "<:bentley:761701460143505428>",
@@ -288,11 +289,13 @@ Bot courtesy of redsoxfan2194
     ''']
     return helpStr
 def convertTeamtoDisRole(team):
-    teams = {   "Air Force" : "Air Force Falcons",
+
+    teams = { "Air Force" : "Air Force Falcons",
                 "Alabama Huntsville" : "Alabama Huntsville Chargers",
                 "Alaska" : "Alaska Nanooks",
                 "Alaska Anchorage" : "Alaska-Anchorage Seawolves",
                 "American International" : "American International Yellow Jackets",
+                "Augustana" : "Augustana Vikings",
                 "Arizona State" : "Arizona State Sun Devils",
                 "Army West Point" : "Army Black Knights",
                 "Bemidji State" : "Bemidji State Beavers",
@@ -343,6 +346,7 @@ def convertTeamtoDisRole(team):
                 "Rensselaer" : "RPI Engineers",
                 "Robert Morris" : "Robert Morris Colonials",
                 "Sacred Heart" : "Sacred Heart Pioneers",
+                "Stonehill" : "Stonehill Skyhawks",
                 "Sieve" : "Sieve",
                 "Craig" : "Craig",
                 "Voter" : "/r/collegehockey Poll Voter",
@@ -371,10 +375,111 @@ def convertTeamtoDisRole(team):
                 "Jackbox" : "Jackbox Game Night",
                 "USA" : "USA",
                 "Chaos" : "TEAM CHAOS"}
+                
     if team in teams:
         return teams[team]
     else:
         return ""
+        
+def convertDisRoleToTeam(team):
+    teams = {   "Air Force Falcons" : "Air Force",
+                "Alabama Huntsville Chargers" : "Alabama Huntsville",
+                "Alaska Nanooks" : "Alaska",
+                "Alaska-Anchorage Seawolves" : "Alaska Anchorage",
+                "American International Yellow Jackets" : "American International",
+                "Arizona State Sun Devils" : "Arizona State",
+                "Army Black Knights" : "Army West Point",
+                "Augustana Vikings" : "Augustana",
+                "Bemidji State Beavers" : "Bemidji State",
+                "Bentley Falcons" : "Bentley",
+                "Boston College Eagles" : "Boston College",
+                "Boston University Terriers" : "Boston University",
+                "Bowling Green Falcons" : "Bowling Green",
+                "Brown Bears" : "Brown",
+                "Canisius Golden Griffins" : "Canisius",
+                "Clarkson Golden Knights" : "Clarkson",
+                "Colgate Raiders" : "Colgate",
+                "Colorado College Tigers" : "Colorado College",
+                "Cornell Big Red" : "Cornell",
+                "Dartmouth Big Green" : "Dartmouth",
+                "Denver Pioneers" : "Denver",
+                "Ferris State Bulldogs" : "Ferris State",
+                "Franklin Pierce Ravens" : "Franklin Pierce",
+                "Georgia Tech Yellow Jackets" : "Georgia Tech",
+                "Harvard Crimson" : "Harvard",
+                "Holy Cross Crusaders" : "Holy Cross",
+                "Lake Superior State Lakers" : "Lake Superior State",
+                "Lindenwood Lions" : "Lindenwood",
+                "LIU Sharks" : "Long Island University",
+                "Maine Black Bears" : "Maine",
+                "Mercyhurst Lakers" : "Mercyhurst",
+                "Merrimack Warriors" : "Merrimack",
+                "Miami RedHawks" : "Miami",
+                "Michigan State Spartans" : "Michigan State",
+                "Michigan Tech Huskies" : "Michigan Tech",
+                "Michigan Wolverines" : "Michigan",
+                "Minnesota Duluth Bulldogs" : "Minnesota Duluth",
+                "Minnesota Golden Gophers" : "Minnesota",
+                "Minnesota State Mavericks" : "Minnesota State",
+                "New Hampshire Wildcats" : "New Hampshire",
+                "Niagara Purple Eagles" : "Niagara",
+                "North Dakota Fighting Hawks" : "North Dakota",
+                "Northeastern Huskies" : "Northeastern",
+                "Northern Michigan Wildcats" : "Northern Michigan",
+                "Notre Dame Fighting Irish" : "Notre Dame",
+                "Ohio State Buckeyes" : "Ohio State",
+                "Omaha Mavericks" : "Omaha",
+                "Penn State Nittany Lions" : "Penn State",
+                "Post Eagles" : "Post",
+                "Princeton Tigers" : "Princeton",
+                "Providence Friars" : "Providence",
+                "Quinnipiac Bobcats" : "Quinnipiac",
+                "RIT Tigers" : "RIT",
+                "RPI Engineers" : "Rensselaer",
+                "Robert Morris Colonials" : "Robert Morris",
+                "Sacred Heart Pioneers" : "Sacred Heart",
+                "Stonehill Skyhawks" : "Stonehill",
+                "Sieve" : "Sieve",
+                "Craig" : "Craig",
+                "/r/collegehockey Poll Voter" : "Voter",
+                "St. Anselm Hawks" : "St. Anselm",
+                "St. Cloud State Huskies" : "St. Cloud State",
+                "St. Lawrence Saints" : "St. Lawrence",
+                "St. Michael's Purple Knights" : "St. Michael's",
+                "Syracuse Orange" : "Syracuse",
+                "UConn Huskies" : "UConn",
+                "UMass Lowell River Hawks" : "UMass Lowell",
+                "UMass Minutemen" : "Massachusetts",
+                "Union Dutchmen/Dutchwomen" : "Union",
+                "Vermont Catamounts" : "Vermont",
+                "Western Michigan Broncos" : "Western Michigan",
+                "Wisconsin Badgers" : "Wisconsin",
+                "Yale Bulldogs" : "Yale",
+                "Louisiana Ragin' Cajuns" : "UL Lafayette",
+                "Louisiana State University Tigers" : "LSU",
+                "Georgia Tech Yellow Jackets" : "Georgia Tech",
+                "St. Thomas Tommies" : "St. Thomas",
+                "Ref" : "Ref",
+                "Meteor" : "Meteor",
+                "Portal" : "Portal",
+                "Red Sox" : "Red Sox",
+                "Yankees" : "Yankees",
+                "Jackbox Game Night" : "Jackbox",
+                "USA" : "USA",
+                "TEAM CHAOS" : "Chaos",
+                "color cornell" :"Cornell",
+                "color maine" : "Maine",
+                "color princeton" : "Princeton",
+                "color vermont" :  "Vermont",
+                "color maine" :  "Maine",
+                "color wisconsin" : "Wisconsin",
+                "color north dakota" : "North Dakota"}
+                
+    if team in teams:
+        return teams[team]
+    else:
+        return ""
+        
 def getCheer(role):
     if(role == "color cornell"):
         role = "Cornell Big Red"
@@ -3029,8 +3134,8 @@ async def on_message(message):
         await message.channel.send(getCat())
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
-        #for i in message.guild.emojis:
-        #   print("<:{}:{}>".format(i.name, i.id))
+        for i in message.guild.emojis:
+           print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
         
     if(message.content.startswith('?hea') and not message.content.startswith('?hearef')): 
@@ -3121,6 +3226,21 @@ async def on_message(message):
 
     if(message.content.startswith('?redwasright')):
         await message.channel.send("```\nAll hail Red Sox Fan\nWe sing in jubilee (in jubilee)\nAll hail Red Sox Fan\nProud hater of BC (of BC)\nAll hail Red Sox Fan\nAnnoyer of JD\nThrough the years\nWe ever will proclaim\nTop mod of our hockey```") 
+    
+    if(message.content.startswith('?recruit')):
+        teamChoice = message.content.split('?recruit ')
+        if(len(teamChoice)>1):
+            team=decodeTeam(teamChoice[1])
+            
+        elif(len(teamChoice)==1):
+            for i in range(len(message.author.roles)):
+                if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
+                    team = convertDisRoleToTeam(message.author.roles[-1-i].name)
+                    break
+        else:
+            team='[Insert Team Rooting For Here]'    
+            
+        await message.channel.send("This is a good option for {} to pursue.  They should target him.".format(team))
         
 @client.event
 async def on_ready():
@@ -3143,6 +3263,7 @@ def decodeTeam(team):
         "aic" : "American International",
         "alabamahuntsville" : "Alabama Huntsville",
         "americanintl" : "American International",
+        "au" : "Augustana",
         "amworst" : "Massachusetts",
         "amwurst" : "Massachusetts",
         "anosu" : "Ohio State",
