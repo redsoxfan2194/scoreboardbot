@@ -435,7 +435,7 @@ def convertDisRoleToTeam(team):
                 "Providence Friars" : "Providence",
                 "Quinnipiac Bobcats" : "Quinnipiac",
                 "RIT Tigers" : "RIT",
-                "RPI Engineers" : "Rensselaer",
+                "RPI Engineers" : "RPI",
                 "Robert Morris Colonials" : "Robert Morris",
                 "Sacred Heart Pioneers" : "Sacred Heart",
                 "Stonehill Skyhawks" : "Stonehill",
@@ -3231,6 +3231,8 @@ async def on_message(message):
         teamChoice = message.content.split('?recruit ')
         if(len(teamChoice)>1):
             team=decodeTeam(teamChoice[1])
+            if(team=='Rensselaer'):
+                team='RPI'
             
         elif(len(teamChoice)==1):
             for i in range(len(message.author.roles)):
