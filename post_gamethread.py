@@ -92,7 +92,7 @@ Home Team/Conference | Service
 1: US Only  
 2: International only; ECAC International does not include the Ivies or RPI  
 3: Currently simulcasting on ESPN+, possible future geoblocking unknown  
-4: Select HEA and NCHC games also available on the CBS Sports App; HEA on NESN games blacked out in New England on all ViacomCBS servcies  
+4: Select HEA and NCHC games also available on the CBS Sports App; HEA on NESN games blacked out in New England on all ViacomCBS services  
 5: Link to main live stream; ASU maintains separate pages for additional streams in the event of multiple simultaneous sports being streamed  
 6: Sacred Heart opts not to air any home women's contests
 
@@ -123,7 +123,7 @@ elif(os.path.exists(currGTVideoPath)):
 else:
     vid="https://www.youtube.com/watch?v=o0YWRXJsMyM"
     
-body = header.format(vid) + scoreboard + footer
+bodScore = header.format(vid) + scoreboard + footer
 try:
     for submission in subreddit.hot(limit=20):
       if(submission.title.find("[Game Thread] "+day)>=0 and submission.title.find(day)>=0):
@@ -142,11 +142,11 @@ try:
                 file2.close()
                 text=' - ' + text
             title = '[Game Thread] {}{}'.format(dateString,text)
-            subreddit.submit(title,body,send_replies=False)
+            subreddit.submit(title,selftext=bodScore,send_replies=False)
             exit()
         else:
             if(submission.title.find("[Game Thread] " + day)>=0 and submission.author== 'ch_scorebot'):
-                submission.edit(body) 
+                submission.edit(body=bodScore) 
                 exit()  
 
     if(isTodayScores): 
@@ -163,7 +163,7 @@ try:
             file2.close()
             text=' - ' + text
             title = '[Game Thread] {}{}'.format(dateString,text)
-        subreddit.submit(title,body,send_replies=False)
+        subreddit.submit(title,selftext=bodScore,send_replies=False)
         exit()
 
 except:

@@ -8,7 +8,7 @@ reddit.validate_on_submit = True
 subreddit = reddit.subreddit('collegehockey')
 est = pytz.timezone('US/Eastern')
 DOW=calendar.day_name[date.today().weekday()]
-
+title=''
 isOffSeason = True
 def getTrashTitle():
     comment='SOMEONE FORGOT TO MAKE A WITTY TITLE'
@@ -41,9 +41,27 @@ Thread closes on Tuesday morning
 Most popular pic will be the sidebar for the week (pending mod approval)
 '''
 
+elif DOW=='Sunday' and isOffSeason:
+    exit()
 
 elif DOW=='Monday':
     exit()
+    title='TRASH TALK MONDAY: "ALL THE BEANS" EDITION'
+    text = '''
+ITS MIDNIGHT, ITS MONDAY, ITS FEBRUARY AND THAT MEANS ONE THING...IT IS TIME FOR SOME BEANPOT TRASH TALK!
+
+
+**RULES**
+
+
+**[FLAIR UP!](https://www.reddit.com/r/collegehockey/wiki/flair)**
+
+
+**CAPS LOCK ON! (WITH THE EXCEPTION BEING USERNAME SHOUT OUTS! E.G, /u/Whoa_throwaway IS A SIEVE!) [SEE THE DRAWING IF YOU FAIL TO UNDERSTAND THIS COMPLEX PROCESS OR *INSERT WHATEVER YOU WANT HERE*](https://i.imgur.com/r1hi49B.jpg)**
+
+
+**IF YOU WOULDN'T SAY IT AT A GAME DON'T POST IT HERE!**'''
+    #exit()
     
 elif DOW=='Tuesday':
     exit()
@@ -83,18 +101,18 @@ elif DOW=='Friday':
     
 elif DOW=='Saturday':
     exit()
-     
+    
 for submission in subreddit.hot(limit=20):
   if(submission.title.find(title)>=0):
     daysSince = (datetime.now().astimezone(est)-datetime.fromtimestamp(int(submission.created_utc)).astimezone(est)).days
     if(daysSince>=6):
         if(title=='TRASH TALK THURSDAY'):
             title = 'TRASH TALK THURSDAY: "{}" EDITION'.format(getTrashTitle())
-        subreddit.submit(title,text,send_replies=False)
+        subreddit.submit(title,selftext=text,send_replies=False)
         exit()
     else:
         exit() 
 if(title=='TRASH TALK THURSDAY'):
     title = 'TRASH TALK THURSDAY: "{}" EDITION'.format(getTrashTitle())
-subreddit.submit(title,text,send_replies=False)
+subreddit.submit(title,selftext=text,send_replies=False)
 exit()
