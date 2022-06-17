@@ -19,6 +19,8 @@ import numpy as np
 import imageio
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import networkx as nx
+from burecordbook import *
+import burecordbook
 
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 season = '2122'
@@ -195,6 +197,17 @@ def getLogoDict():
     return logoDict
     
 logoDict=getLogoDict()
+dfGames=generateRecordBook()
+dfJersey=generateJerseys()
+dfSkate=generateSkaters()
+dfGoalie=generateGoalies()
+dfLead=generateSeasonLeaders()
+dfBeanpot=generateBeanpotHistory()
+dfBeanpotAwards=generateBeanpotAwards()
+dfBean={'results':dfBeanpot,'awards':dfBeanpotAwards}
+dfSeasSkate=generateSeasonSkaters()
+dfSeasGoalie=generateSeasonGoalies()
+
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -2944,10 +2957,28 @@ async def on_message(message):
                     p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
-                           
-     
+    
+    if(message.content.startswith('?burecbook ')):
+      query = message.content.split('?burecbook ')[1]
+      query=query.lstrip(' ')
+      query=cleanupQuery(query,'bean')
+      result=getBeanpotStats(dfBean,query)
+      if(result==''):
+          if(determineQueryType(query)!='player'):
+              result=burecordbook.getResults(dfGames,query)  
+          else:
+              playerDfs={}
+              playerDfs['careerSkaters']=dfSkate
+              playerDfs['careerGoalies']=dfGoalie
+              playerDfs['jerseys']=dfJersey
+              playerDfs['seasonleaders']=dfLead
+              playerDfs['seasonSkaters']=dfSeasSkate
+              playerDfs['seasonGoalies']=dfSeasGoalie
+              result=getPlayerStats(playerDfs,query)
+      if(len(result)>0):
+        await message.channel.send("```\n" + result + "```")
     # gifs and stuff
-    if(message.content.startswith('?bu')):
+    if(message.content.startswith('?bu') and not message.content.startswith('?burecbook ')):
             await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
             
     if(message.content.startswith('?goodgoal')):
@@ -3243,6 +3274,23 @@ async def on_message(message):
             team='[Insert Team Rooting For Here]'    
             
         await message.channel.send("This is a good option for {} to pursue.  They should target him.".format(team))
+    
+    if(message.content.startswith('?wrecruit')):
+        teamChoice = message.content.split('?wrecruit ')
+        if(len(teamChoice)>1):
+            team=decodeTeam(teamChoice[1])
+            if(team=='Rensselaer'):
+                team='RPI'
+            
+        elif(len(teamChoice)==1):
+            for i in range(len(message.author.roles)):
+                if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
+                    team = convertDisRoleToTeam(message.author.roles[-1-i].name)
+                    break
+        else:
+            team='[Insert Team Rooting For Here]'    
+            
+        await message.channel.send("This is a good option for {} to pursue.  They should target her.".format(team))
         
 @client.event
 async def on_ready():
@@ -3364,7 +3412,6 @@ def decodeTeam(team):
         "syracuse" : "Syracuse",
         "toothpaste" : "Colgate",
         "uaa" : "Alaska Anchorage",
-        "uaf" : "Air Force",
         "uaf" : "Alaska",
         "uah" : "Alabama Huntsville",
         "uconn" : "UConn",
@@ -4773,4 +4820,4 @@ def generatePairwisePlot(gender):
     return pwrPlotName
         
 client.run(TOKEN)
-print("Ending... at",datetime.datetime.now())
+print("Ending... at",datetime.now())
