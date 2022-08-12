@@ -23,7 +23,7 @@ from burecordbook import *
 import burecordbook
 
 TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-season = '2122'
+season = '2223'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
 chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
@@ -608,7 +608,7 @@ def getJeer(role):
     "Minnesota Duluth Bulldogs" : ["Duluth Sucks!"],
     "Minnesota Golden Gophers" : ["Golden Goofs"],
     "Quinnipiac Bobcats" : ["QU PU!"],
-    "Michigan Tech Huskies" : ["Even Mel had to leave Houghton."],
+    "Michigan Tech Huskies" : ["Tech Still Sucks!"],
     "Denver Pioneers" : ["Sucks to DU!"],
     "Ohio State Buckeyes" : ["An Ohio State University"],
     "Arizona State Sun Devils" : ["Forked", "Fork You!", "Poor Sparky"],
@@ -1295,7 +1295,7 @@ def getGamesOnTV():
         soup = BeautifulSoup(html, 'html.parser')
         data =soup.find_all('div',{'class':'confGroup'})
         nextbutton = soup.find('a',{'class':'button2 next'})
-        now = datetime.datetime.now()
+        now = datetime.now()
         
         if(nextbutton.get_text() == 'Today' and now.hour>4):
             url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
@@ -3022,7 +3022,7 @@ async def on_message(message):
         
     if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
             gif="https://m.imgur.com/ZPZUGW0"
-#            random.seed(datetime.datetime.now())
+#            random.seed(datetime.now())
 #            if(random.randint(0,100)<=10):
 #                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
             
@@ -3659,7 +3659,7 @@ def getSchedule(team,opt,gender):
                     newDate=date+" " + season[:2]
             elif(month in secHalf):
                     newDate=date+" " + season[-2:]            
-            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.datetime.today()-datetime.timedelta(1)):
+            if(datetime.strptime((newDate.split(', ')[1]),'%b %d %y')>datetime.today()-timedelta(1)):
                     games.append("{} {} {} {}\n".format(date,opp,time,spec))
             
     gameLine = '```\n'
@@ -3815,7 +3815,7 @@ def getResults(team,opt,gender):
                 newDate=date+" " + season[:2]
             elif(month in secHalf):
                newDate=date+" " + season[-2:]
-            if(datetime.datetime.strptime((newDate.split(', ')[1]),'%b %d %y')<datetime.datetime.today()):
+            if(datetime.strptime((newDate.split(', ')[1]),'%b %d %y')<datetime.today()):
                 games.append("{} {} {} {}\n".format(date,opp,time,spec))
     numGames *= -1
     gamesToReport = games[numGames:]
@@ -3991,7 +3991,7 @@ def generateScoreline(team, gender):
     data =soup.find_all('div',{'class':'confGroup'})
     gameList = []
     nextbutton = soup.find('a',{'class':'button2 next'})
-    now = datetime.datetime.now()
+    now = datetime.now()
     if(nextbutton.get_text() == 'Today'  and now.hour>4):
         url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
         f=urllib.request.urlopen(url,timeout=10)
@@ -4047,7 +4047,7 @@ def generateFullScoreboard(gender,opt):
     data =soup.find_all('div',{'class':'confGroup'})
     gameList = []
     nextbutton = soup.find('a',{'class':'button2 next'})
-    now = datetime.datetime.now()
+    now = datetime.now()
     if(nextbutton.get_text() == 'Today'  and now.hour>4):
         url = "https://www.collegehockeynews.com/{}".format(nextbutton['href'])
         f=urllib.request.urlopen(url,timeout=10)
