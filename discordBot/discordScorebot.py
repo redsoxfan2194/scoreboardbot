@@ -46,7 +46,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Boston College" : "<:bc:666831654727188481>",
 "Bemidji State" : "<:bemidji:684982886956400658>",
 "Bentley" : "<:bentley:761701460143505428>",
-"Brown" : "<:brown:761701499092598817>",
+"Brown" : "<:brown:995487958306132009>",
 "Boston University" : "<:bu:666832026095321088>",
 "Bowling Green" : "<:bgsu:762019455358206002>",
 "Canisius" : "<:canisius:761701535985565747>",
@@ -3186,8 +3186,8 @@ async def on_message(message):
         await message.channel.send(getCat())
         
     if(message.content.startswith('?hearef') or message.content.startswith('?heref')): 
-        for i in message.guild.emojis:
-           print("<:{}:{}>".format(i.name, i.id))
+        #for i in message.guild.emojis:
+        #   print("<:{}:{}>".format(i.name, i.id))
         await message.channel.send('EXPERIENCE HOCKEY EAST OFFICIATING')
         
     if(message.content.startswith('?hea') and not message.content.startswith('?hearef')): 
@@ -3678,6 +3678,7 @@ def getSchedule(team,opt,gender):
 def getResults(team,opt,gender):
     global chnDiffs,season
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska-Anchorage" : "team/Alaska-Anchorage/3",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
@@ -3737,6 +3738,7 @@ def getResults(team,opt,gender):
         "St. Cloud State" : "team/St-Cloud-State/52/",
         "St. Lawrence" : "team/St-Lawrence/53/",
         "St. Thomas" : "team/St-Thomas/63/",
+        "Stonehill" : "team/Stonehill/422/",
         "Syracuse" : "team/Syracuse/423/",
         "Union" : "team/Union/54/",
         "Vermont" : "team/Vermont/55/",
@@ -4420,7 +4422,7 @@ def getWTransitiveWinChain(team1,team2):
             team1='LIU'
     if(team2=="Long Island University"):
             team2='LIU'
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2021-2022/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4442,7 +4444,7 @@ def getWTransitiveWinChain(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or datetime.date.fromisoformat(latestData)<datetime.date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2021-2022/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -4502,6 +4504,7 @@ def getTeamStats(team,gender):
 
     global chnDiffs
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska-Anchorage" : "team/Alaska-Anchorage/3",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
@@ -4561,6 +4564,7 @@ def getTeamStats(team,gender):
         "St. Cloud State" : "team/St-Cloud-State/52/",
         "St. Lawrence" : "team/St-Lawrence/53/",
         "St. Thomas" : "team/St-Thomas/63/",
+        "Stonehill" : "team/Stonehill/422/",
         "Syracuse" : "team/Syracuse/423/",
         "Union" : "team/Union/54/",
         "Vermont" : "team/Vermont/55/",
@@ -4668,8 +4672,11 @@ def generatePairwisePlot(gender):
         "Colorado College" :"NCHC",
         "Miami" :"NCHC",
         "Alaska" :"Independents",
+        "Alaska-Anchorage" : "Independents",
         "Arizona State" :"Independents",
-        "Long Island" :"Independents"}
+        "Long Island" :"Independents",
+        "Stonehill" : "Independents",
+        "Lindenwood" : "Independents"}
         url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
         f=urllib.request.urlopen(url)
         html = f.read()
