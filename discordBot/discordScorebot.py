@@ -284,6 +284,7 @@ def displayHelp():
 ?[history] [team1],[team2] - displays Matchup history and recent results
 ?[history] [team1],[team2],<number> - displays Matchup history and recent results
 ?[whatsontv] - displays list of Today's games broadcasted on TV
+?[burecbook] [query] - displays result from BU Record Book Query
 ?[pdoplot] - displays PDO plot (note may take a few minutes to generate)
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
 ?[chain/whosbetter] [team1],[team2] - displays men's transitive win chain from team 1 to team 2 
@@ -3516,6 +3517,7 @@ def getCat():
 def getSchedule(team,opt,gender):
     global season
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska-Anchorage" : "team/Alaska-Anchorage/3",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
@@ -3575,6 +3577,7 @@ def getSchedule(team,opt,gender):
         "St. Cloud State" : "team/St-Cloud-State/52/",
         "St. Lawrence" : "team/St-Lawrence/53/",
         "St. Thomas" : "team/St-Thomas/63/",
+        "Stonehill" : "team/Stonehill/422/",
         "Syracuse" : "team/Syracuse/423/",
         "Union" : "team/Union/54/",
         "Vermont" : "team/Vermont/55/",
