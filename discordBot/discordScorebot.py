@@ -3001,8 +3001,50 @@ async def on_message(message):
               result=getPlayerStats(playerDfs,query)
       if(len(result)>0):
         await message.channel.send("```\n" + result + "```")
+        
+    if(message.content.startswith('?burecordbook ')):
+      query = message.content.split('?burecordbook ')[1]
+      query,gender=determineGender(query)
+      query=query.lstrip(' ')
+      if(gender=='Womens'):
+          query=cleanupQuery(query,'bean')
+          dfBean={'results':dfBeanpotWomens,'awards':dfBeanpotAwardsWomens}
+          result=getBeanpotStats(dfBean,query)
+      else:
+          query=cleanupQuery(query,'bean')
+          dfBean={'results':dfBeanpot,'awards':dfBeanpotAwards}
+          result=getBeanpotStats(dfBean,query)
+      if(result==''):
+          if(determineQueryType(query)!='player'):
+              if(gender=='Womens'):
+                  result=burecordbook.getResults(dfGamesWomens,query)  
+              else:
+                  result=burecordbook.getResults(dfGames,query)  
+          else:
+              playerDfs={}
+              playerDfs['jerseys']=dfJersey
+              playerDfs['seasonleaders']=dfLead
+              playerDfs['careerSkaters']=dfSkate
+              playerDfs['careerGoalies']=dfGoalie
+              playerDfs['seasonSkaters']=dfSeasSkate
+              playerDfs['seasonGoalies']=dfSeasGoalie
+              if(gender=='Womens'):
+                  playerDfs['jerseys']=dfJerseyWomens
+                  playerDfs['seasonleaders']=dfLeadWomens
+                  playerDfs['careerSkaters']=dfSkateWomens
+                  playerDfs['careerGoalies']=dfGoalieWomens
+                  playerDfs['seasonSkaters']=dfSeasSkateWomens
+                  playerDfs['seasonGoalies']=dfSeasGoalieWomens
+              if(gender=='Mens'):
+                  playerDfs['seasonSkaters']=dfSeasSkateMens
+                  playerDfs['seasonGoalies']=dfSeasGoalieMens
+                  playerDfs['jerseys']=dfJerseyMens
+              result=getPlayerStats(playerDfs,query)
+      if(len(result)>0):
+        await message.channel.send("```\n" + result + "```")
+        
     # gifs and stuff
-    if(message.content.startswith('?bu') and not message.content.startswith('?burecbook ')):
+    if(message.content.startswith('?bu') and not (message.content.startswith('?burecbook ') or message.content.startswith('?burecordbook '))):
             await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
             
     if(message.content.startswith('?goodgoal')):
