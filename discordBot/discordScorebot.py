@@ -796,7 +796,7 @@ def getKRACH(opt):
 def getMatchupHistory(team,opp,numGames):
     global chnDiffs
     minSeason=19001901
-    maxSeason=20212022
+    maxSeason=20222023
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
@@ -4028,10 +4028,8 @@ def getHEPI(gender):
 def generateScoreline(team, gender):
     if gender=='Men':
         url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
-        #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
     elif gender == 'Women':
         url = "https://www.collegehockeynews.com/women/scoreboard.php"
-        #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
         
     f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
@@ -4084,10 +4082,8 @@ def generateScoreline(team, gender):
 def generateFullScoreboard(gender,opt):
     if gender=='Men':
         url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
-        #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
     elif gender == 'Women':
         url = "https://www.collegehockeynews.com/women/scoreboard.php"
-        #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
     
     f=urllib.request.urlopen(url,timeout=10)
     html = f.read()
