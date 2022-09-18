@@ -73,28 +73,19 @@ footer='''
 ***
 #Quick links for streaming only/locally televised games
 
-Home Team/Conference | Service
+Service | Home Team/Conferences
 ---|---
-[Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha) | [FloHockey](https://www.flohockey.tv/) ($$$)
-[Big Ten](#f/bigten), [Penn State](#f/pennstate) women, [WCHA](#f/wcha) | [B1G+](https://www.bigtenplus.com/) ($$$)
-[ECAC](#f/ecachockey) | [ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$), [Ivy International Stream](https://portal.stretchinternet.com/ivy/)^2 ($$$), [ECAC International Stream](https://portal.stretchinternet.com/ecachockey/)^2 ($$$), [RPItv](http://rpitv.org/)^3
-[Hockey East](#f/hockeyeast) | [SportsLive](https://www.collegesportslive.com/hockeyeast/)^4, [Hockey East on NESN](https://www.collegesportslive.com/NESN/)^4
-[NCHC](#f/nchc) | [NCHC.tv](https://www.nchc.tv)^4 ($$$)
-[Arizona State](#f/arizonastate) | [ASU Live Stream](https://pac-12.com/live/arizona-state-university)^5, [Pac12 Insider](https://pac-12.com/live?networks=P12I) 
-[Franklin Pierce](#f/franklinpierce), [St Anselm](#f/stanselm), [Saint Michael's](#f/stmichaels) | [NE-10 Now](https://portal.stretchinternet.com/ne10/)
-[Lindenwood](#f/lindenwood), [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  | [CHA Digitial Network](https://portal.stretchinternet.com/cha/) ($$$)
-[Long Island](#f/liu) | [NEC Front Row](http://necfrontrow.com/schools/LIU)
-[Post](#f/post) | [CACC Network](https://www.caccnetwork.com/post/)
-[Sacred Heart](#f/sacredheart) women | N/A^6
-[Syracuse](#f/syracuse) | [Cuse TV](https://cuse.com/watch/)
+[B1G+](https://www.bigtenplus.com/) ($$$) | [Big Ten](#f/bigten), [Penn State](#f/pennstate) women, [WCHA](#f/wcha)
+[Cuse TV](https://cuse.com/watch/) | [Syracuse](#f/syracuse)
+[ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$) | [ECAC](#f/ecachockey), [Hockey East](#f/hockeyeast)
+[FloHockey](https://www.flohockey.tv/) ($$$) | [Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha), [Lindenwood](#f/lindenwood), [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  
+[NEC Front Row](http://necfrontrow.com/schools/LIU) | [Long Island](#f/liu)
+[NE-10 Now](https://portal.stretchinternet.com/ne10/) | [Franklin Pierce](#f/franklinpierce), [St Anselm](#f/stanselm), [Saint Michael's](#f/stmichaels)
+[NCHC.tv](https://www.nchc.tv) ($$$) | [NCHC](#f/nchc)
+[Pac12 Live Stream](https://pac-12.com/sports/schedule)^2 | [Arizona State](#f/arizonastate)
 
-
-1: US Only  
-2: International only; ECAC International does not include the Ivies or RPI  
-3: Currently simulcasting on ESPN+, possible future geoblocking unknown  
-4: Select HEA and NCHC games also available on the CBS Sports App; HEA on NESN games blacked out in New England on all ViacomCBS services  
-5: Link to main live stream; ASU maintains separate pages for additional streams in the event of multiple simultaneous sports being streamed  
-6: Sacred Heart opts not to air any home women's contests
+1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](TBA)  
+2: ASU games stream on Pac12 Insider or the ASU Live Stream channels, both are free to access
 
 ***
 **Discuss whatever you wish.  You can trash talk, but please keep it civil!**
