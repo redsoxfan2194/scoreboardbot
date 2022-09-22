@@ -84,7 +84,7 @@ Service | Home Team/Conferences
 [NCHC.tv](https://www.nchc.tv) ($$$) | [NCHC](#f/nchc)
 [Pac12 Live Stream](https://pac-12.com/sports/schedule)^2 | [Arizona State](#f/arizonastate)
 
-1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](TBA)  
+1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](https://portal.stretchinternet.com/hockeyeast)  
 2: ASU games stream on Pac12 Insider or the ASU Live Stream channels, both are free to access
 
 ***
