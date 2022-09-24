@@ -78,13 +78,14 @@ Service | Home Team/Conferences
 [B1G+](https://www.bigtenplus.com/) ($$$) | [Big Ten](#f/bigten), [Penn State](#f/pennstate) women, [WCHA](#f/wcha)
 [Cuse TV](https://cuse.com/watch/) | [Syracuse](#f/syracuse)
 [ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$) | [ECAC](#f/ecachockey), [Hockey East](#f/hockeyeast)
-[FloHockey](https://www.flohockey.tv/) ($$$) | [Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha), [Lindenwood](#f/lindenwood), [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  
-[NEC Front Row](http://necfrontrow.com/schools/LIU) | [Long Island](#f/liu)
+[FloHockey](https://www.flohockey.tv/) ($$$) | [Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha), [Lindenwood](#f/lindenwood) women, [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  
+[NEC Front Row](http://necfrontrow.com/schools/LIU) | [Long Island](#f/liu),  [Sacred Heart](#f/sacredheart) women, [Stonehil](#f/stonehill)
 [NE-10 Now](https://portal.stretchinternet.com/ne10/) | [Franklin Pierce](#f/franklinpierce), [St Anselm](#f/stanselm), [Saint Michael's](#f/stmichaels)
 [NCHC.tv](https://www.nchc.tv) ($$$) | [NCHC](#f/nchc)
 [Pac12 Live Stream](https://pac-12.com/sports/schedule)^2 | [Arizona State](#f/arizonastate)
+[YouTube](https://www.youtube.com/channel/UC0tjLDGhQlMriBVz8egKu_A) | [Anchorage](#f/alaskaanchorage) 
 
-1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](https://portal.stretchinternet.com/hockeyeast)  
+1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](https://portal.stretchinternet.com/hockeyeast/)  
 2: ASU games stream on Pac12 Insider or the ASU Live Stream channels, both are free to access
 
 ***
