@@ -35,7 +35,7 @@ def isD1(team1,team2,m_w):
     validWTeams = ["Bemidji State","Boston College","Boston University","Brown","Clarkson","Colgate","Connecticut", "UConn","Cornell","Dartmouth","Franklin Pierce","Harvard","Holy Cross","Lindenwood", "Long Island University","Maine","Mercyhurst","Merrimack","Minnesota","Minnesota Duluth","Minnesota State","New Hampshire","Northeastern","Ohio State","Penn State","Post","Princeton","Providence","Quinnipiac","Rensselaer","RIT","Robert Morris","Sacred Heart","Saint Anselm","Saint Michael's","St. Cloud State","St. Lawrence", "St. Thomas","Stonehill","Syracuse","Union","Vermont","Wisconsin","Yale"]
     if(m_w == 'Men' and (team1 in validMTeams or team2 in validMTeams or team1 in chnDiffs.values() or team2 in chnDiffs.values())):
         return True
-    if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams)):
+    if(m_w == 'Women' and (team1 in validWTeams or team2 in validWTeams or team1 in chnDiffs.values() or team2 in chnDiffs.values())):
         return True
     return False
         
@@ -118,10 +118,8 @@ def getScores():
         ppdGames=getPpdGames(gender)
         if gender=='Men':
             url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
-            #url = "https://www.collegehockeynews.com/schedules/scoreboard.php?sd=20211008"
         elif gender == 'Women':
             url = "https://www.collegehockeynews.com/women/scoreboard.php"
-            #url = "https://www.collegehockeynews.com/women/scoreboard.php?sd=20211008"
             
         f=urllib.request.urlopen(url,timeout=10)
         html = f.read()
