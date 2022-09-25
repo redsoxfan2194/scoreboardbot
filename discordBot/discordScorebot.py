@@ -8,6 +8,7 @@ import urllib.request, urllib.error, urllib.parse
 import pytz
 import re
 import datetime
+from datetime import date
 from time import strftime,localtime
 import random
 from bs4 import BeautifulSoup
@@ -4481,12 +4482,12 @@ def getWTransitiveWinChain(team1,team2):
     LossDict={}
     gData={}
     for i in gameDayList:
-        if(datetime.date.fromisoformat(i)>datetime.date.today()):
+        if(date.fromisoformat(i)>date.today()):
             fname=open(dateFile,'w')
-            print(datetime.date.today(),file=fname)
+            print(date.today(),file=fname)
             fname.close()
             break
-        if(not os.path.exists(dataFile) or datetime.date.fromisoformat(latestData)<datetime.date.today()):
+        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
             url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
@@ -4494,7 +4495,7 @@ def getWTransitiveWinChain(team1,team2):
             soup = BeautifulSoup(html, 'html.parser')
             site_json=json.loads(soup.text)
             gData[i]=site_json['json']['data']
-    if(not os.path.exists(dataFile) or datetime.date.fromisoformat(latestData)<datetime.date.today()):
+    if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
         with open(dataFile, 'w') as f:
             json.dump(gData, f)
     if(os.path.exists(dataFile)):
