@@ -124,7 +124,7 @@ def getLogoDict():
 
     logoLocDict={"Air Force" : "images/logos/afa.png",
         "Alabama Huntsville" : "images/logos/alh.png",
-        "Alaska Anchorage" : "images/logos/aka.png",
+        "Alaska-Anchorage" : "images/logos/aka.png",
         "Alaska" : "images/logos/akf.png",
         "American Int'l" : "images/logos/aic.png",
         "Arizona State" : "images/logos/asu.png",
