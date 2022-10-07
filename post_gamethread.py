@@ -77,7 +77,7 @@ Service | Home Team/Conferences
 ---|---
 [B1G+](https://www.bigtenplus.com/) ($$$) | [Big Ten](#f/bigten), [Penn State](#f/pennstate) women, [WCHA](#f/wcha)
 [Cuse TV](https://cuse.com/watch/) | [Syracuse](#f/syracuse)
-[ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$) | [ECAC](#f/ecachockey), [Hockey East](#f/hockeyeast)
+[ESPN+](https://www.espn.com/espnplus/?om-navmethod=topnav)^1 ($$$) | [ECAC](#f/ecachockey) , [Hockey East](#f/hockeyeast)
 [FloHockey](https://www.flohockey.tv/) ($$$) | [Atlantic Hockey](#f/atlantichockey), [Alaska](#f/alaskafairbanks), [CCHA](#f/ccha), [Lindenwood](#f/lindenwood) women, [Mercyhurst](#f/mercyhurst) women, [RIT](#f/rit) women  
 [NEC Front Row](http://necfrontrow.com/schools/LIU) | [Long Island](#f/liu),  [Sacred Heart](#f/sacredheart) women, [Stonehil](#f/stonehill)
 [NE-10 Now](https://portal.stretchinternet.com/ne10/) | [Franklin Pierce](#f/franklinpierce), [St Anselm](#f/stanselm), [Saint Michael's](#f/stmichaels)
@@ -85,7 +85,7 @@ Service | Home Team/Conferences
 [Pac12 Live Stream](https://pac-12.com/sports/schedule)^2 | [Arizona State](#f/arizonastate)
 [YouTube](https://www.youtube.com/channel/UC0tjLDGhQlMriBVz8egKu_A) | [Anchorage](#f/alaskaanchorage) 
 
-1: US Only, International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](https://portal.stretchinternet.com/hockeyeast/)  
+1: US Only links for [ECAC](https://www.espn.com/watch/catalog/2c1e3eb6-667b-4e95-8820-c594ee8c7f52/ecac-hockey#bucketId=29784&sourceCollection=Browse_By_Top_Conferences), [Hockey East] (https://www.espn.com/watch/catalog/56a061bd-b214-4ed2-a63e-1fa71a59c9f3/hockey-east#bucketId=29784&sourceCollection=Browse_By_Top_Conferences), International links for [Ivy](https://portal.stretchinternet.com/ivy/), [Rest of ECAC](https://portal.stretchinternet.com/ecachockey/), [Hockey East](https://portal.stretchinternet.com/hockeyeast/)  
 2: ASU games stream on Pac12 Insider or the ASU Live Stream channels, both are free to access
 
 ***
