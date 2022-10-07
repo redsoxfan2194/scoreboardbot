@@ -565,6 +565,7 @@ def getCheer(role):
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
     "Red Sox" : ["Go Red Sox!", "Yankees Suck!"],
     "Portal" : ["PRAISE PORTAL"],
+    "Craig" : ["https://media.discordapp.net/attachments/279688498485919744/1028033049260216370/Screenshot_20221007-155607_Twitter.jpg"],
     "Louisiana Ragin' Cajuns": ["Geaux Cajuns!"]}
     if role in cheerList:   
             return random.choice(cheerList[role])
