@@ -2821,14 +2821,14 @@ async def on_message(message):
         except discord.errors.Forbidden:
             await message.channel.send("Invalid Role")
     
-    if(message.content.startswith('?pdoplot') or message.content.startswith('?pdo')):
+    if(message.content.startswith('?pdoplot') or (message.content.startswith('?pdo') and not message.content.startswith('?pdocorsi'))):
         gender='Mens'        
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, generatePDOPlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
-    if(message.content.startswith('?pdwoplot') or message.content.startswith('?pdwo') or message.content.startswith('?wpdo') or message.content.startswith('?wpdoplot')):
+    if(message.content.startswith('?pdwoplot') or message.content.startswith('?pdwo') or (message.content.startswith('?wpdo') and not message.content.startswith('?wpdocorsi')) or message.content.startswith('?wpdoplot')):
         gender='Womens'        
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, generatePDOPlot, gender)
@@ -2839,6 +2839,27 @@ async def on_message(message):
         gender='Mens'        
         with cf.ProcessPoolExecutor(1) as p:
             msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
+        gender='Womens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+        
+    if(message.content.startswith('?pdocorsiplot') or message.content.startswith('?pdocorsi')):
+        gender='Mens'        
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePDOCorsi, gender)
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?wpdocorsiplot') or message.content.startswith('?wpdocorsi')):
+        gender='Womens'       
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generatePDOCorsi, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
@@ -2898,13 +2919,7 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, getWTransitiveWinChain, team1,team2)
             p.shutdown()
         await message.channel.send(msg)                   
-                           
-    if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
-        gender='Womens'        
-        with cf.ProcessPoolExecutor(1) as p:
-            msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
-            p.shutdown()
-        await message.channel.send(file=discord.File(msg))
+        
         
     if(message.content.startswith('?scoreboard') or message.content.startswith('?mscoreboard')):
         if(message.channel.name == 'game-night'):
@@ -4365,6 +4380,124 @@ def generateCorsiPlot(gender):
         plt.savefig(corsiFileName)
 
     return corsiFileName
+    
+def generatePDOCorsi(gender):
+    global logoDict
+    if(gender=='Mens'):
+        url = "https://www.collegehockeynews.com/stats/"
+        pdoCorsiFileName = '/home/nmemme/discordBot/pdoplotdata/pdocorsi_data.txt'
+        pdoCorsiPlotName ='/home/nmemme/discordBot/pdoplotdata/pdocorsiplot.png'
+    if(gender=='Womens'):
+        url = "https://www.collegehockeynews.com/women/stats.php"
+        pdoCorsiFileName = '/home/nmemme/discordBot/pdoplotdata/w_pdocorsi_data.txt'
+        pdoCorsiPlotName ='/home/nmemme/discordBot/pdoplotdata/wpdocorsiplot.png'
+    f=urllib.request.urlopen(url)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+
+    standStats=soup.find('table',{'id':'standard'})
+    thead=standStats.find('thead')
+    headers = thead.find_all('th')
+    headers = [i.get_text() for i in headers]
+    tbod=standStats.find('tbody')
+    statDict = {}
+
+    for row in tbod.find_all('tr'):
+        col = row.find_all('td')
+        teamDict ={}
+        for i in range(len(col)):
+            val = col[i].get_text()
+            if(val.isnumeric() or val.replace('.', '', 1).isdigit()):
+                val=float(val)
+
+            teamDict[headers[i]] = val
+
+        statDict[col[1].get_text()] = teamDict 
+
+    pdo=[]
+    marker=[]
+    for i in statDict.keys():
+        pdo.append(statDict[i]['SV%']*statDict[i]['Sh%']*10)
+        marker.append(i)
+
+    advStats=soup.find('table',{'id':'advanced'})
+    tbod=advStats.find('tbody')
+    aHeaders=['Rk','Team','GP','SATTOT','SATATOT','CF%TOT','SATEV','SATAEV','CF%EV','SATPP','SATAPP','CF%PP','SATCL','SATACL','CF%CL']
+    statDict={}
+    for row in tbod.find_all('tr'):
+        col=row.find_all('td',{'class':None})
+        col+=(row.find_all('td',{'class':'t c'}))
+        teamDict ={}
+        for i in range(len(col)):
+            val = col[i].get_text()
+            if(val.isnumeric() or val.replace('.', '', 1).isdigit()):
+                val=float(val)
+
+            teamDict[aHeaders[i]] = val
+        statDict[col[1].get_text()] = teamDict 
+
+    cf=[]
+    marker=[]
+    for i in statDict.keys():
+        cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
+        marker.append(i)
+    newData=False
+
+    if (os.path.exists(pdoCorsiFileName)):
+        foname = open(pdoCorsiFileName,'r')
+        counter=0
+        for i in foname:
+            if(pdo[counter]!=float(i.rstrip('\n'))):            
+                newData=True
+                break
+            counter+=1
+        foname.close()
+        
+    else:
+        newData = True   
+        fname = open(pdoCorsiFileName,'w')
+        for i in pdo:
+            print(i,file=fname)
+        fname.close()
+        
+    if(newData or (not os.path.exists(pdoCorsiPlotName))):
+        fname = open(pdoCorsiFileName,'w')
+        for i in pdo:
+            print(i,file=fname)
+        fname.close()
+        lDict=logoDict.copy()
+        for team in statDict.keys():
+            statDict[team]['logo'] = lDict[team]['logo']
+            statDict[team]['img'] = lDict[team]['img']
+
+        plt.rcParams["figure.figsize"] = [9, 9]
+        plt.rcParams["figure.autolayout"] = True
+
+        fig, ax = plt.subplots()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        for x0, y0, path in zip(pdo, cf, marker):
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        #plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
+        #plt.xticks(np.arange(np.floor(round(min(pdo),2))-1,np.floor(max(pdo)+1)))
+        #plt.yticks(np.arange(round(min(sv),2)-.01,max(sv)+.01,.02))
+        plt.ylim([min(cf),max(cf)])
+        plt.xlim([min(pdo),max(pdo)])
+        plt.xlabel('PDO')
+        plt.ylabel('CF')
+        plt.title('PDO Breakdown')
+        plt.vlines(np.mean(pdo),plt.ylim()[0],plt.ylim()[1])
+        plt.hlines(np.mean(cf),plt.xlim()[0],plt.xlim()[1])
+        plt.text(plt.xlim()[0]+.5,plt.ylim()[1]-2,'Good',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-20,plt.ylim()[1]-3,'Lucky',fontsize=15,color='gray')
+        plt.text(plt.xlim()[0]+.2,plt.ylim()[0]+1,'Unlucky',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-20,plt.ylim()[0]+.5,'Bad',fontsize=15,color='gray')
+        plt.grid()
+        plt.savefig(pdoCorsiPlotName)
+
+    return pdoCorsiPlotName
     
 def getTransitiveWinChain(team1,team2):
     if(team1 == '' or team2 == ''):
