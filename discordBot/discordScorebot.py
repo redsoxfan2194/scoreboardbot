@@ -3258,7 +3258,9 @@ async def on_message(message):
     if(message.content.startswith('?lucia') or message.content.startswith('?ccharef')): 
         await message.channel.send('https://cdn.discordapp.com/attachments/523161681484972062/955134694251446302/lucia.png')    
         
-    
+    if(message.content.startswith('?spew')): 
+        await message.channel.send('https://twitter.com/NUHockeyBlog/status/1505607536392773634?t=URY1TVbTxtnZrKpXay2ssQ')    
+         
     if(message.content.startswith('?beanpot') and not message.content.startswith('?beanpottrot')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/651597256553660416/geeboston.jpg")
         
