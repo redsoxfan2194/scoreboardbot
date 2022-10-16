@@ -2114,7 +2114,7 @@ def setTrashTitle(title):
 
 @client.event
 async def on_message(message):
-    global invalidRoles
+    global invalidRoles,lastUpdateDate
     # we do not want the bot to reply to itself
     if message.author == client.user:
         return
