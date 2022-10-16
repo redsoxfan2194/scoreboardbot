@@ -199,17 +199,27 @@ def getLogoDict():
         logoDict[team]['img'] = imageio.imread(urllib.request.urlopen(logoDict[team]['logo']).read())
     return logoDict
     
+
+def regenerateRecBookData():
+  global dfGames,dfGamesWomens,dfJersey,dfJerseyMens,dfJerseyWomens,dfSkate,dfSkateMens,dfSkateWomens,dfGoalie,dfGoalieMens,dfGoalieWomens,dfLead,dfLeadWomens,dfBeanpot,dfBeanpotWomens,dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens,dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens,dfBeanpotAwards,dfBeanpotAwardsWomens
+  
+  # Regenerate Data
+  dfGames=generateRecordBook()
+  dfGamesWomens=generateWomensRecordBook()
+  dfJersey,dfJerseyMens,dfJerseyWomens=generateJerseys()
+  dfSkate,dfSkateMens,dfSkateWomens=generateSkaters()
+  dfGoalie,dfGoalieMens,dfGoalieWomens=generateGoalies()
+  dfLead,dfLeadWomens=generateSeasonLeaders()
+  dfBeanpot,dfBeanpotWomens=generateBeanpotHistory()
+  dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens=generateSeasonSkaters()
+  dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens=generateSeasonGoalies()
+  dfBeanpotAwards,dfBeanpotAwardsWomens=generateBeanpotAwards()
+  dfBean={'results':dfBeanpot,'awards':dfBeanpotAwards}
+  updateCareerStats(dfSkate,dfGoalie,dfSeasSkate,dfSeasGoalie)
+  
 logoDict=getLogoDict()
-dfGames=generateRecordBook()
-dfGamesWomens=generateWomensRecordBook()
-dfJersey,dfJerseyMens,dfJerseyWomens=generateJerseys()
-dfSkate,dfSkateMens,dfSkateWomens=generateSkaters()
-dfGoalie,dfGoalieMens,dfGoalieWomens=generateGoalies()
-dfLead,dfLeadWomens=generateSeasonLeaders()
-dfBeanpot,dfBeanpotWomens=generateBeanpotHistory()
-dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens=generateSeasonSkaters()
-dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens=generateSeasonGoalies()
-dfBeanpotAwards,dfBeanpotAwardsWomens=generateBeanpotAwards()
+lastUpdateDate=date.today()
+regenerateRecBookData()
 
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
@@ -2982,6 +2992,9 @@ async def on_message(message):
       query = message.content.split('?burecbook ')[1]
       query,gender=determineGender(query)
       query=query.lstrip(' ')
+      if(date.today()>lastUpdateDate):
+        regenerateRecBookData()
+        lastUpdateDate=date.today()
       if(gender=='Womens'):
           query=cleanupQuery(query,'bean')
           dfBean={'results':dfBeanpotWomens,'awards':dfBeanpotAwardsWomens}
@@ -4893,9 +4906,10 @@ def generatePairwisePlot(gender):
         for k in cDict.keys():
             ticks.append(k)
             for i in cDict[k]:
-                pw.append(pwrDict[i])
-                pwx.append(counter)
-                marker.append(i)
+              if(i in pwrDict.keys()):
+                  pw.append(pwrDict[i])
+                  pwx.append(counter)
+                  marker.append(i)
 
             counter+=1
         for x0, y0, path in zip(pwx, pw, marker):
