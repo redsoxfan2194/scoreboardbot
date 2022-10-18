@@ -2670,37 +2670,40 @@ async def on_message(message):
              await message.channel.send("Invalid number of teams, enter two comma separated teams")
              
     if(message.content.startswith('?history ')):
-        team1= ''
-        team2= ''
-        teams = message.content.split('?history ')
-        
-        if(len(teams)>1): 
-            if(teams[1].count(',')==1):
-                team1,team2 = teams[1].split(",")
-                team1=team1.rstrip(" ")
-                team2=team2.lstrip(' ')
-                numGames='5'
-                with cf.ProcessPoolExecutor(1) as p:
-                    msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
-                    p.shutdown()
-                if(len(msg)>0):
-                    await message.channel.send(msg)
-                
-            elif(teams[1].count(',')==2):
-                team1,team2,numGames = teams[1].split(",")
-                team1=team1.rstrip(" ")
-                team2=team2.lstrip(' ')
-
-                with cf.ProcessPoolExecutor(1) as p:
-                    msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
-                    p.shutdown()
-                if(len(msg)>0):
-                    await message.channel.send(msg)
-            else:
-             await message.channel.send("Invalid number of teams, enter two comma separated teams")
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")
         else:
-             await message.channel.send("Invalid number of teams, enter two comma separated teams")
-             
+          team1= ''
+          team2= ''
+          teams = message.content.split('?history ')
+          
+          if(len(teams)>1): 
+              if(teams[1].count(',')==1):
+                  team1,team2 = teams[1].split(",")
+                  team1=team1.rstrip(" ")
+                  team2=team2.lstrip(' ')
+                  numGames='5'
+                  with cf.ProcessPoolExecutor(1) as p:
+                      msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
+                      p.shutdown()
+                  if(len(msg)>0):
+                      await message.channel.send(msg)
+                  
+              elif(teams[1].count(',')==2):
+                  team1,team2,numGames = teams[1].split(",")
+                  team1=team1.rstrip(" ")
+                  team2=team2.lstrip(' ')
+
+                  with cf.ProcessPoolExecutor(1) as p:
+                      msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
+                      p.shutdown()
+                  if(len(msg)>0):
+                      await message.channel.send(msg)
+              else:
+               await message.channel.send("Invalid number of teams, enter two comma separated teams")
+          else:
+               await message.channel.send("Invalid number of teams, enter two comma separated teams")
+               
     if(message.content.startswith('?wodds ')):
         team1= ''
         team2= ''
