@@ -978,7 +978,6 @@ def getWinProb(aTeam, aScore, hTeam, hScore, status):
             aTeam=chnDiffs[aTeam]
     krach = {}       
     url = "https://www.collegehockeynews.com/ratings/krach.php"
-    url = "https://www.collegehockeynews.com/ratings/krach/2019" #TODO Remove when KRACH works
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1567,198 +1566,193 @@ def getWPairwise(opt):
     return rankings
         
 def getWKRACH(opt):
-    return "Women's KRACH Currently Unavailable"
-    global teamDict,season
-    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
-      
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
+    global teamDict
+    teamDict = {}
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
-    parser.feed(html.decode("latin1"))
-
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-                
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-                
-
-    for team in teamDict.keys():
-        teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
-
-    converged = False
-    while(not converged):
-        for team in teamDict.keys():
-            tWFactor = 0
-            sumKrach = 0
-            for oppo in set(teamDict[team]['teamsPlayed']):
-                sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
-            newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
-            ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
-
-            if(ratio <= 0.00001):
-                converged=True
-            teamDict[team]['Rating']= newRating
-        if(converged):
+    soup = BeautifulSoup(html, 'html.parser')
+    site_json=json.loads(soup.text)
+    gameDayList=site_json['json']['dates']
+    dateFile='/home/nmemme/discordBot/krachdata/latestDate.txt'
+    dataFile='/home/nmemme/discordBot/krachdata/gameData.json'
+    latestData=''
+    if(os.path.exists(dateFile)):
+        fname=open(dateFile,'r')
+        latestData=fname.read().rstrip('\n')
+    LossDict={}
+    gData={}
+    for i in gameDayList:
+        if(date.fromisoformat(i)>date.today()):
+            fname=open(dateFile,'w')
+            print(date.today(),file=fname)
+            fname.close()
             break
+        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            f=urllib.request.urlopen(url)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            site_json=json.loads(soup.text)
+            gData[i]=site_json['json']['data']
+    if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+        with open(dataFile, 'w') as f:
+            json.dump(gData, f)
+    if(os.path.exists(dataFile)):
+      f=open(dataFile,'r')
+      html = f.read()
+      f.close()
+      soup = BeautifulSoup(html, 'html.parser')
+      site_json=json.loads(soup.text)
+      for i in site_json.keys():
+          gameList=site_json[i]
+          for game in gameList:
+              if(game['vscore']=='' or game['hscore']==''):
+                  continue
+              pattern = r'[0-9]'
+              game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
+              game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
+              game['home_name'] = game['home_name'].lstrip(' ')
+              game['vis_name'] = game['vis_name'].lstrip(' ')
+              aTeam=game['vis_name']
+              aScore=int(game['vscore'])
+              hTeam=game['home_name']
+              hScore=int(game['hscore'])
+              if(game['type']=='ex'):
+                  continue
 
-    for i in range(10):
-        scale_wins = 0
-        for team in teamDict.keys():
-            scale_wins += 100/(100 + teamDict[team]['Rating'])
-        scale = scale_wins/20
-        
-        for team in teamDict.keys():
-            teamDict[team]['Rating'] *= scale
+              pwrGameDict = {'awayTeam' : aTeam,
+                  'awayScore': aScore,
+                  'homeTeam' : hTeam,
+                  'homeScore': hScore}
+              if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
+                  print(pwrGameDict)
+                  continue
+                  
+              if(pwrGameDict['homeTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
+              if(pwrGameDict['awayTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
 
-    krachDict ={}
-    for i in teamDict.keys():
-        if(scorebot.isD1(i,i,'Women')):
-            krachDict[i] = teamDict[i]['Rating']
-        
-    sorted_krach = sorted(krachDict.items(), key=operator.itemgetter(1), reverse=True)
-    krach = []
-    for i in sorted_krach:
-        krach.append(i[0])
-    start = 0
-    splitopt = opt.split(',')
-    decodedTeam = decodeTeam(opt)
-    if(opt.isnumeric()):
-        end = int(opt)
-    elif(opt.lower()=='full'):
-        end = 41
-    elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
 
-        teamIdx=krach.index(decodedTeam)
-        if(teamIdx-2<0):
-            start=0
-        else:
-            start = teamIdx-2
-        if(teamIdx+3>41):
-            end=41
-        else:
-            end = teamIdx+3
-    elif(opt.lower() == 'bubble'):
-        start = 5
-        end = 12
-    elif(opt.lower() == 'top'):
-        end = 4
-    elif(opt.lower() == 'bottom'):
-        start = 35
-        end = 41
-    elif(len(splitopt)==2):
-        if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
-            sOpt=int(splitopt[0])
-            eOpt=int(splitopt[1])
-            if(sOpt>0):
-                start=sOpt-1
-            else:
-                start=0
-                
-            if(eOpt<=41):
-                end = eOpt
-            else:
-                end=41
-            
-            if(sOpt>eOpt):
-                swap=start
-                start=end-1
-                end=swap+1   
-    else:
-        end = 8
-    rankings = "```\n"
-    for i in range(start,end):
-        rankings+="{}. {}\n".format(i+1,krach[i])
-    rankings += "```"
-    return rankings
+              if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
+
+              elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
+              else:
+                  teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
+
+      for team in teamDict.keys():
+          try:
+              teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
+          except:
+              teamDict[team]['Ratio'] = float('inf')
+              continue
+
+      converged = False
+      while(not converged):
+          for team in teamDict.keys():
+              tWFactor = 0
+              sumKrach = 0
+              for oppo in set(teamDict[team]['teamsPlayed']):
+                  sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
+              try:
+                  newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
+              except:
+                  newRating=0
+                  teamDict[team]['Rating']=1
+              ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
+
+              if(ratio <= 0.00001):
+                  converged=True
+              teamDict[team]['Rating']= newRating
+          if(converged):
+              break
+
+      for i in range(10):
+          scale_wins = 0
+          for team in teamDict.keys():
+              scale_wins += 100/(100 + teamDict[team]['Rating'])
+          scale = scale_wins/20
+
+          for team in teamDict.keys():
+              teamDict[team]['Rating'] *= scale
+
+      krachDict ={}
+      for i in teamDict.keys():
+          if(scorebot.isD1(i,i,'Women')):
+              krachDict[i] = teamDict[i]['Rating']
+
+      sorted_krach = sorted(krachDict.items(), key=operator.itemgetter(1), reverse=True)
+      krach = []
+      for i in sorted_krach:
+          krach.append(i[0])
+      start = 0
+      splitopt = opt.split(',')
+      decodedTeam = decodeTeam(opt)
+      if(opt.isnumeric()):
+          end = int(opt)
+      elif(opt.lower()=='full'):
+          end = 41
+      elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
+
+          teamIdx=krach.index(decodedTeam)
+          if(teamIdx-2<0):
+              start=0
+          else:
+              start = teamIdx-2
+          if(teamIdx+3>41):
+              end=41
+          else:
+              end = teamIdx+3
+      elif(opt.lower() == 'bubble'):
+          start = 5
+          end = 12
+      elif(opt.lower() == 'top'):
+          end = 4
+      elif(opt.lower() == 'bottom'):
+          start = 35
+          end = 41
+      elif(len(splitopt)==2):
+          if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
+              sOpt=int(splitopt[0])
+              eOpt=int(splitopt[1])
+              if(sOpt>0):
+                  start=sOpt-1
+              else:
+                  start=0
+
+              if(eOpt<=41):
+                  end = eOpt
+              else:
+                  end=41
+
+              if(sOpt>eOpt):
+                  swap=start
+                  start=end-1
+                  end=swap+1   
+      else:
+          end = 8
+      if(end>len(krach)):
+          end = len(krach)
+      rankings = "```\n"
+      for i in range(start,end):
+          rankings+="{}. {}\n".format(i+1,krach[i])
+      rankings += "```"
+      return rankings
 
 def getWOdds(team1,team2):
-    
-    global teamDict,season
-    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
+    global teamDict
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"                
         
@@ -1769,127 +1763,127 @@ def getWOdds(team1,team2):
     
     if(not scorebot.isD1(team2,team2,'Women')):
         return "Team 2 Not Found"
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
+        
+    teamDict = {}
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
-    parser.feed(html.decode("latin1"))
-
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-                
-
-    for team in teamDict.keys():
-        teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
-
-    converged = False
-    while(not converged):
-        for team in teamDict.keys():
-            tWFactor = 0
-            sumKrach = 0
-            for oppo in set(teamDict[team]['teamsPlayed']):
-                sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
-            newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
-            ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
-
-            if(ratio <= 0.00001):
-                converged=True
-            teamDict[team]['Rating']= newRating
-        if(converged):
+    soup = BeautifulSoup(html, 'html.parser')
+    site_json=json.loads(soup.text)
+    gameDayList=site_json['json']['dates']
+    dateFile='/home/nmemme/discordBot/krachdata/latestDate.txt'
+    dataFile='/home/nmemme/discordBot/krachdata/gameData.json'
+    latestData=''
+    if(os.path.exists(dateFile)):
+        fname=open(dateFile,'r')
+        latestData=fname.read().rstrip('\n')
+    LossDict={}
+    gData={}
+    for i in gameDayList:
+        if(date.fromisoformat(i)>date.today()):
+            fname=open(dateFile,'w')
+            print(date.today(),file=fname)
+            fname.close()
             break
+        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            f=urllib.request.urlopen(url)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            site_json=json.loads(soup.text)
+            gData[i]=site_json['json']['data']
+    if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+        with open(dataFile, 'w') as f:
+            json.dump(gData, f)
+    if(os.path.exists(dataFile)):
+      f=open(dataFile,'r')
+      html = f.read()
+      f.close()
+      soup = BeautifulSoup(html, 'html.parser')
+      site_json=json.loads(soup.text)
+      for i in site_json.keys():
+          gameList=site_json[i]
+          for game in gameList:
+              if(game['vscore']=='' or game['hscore']==''):
+                  continue
+              pattern = r'[0-9]'
+              game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
+              game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
+              game['home_name'] = game['home_name'].lstrip(' ')
+              game['vis_name'] = game['vis_name'].lstrip(' ')
+              aTeam=game['vis_name']
+              aScore=int(game['vscore'])
+              hTeam=game['home_name']
+              hScore=int(game['hscore'])
+              if(game['type']=='ex'):
+                  continue
 
-    for i in range(10):
-        scale_wins = 0
-        for team in teamDict.keys():
-            scale_wins += 100/(100 + teamDict[team]['Rating'])
-        scale = scale_wins/20
-        
-        for team in teamDict.keys():
-            teamDict[team]['Rating'] *= scale
+              pwrGameDict = {'awayTeam' : aTeam,
+                  'awayScore': aScore,
+                  'homeTeam' : hTeam,
+                  'homeScore': hScore}
+              if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
+                  print(pwrGameDict)
+                  continue
+                  
+              if(pwrGameDict['homeTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
+              if(pwrGameDict['awayTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
+
+
+              if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
+
+              elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
+              else:
+                  teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
+
+      for team in teamDict.keys():
+          try:
+              teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
+          except:
+              teamDict[team]['Ratio'] = float('inf')
+              continue
+
+      converged = False
+      while(not converged):
+          for team in teamDict.keys():
+              tWFactor = 0
+              sumKrach = 0
+              for oppo in set(teamDict[team]['teamsPlayed']):
+                  sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
+              try:
+                  newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
+              except:
+                  newRating=0
+                  teamDict[team]['Rating']=1
+              ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
+
+              if(ratio <= 0.00001):
+                  converged=True
+              teamDict[team]['Rating']= newRating
+          if(converged):
+              break
+
+      for i in range(10):
+          scale_wins = 0
+          for team in teamDict.keys():
+              scale_wins += 100/(100 + teamDict[team]['Rating'])
+          scale = scale_wins/20
+
+          for team in teamDict.keys():
+              teamDict[team]['Rating'] *= scale
             
     
     team1Odds = teamDict[team1]['Rating']/(teamDict[team1]['Rating']+teamDict[team2]['Rating'])
@@ -1899,8 +1893,7 @@ def getWOdds(team1,team2):
 
 def getWOdds3(team1,team2):
     
-    global teamDict,season
-    url = "http://www.collegehockeystats.net/{}/schedules/ncw".format(season)
+    global teamDict
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"                
         
@@ -1911,127 +1904,128 @@ def getWOdds3(team1,team2):
     
     if(not scorebot.isD1(team2,team2,'Women')):
         return "Team 2 Not Found"
-    parser = MyHTMLParser()
-    f=urllib.request.urlopen(url,timeout=10)
+        
+    teamDict = {}
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
-    parser.feed(html.decode("latin1"))
-
-    gameData=parser.return_data()
-    teamDict = {}
-    days = gameData.split('\n\n')
-    for day in days:
-        games = day.split('\n')
-        #print(games)    
-        mtagLookup = {}
-        wtagLookup = {}
-        leagues=set()
-        gameList = []
-        tag = ''
-        for game in games:
-            #print(game)
-            game = game.split('!')
-            if(len(game)==1):
-                continue
-            if(game[0]==''):
-                game.pop(0)
-
-            if(game[-1]==''):
-                game.pop()
-                if(game==[]):
-                    continue
-                try:
-                    if(game[-1][0]=='('):
-                        game.pop()
-                except IndexError:
-                    pass
-            if(len(game)==2):
-               continue
-                   
-            if(len(game)>2):
-                if(game[0]==''):
-                    continue            
-                if(game[0][0]=='('):
-                    tag=game[0]
-                    game.pop(0)                
-            if(game.count('OT')>0):
-                numOT = 'OT'
-                if(game.count('2OT')>0):
-                    numOT = '2OT'
-                elif(game.count('3OT')>0):
-                    numOT = '3OT'
-                elif(game.count('4OT')>0):
-                    numOT = '4OT'
-                elif(game.count('5OT')>0):
-                    numOT = '5OT'
-                game.pop(5)
-                if(game.count('Final')>0):
-                    game[7]='Final ({})'.format(numOT)
-            if(len(game)==8):
-                game[5]=game[5].replace(' ',"")
-                if(game[5]=='EC,IV'):
-                   game[5] = 'EC'
-                if(game[5]=='NH'):
-                  game[5] = 'NW' 
-                game[4] = game[4].replace(' OT','')
-                game[4] = game[4].replace(' 2OT','')
-                game[4] = game[4].replace(' 3OT','')
-                game[4] = game[4].replace(' 4OT','')
-                game[4] = game[4].replace(' 5OT','')
-                pwrGameDict = {'awayTeam' : game[0],
-                            'awayScore': game[1],
-                            'homeTeam' : game[3],
-                            'homeScore': game[4]}
-                if(game[5]=='EX' or not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                    continue
-                if(pwrGameDict['homeTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-                if(pwrGameDict['awayTeam'] not in teamDict):
-                    teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-                
-                if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-                    
-                elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                    teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-                else:
-                    teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                    teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-                teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-                teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-                
-
-    for team in teamDict.keys():
-        teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
-
-    converged = False
-    while(not converged):
-        for team in teamDict.keys():
-            tWFactor = 0
-            sumKrach = 0
-            for oppo in set(teamDict[team]['teamsPlayed']):
-                sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
-            newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
-            ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
-
-            if(ratio <= 0.00001):
-                converged=True
-            teamDict[team]['Rating']= newRating
-        if(converged):
+    soup = BeautifulSoup(html, 'html.parser')
+    site_json=json.loads(soup.text)
+    gameDayList=site_json['json']['dates']
+    dateFile='/home/nmemme/discordBot/krachdata/latestDate.txt'
+    dataFile='/home/nmemme/discordBot/krachdata/gameData.json'
+    latestData=''
+    if(os.path.exists(dateFile)):
+        fname=open(dateFile,'r')
+        latestData=fname.read().rstrip('\n')
+    LossDict={}
+    gData={}
+    for i in gameDayList:
+        if(date.fromisoformat(i)>date.today()):
+            fname=open(dateFile,'w')
+            print(date.today(),file=fname)
+            fname.close()
             break
+        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            f=urllib.request.urlopen(url)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            site_json=json.loads(soup.text)
+            gData[i]=site_json['json']['data']
+    if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+        with open(dataFile, 'w') as f:
+            json.dump(gData, f)
+    if(os.path.exists(dataFile)):
+      f=open(dataFile,'r')
+      html = f.read()
+      f.close()
+      soup = BeautifulSoup(html, 'html.parser')
+      site_json=json.loads(soup.text)
+      for i in site_json.keys():
+          gameList=site_json[i]
+          for game in gameList:
+              if(game['vscore']=='' or game['hscore']==''):
+                  continue
+              pattern = r'[0-9]'
+              game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
+              game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
+              game['home_name'] = game['home_name'].lstrip(' ')
+              game['vis_name'] = game['vis_name'].lstrip(' ')
+              aTeam=game['vis_name']
+              aScore=int(game['vscore'])
+              hTeam=game['home_name']
+              hScore=int(game['hscore'])
+              if(game['type']=='ex'):
+                  continue
 
-    for i in range(10):
-        scale_wins = 0
-        for team in teamDict.keys():
-            scale_wins += 100/(100 + teamDict[team]['Rating'])
-        scale = scale_wins/20
-        
-        for team in teamDict.keys():
-            teamDict[team]['Rating'] *= scale
+              pwrGameDict = {'awayTeam' : aTeam,
+                  'awayScore': aScore,
+                  'homeTeam' : hTeam,
+                  'homeScore': hScore}
+              if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
+                  print(pwrGameDict)
+                  continue
+                  
+              if(pwrGameDict['homeTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
+              if(pwrGameDict['awayTeam'] not in teamDict):
+                  teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
+
+
+              if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
+
+              elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
+                  teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
+              else:
+                  teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
+                  teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['GP'] += 1
+              teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
+              teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
+
+      for team in teamDict.keys():
+          try:
+              teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
+          except:
+              teamDict[team]['Ratio'] = float('inf')
+              continue
+
+      converged = False
+      while(not converged):
+          for team in teamDict.keys():
+              tWFactor = 0
+              sumKrach = 0
+              for oppo in set(teamDict[team]['teamsPlayed']):
+                  sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
+              try:
+                  newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
+              except:
+                  newRating=0
+                  teamDict[team]['Rating']=1
+              ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
+
+              if(ratio <= 0.00001):
+                  converged=True
+              teamDict[team]['Rating']= newRating
+          if(converged):
+              break
+
+      for i in range(10):
+          scale_wins = 0
+          for team in teamDict.keys():
+              scale_wins += 100/(100 + teamDict[team]['Rating'])
+          scale = scale_wins/20
+
+          for team in teamDict.keys():
+              teamDict[team]['Rating'] *= scale
+            
             
     team1Odds = (teamDict[team1]['Rating']**2 * (teamDict[team1]['Rating'] + 3 * teamDict[team2]['Rating']))/((teamDict[team1]['Rating'] + teamDict[team2]['Rating'])**3)
     team2Odds = (teamDict[team2]['Rating']**2 * (teamDict[team2]['Rating'] + 3 * teamDict[team1]['Rating']))/((teamDict[team2]['Rating'] + teamDict[team1]['Rating'])**3)
@@ -4244,9 +4238,10 @@ def generatePDOPlot(gender):
     sh=[]
     marker=[]
     for i in statDict.keys():
-        sv.append(statDict[i]['SV%'])
-        sh.append(statDict[i]['Sh%'])
-        marker.append(i)
+        if(statDict[i]['GP']>=4):
+          sv.append(statDict[i]['SV%'])
+          sh.append(statDict[i]['Sh%'])
+          marker.append(i)
 
     newData=False
 
@@ -4339,6 +4334,7 @@ def generateCorsiPlot(gender):
     ca=[]
     marker=[]
     for i in statDict.keys():
+      if(statDict[i]['GP']>=4):
         cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
         ca.append(statDict[i]['SATAEV']/statDict[i]['GP'])
         marker.append(i)
@@ -4436,6 +4432,7 @@ def generatePDOCorsi(gender):
     pdo=[]
     marker=[]
     for i in statDict.keys():
+      if(statDict[i]['GP']>=4):
         pdo.append(statDict[i]['SV%']*statDict[i]['Sh%']*10)
         marker.append(i)
 
