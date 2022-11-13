@@ -4433,7 +4433,7 @@ def generatePDOCorsi(gender):
     marker=[]
     for i in statDict.keys():
       if(statDict[i]['GP']>=4):
-        pdo.append(statDict[i]['SV%']*statDict[i]['Sh%']*10)
+        pdo.append((statDict[i]['SV%']*100)+statDict[i]['Sh%'])
         marker.append(i)
 
     advStats=soup.find('table',{'id':'advanced'})
@@ -4455,8 +4455,9 @@ def generatePDOCorsi(gender):
     cf=[]
     marker=[]
     for i in statDict.keys():
-        cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
-        marker.append(i)
+        if(statDict[i]['GP']>=4):
+          cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
+          marker.append(i)
     newData=False
 
     if (os.path.exists(pdoCorsiFileName)):
@@ -4506,9 +4507,9 @@ def generatePDOCorsi(gender):
         plt.vlines(np.mean(pdo),plt.ylim()[0],plt.ylim()[1])
         plt.hlines(np.mean(cf),plt.xlim()[0],plt.xlim()[1])
         plt.text(plt.xlim()[0]+.5,plt.ylim()[1]-2,'Unlucky',fontsize=15,color='gray')
-        plt.text(plt.xlim()[1]-20,plt.ylim()[1]-3,'Good',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-2,plt.ylim()[1]-3,'Good',fontsize=15,color='gray')
         plt.text(plt.xlim()[0]+.2,plt.ylim()[0]+1,'Bad',fontsize=15,color='gray')
-        plt.text(plt.xlim()[1]-20,plt.ylim()[0]+.5,'Lucky',fontsize=15,color='gray')
+        plt.text(plt.xlim()[1]-2,plt.ylim()[0]+.5,'Lucky',fontsize=15,color='gray')
         plt.grid()
         plt.savefig(pdoCorsiPlotName)
 
