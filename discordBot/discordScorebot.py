@@ -3343,6 +3343,9 @@ async def on_message(message):
         
     if(message.content.startswith('?michigan')):
             await message.channel.send("https://media.giphy.com/media/nJB57VXFHAr65qbNO1/giphy.gif")
+            
+    if(message.content.startswith('?goodnight') or message.content.startswith('?goodbye')):
+            await message.channel.send("https://media.giphy.com/media/yoha0ouKET1h3nMaR2/giphy.gif")
         
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
@@ -4917,7 +4920,13 @@ def generatePairwisePlot(gender):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         plt.xticks(range(0,7))
-        plt.hlines(15.5,0,6,linestyle='--',label='Cut Line',colors='black')
+        numTeams=16
+        cutLine=numTeams+.5
+        for i in cDict:
+            x=[pwrDict[d] for d in cDict[i]]
+            if(min(x)>=numTeams and i != 'Independents'):
+                cutLine-=1
+        plt.hlines(cutLine,0,6,linestyle='--',label='Cut Line',colors='black')
         plt.legend()
         plt.ylim([len(pw)+2,0])
         plt.xlabel('Conference')
@@ -5027,7 +5036,13 @@ def generatePairwisePlot(gender):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         plt.xticks(range(0,5))
-        plt.hlines(10.5,0,4,linestyle='--',label='Cut Line',colors='black')
+        numTeams=11
+        cutLine=numTeams+.5
+        for i in cDict:
+            x=[pwrDict[d] for d in cDict[i]]
+            if(min(x)>=numTeams and i != 'Independents'):
+                cutLine-=1
+        plt.hlines(cutLine,0,4,linestyle='--',label='Cut Line',colors='black')
         #plt.legend()
         plt.ylim([len(pw)+2,0])
         plt.xlabel('Conference')
