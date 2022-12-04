@@ -46,7 +46,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Augustana" : "<:augustana:964983803393245275>",
 "Boston College" : "<:bc:666831654727188481>",
 "Bemidji State" : "<:bemidji:684982886956400658>",
-"Bentley" : "<:bentley:761701460143505428>",
+"Bentley" : "<:bentley:1048378146866610227>",
 "Brown" : "<:brown:995487958306132009>",
 "Boston University" : "<:bu:666832026095321088>",
 "Bowling Green" : "<:bgsu:762019455358206002>",
@@ -56,10 +56,10 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Colorado College" : "<:coloradocollege:761701485821689858>",
 "Cornell" : "<:cornell:666832546033827892>",
 "Dartmouth" : "<:dartmouth:761701466876280893>",
-"Denver" : "<:denver:666833535616679967>",
+"Denver" : "<:denver:1047721458798964758>",
 "Ferris State" : "<:ferrisstate:761701516696092702>",
 "Franklin Pierce" : "<:franklinpierce:761701546223599657>",
-"Harvard" : "<:harvard:666834657681342474>",
+"Harvard" : "<:harvard:1047721524859244544>",
 "Holy Cross" : "<:holycross:761701495673585705>",
 "Lake Superior State" : "<:lakesuperior:761701538661400616>",
 "Lindenwood" : "<:lindenwood:761701500426649640>",
@@ -101,12 +101,12 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Alabama Huntsville" : "<:uah:716027231700516895>",
 "Alaska Anchorage" : "<:uaa:761701504376766464>",
 "UConn" : "<:uconn:761701507782934548>",
-"Massachusetts" : "<:umass:666832224783695879>",
+"Massachusetts" : "<:umass:1047721396668739594>",
 "Minnesota Duluth" : "<:umd:666836078019215360>",
 "New Hampshire" : "<:unh:761701513236054027>",
 "Union" : "<:union:761701482030039070>",
 "Vermont" : "<:vermont:761701504691339274>",
-"Western Michigan" : "<:wmu:849722307446571018>",
+"Western Michigan" : "<:wmu:1048377502638288978>",
 "Wisconsin" : "<:wisconsin:666834959897722900>",
 "Yale" : "<:yale:761701482352607272>",
 "Minnesota-Duluth": "<:umd:666836078019215360>",
@@ -3351,7 +3351,7 @@ async def on_message(message):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
     
     if(message.content.startswith('?stateofhockey')):
-        await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/952601392126779432/IMG_5275.png")   
+        await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/1045106927316783104/unknown.png")   
 
     if(message.content.startswith('?redwasright')):
         await message.channel.send("```\nAll hail Red Sox Fan\nWe sing in jubilee (in jubilee)\nAll hail Red Sox Fan\nProud hater of BC (of BC)\nAll hail Red Sox Fan\nAnnoyer of JD\nThrough the years\nWe ever will proclaim\nTop mod of our hockey```") 
