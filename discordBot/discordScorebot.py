@@ -201,7 +201,7 @@ def getLogoDict():
     
 
 def regenerateRecBookData():
-  global dfGames,dfGamesWomens,dfJersey,dfJerseyMens,dfJerseyWomens,dfSkate,dfSkateMens,dfSkateWomens,dfGoalie,dfGoalieMens,dfGoalieWomens,dfLead,dfLeadWomens,dfBeanpot,dfBeanpotWomens,dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens,dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens,dfBeanpotAwards,dfBeanpotAwardsWomens
+  global dfGames,dfGamesWomens,dfJersey,dfJerseyMens,dfJerseyWomens,dfSkate,dfSkateMens,dfSkateWomens,dfGoalie,dfGoalieMens,dfGoalieWomens,dfLead,dfLeadWomens,dfBeanpot,dfBeanpotWomens,dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens,dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens,dfBeanpotAwards,dfBeanpotAwardsWomens,dfGameStats,dfGameStatsMens,dfGameStatsMens,dfGameStatsGoalie,dfGameStatsGoalieMens,dfGameStatsGoalieWomens
   
   # Regenerate Data
   dfGames=generateRecordBook()
@@ -213,6 +213,8 @@ def regenerateRecBookData():
   dfBeanpot,dfBeanpotWomens=generateBeanpotHistory()
   dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens=generateSeasonSkaters()
   dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens=generateSeasonGoalies()
+  dfGameStats,dfGameStatsMens,dfGameStatsMens=generateGameSkaterStats()
+  dfGameStatsGoalie,dfGameStatsGoalieMens,dfGameStatsGoalieWomens = generateGameGoalieStats()
   dfBeanpotAwards,dfBeanpotAwardsWomens=generateBeanpotAwards()
   dfBean={'results':dfBeanpot,'awards':dfBeanpotAwards}
   updateCareerStats(dfSkate,dfGoalie,dfSeasSkate,dfSeasGoalie)
@@ -3014,6 +3016,8 @@ async def on_message(message):
               playerDfs['careerGoalies']=dfGoalie
               playerDfs['seasonSkaters']=dfSeasSkate
               playerDfs['seasonGoalies']=dfSeasGoalie
+              playerDfs['gameStats']=dfGameStats
+              playerDfs['gameGoalieStats']=dfGameStatsGoalie
               if(gender=='Womens'):
                   playerDfs['jerseys']=dfJerseyWomens
                   playerDfs['seasonleaders']=dfLeadWomens
@@ -3021,10 +3025,14 @@ async def on_message(message):
                   playerDfs['careerGoalies']=dfGoalieWomens
                   playerDfs['seasonSkaters']=dfSeasSkateWomens
                   playerDfs['seasonGoalies']=dfSeasGoalieWomens
+                  playerDfs['gameStats']=dfGameStatsWomens
+                  playerDfs['gameGoalieStats']=dfGameStatsGoalieWomens
               if(gender=='Mens'):
                   playerDfs['seasonSkaters']=dfSeasSkateMens
                   playerDfs['seasonGoalies']=dfSeasGoalieMens
                   playerDfs['jerseys']=dfJerseyMens
+                  playerDfs['gameStats']=dfGameStatsMens
+                  playerDfs['gameGoalieStats']=dfGameStatsGoalieMens
               result=getPlayerStats(playerDfs,query)
       if(len(result)>0):
         await message.channel.send("```\n" + result + "```")
@@ -3055,6 +3063,8 @@ async def on_message(message):
               playerDfs['careerGoalies']=dfGoalie
               playerDfs['seasonSkaters']=dfSeasSkate
               playerDfs['seasonGoalies']=dfSeasGoalie
+              playerDfs['gameStats']=dfGameStats
+              playerDfs['gameGoalieStats']=dfGameStatsGoalie
               if(gender=='Womens'):
                   playerDfs['jerseys']=dfJerseyWomens
                   playerDfs['seasonleaders']=dfLeadWomens
@@ -3062,10 +3072,14 @@ async def on_message(message):
                   playerDfs['careerGoalies']=dfGoalieWomens
                   playerDfs['seasonSkaters']=dfSeasSkateWomens
                   playerDfs['seasonGoalies']=dfSeasGoalieWomens
+                  playerDfs['gameStats']=dfGameStatsWomens
+                  playerDfs['gameGoalieStats']=dfGameStatsGoalieWomens
               if(gender=='Mens'):
                   playerDfs['seasonSkaters']=dfSeasSkateMens
                   playerDfs['seasonGoalies']=dfSeasGoalieMens
                   playerDfs['jerseys']=dfJerseyMens
+                  playerDfs['gameStats']=dfGameStatsMens
+                  playerDfs['gameGoalieStats']=dfGameStatsGoalieMens
               result=getPlayerStats(playerDfs,query)
       if(len(result)>0):
         await message.channel.send("```\n" + result + "```")
@@ -3244,7 +3258,8 @@ async def on_message(message):
             
     if(message.content.startswith('?colgate') or message.content.startswith('?gate')):
             await message.channel.send("https://gfycat.com/agitatedslimyhyrax")        
-        
+    if(message.content.startswith('?jdandthemouse') or message.content.startswith('?espn+')):
+            await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/1049856269911064627/mickeyerror.png")
     if(message.content.startswith('?portal')):
             await message.channel.send(random.choice([ "https://tenor.com/view/chosen-toy-story-gif-7936264","https://media.giphy.com/media/ciadMxfm3135m/giphy.gif"]))      
                 
