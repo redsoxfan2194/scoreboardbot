@@ -3005,9 +3005,9 @@ async def on_message(message):
       if(result==''):
           if(determineQueryType(query)!='player'):
               if(gender=='Womens'):
-                  result=burecordbook.getResults(dfGamesWomens,query)  
+                  result=burecordbook.getResults(dfGamesWomens,dfGameStatsWomens,dfGameStatsGoalieWomens,query)
               else:
-                  result=burecordbook.getResults(dfGames,query)  
+                  result=burecordbook.getResults(dfGames,dfGameStatsMens,dfGameStatsGoalieMens,query)
           else:
               playerDfs={}
               playerDfs['jerseys']=dfJersey
@@ -3052,9 +3052,9 @@ async def on_message(message):
       if(result==''):
           if(determineQueryType(query)!='player'):
               if(gender=='Womens'):
-                  result=burecordbook.getResults(dfGamesWomens,query)  
+                  result=burecordbook.getResults(dfGamesWomens,dfGameStatsWomens,dfGameStatsGoalieWomens,query)
               else:
-                  result=burecordbook.getResults(dfGames,query)  
+                  result=burecordbook.getResults(dfGames,dfGameStatsMens,dfGameStatsGoalieMens,query)
           else:
               playerDfs={}
               playerDfs['jerseys']=dfJersey
