@@ -3356,7 +3356,7 @@ async def on_message(message):
     if(message.content.startswith('?crasa')):
         await message.channel.send("https://media.giphy.com/media/ogRXLar48tLdC8xRLS/giphy.gif")    
         
-    if(message.content.startswith('?michigan')):
+    if(message.content.startswith('?michigan') and not message.content.startswith('?michigantech')):
             await message.channel.send("https://media.giphy.com/media/nJB57VXFHAr65qbNO1/giphy.gif")
             
     if(message.content.startswith('?goodnight') or message.content.startswith('?goodbye')):
