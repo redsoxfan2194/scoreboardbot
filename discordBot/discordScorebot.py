@@ -4296,6 +4296,7 @@ def generatePDOPlot(gender):
         fig, ax = plt.subplots()
         fig.patch.set_facecolor('lightgray')
         fig.patch.set_alpha(1)
+        plt.tight_layout()
         for x0, y0, path in zip(sh, sv, marker):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
@@ -4392,6 +4393,7 @@ def generateCorsiPlot(gender):
         fig, ax = plt.subplots()
         fig.patch.set_facecolor('lightgray')
         fig.patch.set_alpha(1)
+        plt.tight_layout()
         for x0, y0, path in zip(cf, ca, marker):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
@@ -4511,6 +4513,7 @@ def generatePDOCorsi(gender):
         fig, ax = plt.subplots()
         fig.patch.set_facecolor('lightgray')
         fig.patch.set_alpha(1)
+        plt.tight_layout()
         for x0, y0, path in zip(pdo, cf, marker):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
