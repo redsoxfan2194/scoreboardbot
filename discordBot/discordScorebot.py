@@ -201,7 +201,7 @@ def getLogoDict():
     
 
 def regenerateRecBookData():
-  global dfGames,dfGamesWomens,dfJersey,dfJerseyMens,dfJerseyWomens,dfSkate,dfSkateMens,dfSkateWomens,dfGoalie,dfGoalieMens,dfGoalieWomens,dfLead,dfLeadWomens,dfBeanpot,dfBeanpotWomens,dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens,dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens,dfBeanpotAwards,dfBeanpotAwardsWomens,dfGameStats,dfGameStatsMens,dfGameStatsMens,dfGameStatsGoalie,dfGameStatsGoalieMens,dfGameStatsGoalieWomens
+  global dfGames,dfGamesWomens,dfJersey,dfJerseyMens,dfJerseyWomens,dfSkate,dfSkateMens,dfSkateWomens,dfGoalie,dfGoalieMens,dfGoalieWomens,dfLead,dfLeadWomens,dfBeanpot,dfBeanpotWomens,dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens,dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens,dfBeanpotAwards,dfBeanpotAwardsWomens,dfGameStats,dfGameStatsMens,dfGameStatsWomens,dfGameStatsGoalie,dfGameStatsGoalieMens,dfGameStatsGoalieWomens
   
   # Regenerate Data
   dfGames=generateRecordBook()
@@ -213,7 +213,7 @@ def regenerateRecBookData():
   dfBeanpot,dfBeanpotWomens=generateBeanpotHistory()
   dfSeasSkate,dfSeasSkateMens,dfSeasSkateWomens=generateSeasonSkaters()
   dfSeasGoalie,dfSeasGoalieMens,dfSeasGoalieWomens=generateSeasonGoalies()
-  dfGameStats,dfGameStatsMens,dfGameStatsMens=generateGameSkaterStats()
+  dfGameStats,dfGameStatsMens,dfGameStatsWomens=generateGameSkaterStats()
   dfGameStatsGoalie,dfGameStatsGoalieMens,dfGameStatsGoalieWomens = generateGameGoalieStats()
   dfBeanpotAwards,dfBeanpotAwardsWomens=generateBeanpotAwards()
   dfBean={'results':dfBeanpot,'awards':dfBeanpotAwards}
@@ -3172,6 +3172,9 @@ async def on_message(message):
             
     if(message.content.startswith('?nanooks')):
             await message.channel.send("https://www.youtube.com/watch?v=K9cYcRotufU")
+            
+    if(message.content.startswith('?spacebear')):
+            await message.channel.send("https://media.giphy.com/media/Elpf1hqAotMrRTmgdY/giphy-downsized-large.gif")
             
     if(message.content.startswith('?lssu')):
             await message.channel.send("https://www.youtube.com/watch?v=HowMoUOhQSs")
