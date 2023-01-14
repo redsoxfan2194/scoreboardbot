@@ -4479,7 +4479,7 @@ def generatePDOCorsi(gender):
     marker=[]
     for i in statDict.keys():
         if(statDict[i]['GP']>=4):
-          cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
+          cf.append(statDict[i]['CF%EV'])
           marker.append(i)
     newData=False
 
@@ -4520,14 +4520,11 @@ def generatePDOCorsi(gender):
         for x0, y0, path in zip(pdo, cf, marker):
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
-        #plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
-        #plt.xticks(np.arange(np.floor(round(min(pdo),2))-1,np.floor(max(pdo)+1)))
-        #plt.yticks(np.arange(round(min(sv),2)-.01,max(sv)+.01,.02))
         plt.ylim([min(cf),max(cf)])
         plt.xlim([min(pdo),max(pdo)])
         plt.xlabel('PDO')
-        plt.ylabel('CF')
-        plt.title('PDO vs CF')
+        plt.ylabel('CF%')
+        plt.title('PDO vs CF%')
         plt.vlines(np.mean(pdo),plt.ylim()[0],plt.ylim()[1])
         plt.hlines(np.mean(cf),plt.xlim()[0],plt.xlim()[1])
         plt.text(plt.xlim()[0]+.5,plt.ylim()[1]-2,'Unlucky',fontsize=15,color='gray')
@@ -4914,6 +4911,8 @@ def generatePairwisePlot(gender):
             
         cDict={}
         for team,conf in confDict.items():
+            if(team=='Stonehill'):
+              continue
             if conf not in cDict.keys():
                 cDict[conf]=[]
                 cDict[conf].append(team)
