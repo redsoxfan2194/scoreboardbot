@@ -407,6 +407,8 @@ def convertTeamtoDisRole(team):
                 
     if team in teams:
         return teams[team]
+    elif team in teams.values():
+        return team
     else:
         return ""
         
@@ -3353,6 +3355,9 @@ async def on_message(message):
     if(message.content.startswith('?levi')):
         await message.channel.send("https://media.giphy.com/media/jnLhnGcoErH5bQFcJI/giphy.gif")
         
+    if(message.content.startswith('?mattbrown')):
+        await message.channel.send("https://media.giphy.com/media/lEHjkEAz9rGgnUheLC/giphy.gif")
+        
     if(message.content.startswith('?duluth')):
         await message.channel.send("https://media.giphy.com/media/pLQ3kOUCxHNbDpFNbQ/giphy.gif")
     
@@ -3408,6 +3413,13 @@ async def on_message(message):
             
         await message.channel.send("This is a good option for {} to pursue.  They should target her.".format(team))
         
+    if message.content.startswith('?alaskatest'):
+      with cf.ProcessPoolExecutor(1) as p:
+          msg = await loop.run_in_executor(p, checkForAlaskaTest)
+          p.shutdown()
+      if(len(msg)>0):
+          await message.channel.send(msg)
+
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -5077,5 +5089,16 @@ def generatePairwisePlot(gender):
         plt.savefig(pwrPlotName)
     return pwrPlotName
         
+def checkForAlaskaTest():
+    uafCheck=generateScoreline('Alaska','Men')
+    uafGame=uafCheck.split('\n')
+    if(len(uafGame)>1 and ('Alaska' in uafGame[1] or 'Alaska' in uafGame[2])):
+        return "Alaska Test tonight!"
+    uaaCheck=generateScoreline('Alaska-Anchorage','Men')
+    uaaGame=uaaCheck.split('\n')
+    if(len(uaaGame)>1 and ('Alaska' in uaaGame[1] or 'Alaska' in uaaGame[2])):
+        return "Alaska Test tonight!"
+    return "No Alaska Test tonight"
+    
 client.run(TOKEN)
 print("Ending... at",datetime.now())
