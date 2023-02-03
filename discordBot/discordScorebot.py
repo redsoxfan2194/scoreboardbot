@@ -865,7 +865,7 @@ def getMatchupHistory(team,opp,numGames):
             teamName=teamName.replace('-',' ')
             hrefDict[teamName]=idNum
             
-    url = "https://www.collegehockeynews.com/schedules/?search=1&field[year_min]={}&field[year_max]={}&field[teamID]={}&field[oppID]={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
+    url = "https://www.collegehockeynews.com/schedules/?search=1&year_min={}&year_max={}&teamID={}&oppID={}".format(minSeason,maxSeason,hrefDict[team],hrefDict[opp])
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -874,7 +874,6 @@ def getMatchupHistory(team,opp,numGames):
     games=tab.findChildren('tr');
     matchupData = {};
     gNum = 0
-    
     gameHistory = "" 
     for game in games:
         gameStr=game.findChildren('td')[0].get_text()
