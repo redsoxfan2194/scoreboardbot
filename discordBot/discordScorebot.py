@@ -4136,7 +4136,7 @@ def generateScoreline(team, gender):
                     awayTeam = flairlist[awayTeam] + " " + awayTeam
                 if(homeTeam in flairlist):
                     homeTeam = flairlist[homeTeam] + " " + homeTeam
-                scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore,status)
+                scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore,status.strip('\r\n').strip())
                 return scoreline
     return "No game scheduled for {} {}".format(team,gender)
 

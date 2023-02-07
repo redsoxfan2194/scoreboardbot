@@ -215,7 +215,7 @@ def generateScoreboard():
         scoreboard += "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in mGamesByLeague[league]:
             if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-                scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])
+                scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'].strip('\r\n').strip(),game['tv'])
                 numGames +=1
     if(numGames==0):
         scoreboard=scoreboard.replace("#Men's Scores\n","")
@@ -227,7 +227,7 @@ def generateScoreboard():
         scoreboard +=  "\n|Away|Away Score|Home|Home Score|Time|TV\n|---|---|---|---|---|---|\n"
         for game in wGamesByLeague[league]:
           if(isD1(game["awayTeam"],game["homeTeam"],game['m_w'])):
-            scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'],game['tv'])        
+            scoreboard += "{}|{}|{}|{}|{}|{}|\n".format(getFlair(game["awayTeam"]), game["awayScore"], getFlair(game["homeTeam"]), game["homeScore"], game['status'].strip('\r\n').strip(),game['tv'])
             numGames += 1
     if(numGames == 0):
         scoreboard=scoreboard.replace("#Women's Scores\n","")
