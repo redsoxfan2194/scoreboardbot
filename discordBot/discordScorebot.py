@@ -4136,7 +4136,7 @@ def generateScoreline(team, gender):
                     awayTeam = flairlist[awayTeam] + " " + awayTeam
                 if(homeTeam in flairlist):
                     homeTeam = flairlist[homeTeam] + " " + homeTeam
-                scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore,status.strip('\r\n').strip())
+                scoreline= "{} {}\n{} {}\n{}".format(awayTeam,awayScore,homeTeam,homeScore," ".join(status.strip('\r\n').strip().split()))
                 return scoreline
     return "No game scheduled for {} {}".format(team,gender)
 
@@ -4225,7 +4225,7 @@ def generateFullScoreboard(gender,opt):
                 status=gameData[3].get_text(separator=" ")
             if(opt=='Bubble' and not (awayTeam in bubble or homeTeam in bubble)):
                 continue
-            scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore,status)
+            scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore," ".join(status.strip('\r\n').strip().split()))
     scoreline+='```'
     if(scoreline=='```\n```'):
         return 'No Games Today'
