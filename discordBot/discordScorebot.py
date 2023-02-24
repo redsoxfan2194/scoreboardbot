@@ -1374,13 +1374,13 @@ def getGamesOnTV():
     tvGames = ""
     for game in gameList:
         if(game['channel'] != ''):
-            if("a.m." not in game['status'] and "p.m." not in game['status']):
+            if("a.m." not in game['status'] and "p.m." not in game['status'] and ('T' not in game['status'] or 'OT' in game['status'])):
                 if('Final' in game['status']):
                     game['startTime'] = 'Ended'
                 else:
                     game['startTime'] = 'On Now'
                 
-            tvGames += game['m_w'] + ": " + game['awayTeam'] + " @ " + game['homeTeam'] + " - " + game['startTime'] + " (" + game['channel'] + ')\n'
+            tvGames += game['m_w'] + ": " + game['awayTeam'] + " @ " + game['homeTeam'] + " - " + " ".join(game['startTime'].strip('\r\n').strip().split()) + " (" + game['channel'] + ')\n'
     return tvGames
 def calcUWP():
     global teamDict
@@ -1631,7 +1631,6 @@ def getWKRACH(opt):
                   'homeTeam' : hTeam,
                   'homeScore': hScore}
               if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                  print(pwrGameDict)
                   continue
                   
               if(pwrGameDict['homeTeam'] not in teamDict):
@@ -1828,7 +1827,6 @@ def getWOdds(team1,team2):
                   'homeTeam' : hTeam,
                   'homeScore': hScore}
               if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                  print(pwrGameDict)
                   continue
                   
               if(pwrGameDict['homeTeam'] not in teamDict):
@@ -1969,7 +1967,6 @@ def getWOdds3(team1,team2):
                   'homeTeam' : hTeam,
                   'homeScore': hScore}
               if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                  print(pwrGameDict)
                   continue
                   
               if(pwrGameDict['homeTeam'] not in teamDict):
@@ -3148,6 +3145,10 @@ async def on_message(message):
      
             await message.channel.send("https://media.giphy.com/media/E327kKMf0RKHAB1jpu/giphy.gif")
 
+    if(message.content.startswith('?eagles') or message.content.startswith('?eags')):
+    
+            await message.channel.send("https://imgur.com/nupbiii")
+    
     if(message.content.startswith('?uconn')):
             await message.channel.send("https://imgur.com/a/gWy8Ifj")
             
@@ -4270,7 +4271,7 @@ def generatePDOPlot(gender):
     sh=[]
     marker=[]
     for i in statDict.keys():
-        if(statDict[i]['GP']>=4):
+        if(statDict[i]['GP']>=10):
           sv.append(statDict[i]['SV%'])
           sh.append(statDict[i]['Sh%'])
           marker.append(i)
@@ -4367,7 +4368,7 @@ def generateCorsiPlot(gender):
     ca=[]
     marker=[]
     for i in statDict.keys():
-      if(statDict[i]['GP']>=4):
+      if(statDict[i]['GP']>=10):
         cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
         ca.append(statDict[i]['SATAEV']/statDict[i]['GP'])
         marker.append(i)
@@ -4466,7 +4467,7 @@ def generatePDOCorsi(gender):
     pdo=[]
     marker=[]
     for i in statDict.keys():
-      if(statDict[i]['GP']>=4):
+      if(statDict[i]['GP']>=10):
         pdo.append((statDict[i]['SV%']*100)+statDict[i]['Sh%'])
         marker.append(i)
 
@@ -4489,7 +4490,7 @@ def generatePDOCorsi(gender):
     cf=[]
     marker=[]
     for i in statDict.keys():
-        if(statDict[i]['GP']>=4):
+        if(statDict[i]['GP']>=10):
           cf.append(statDict[i]['CF%EV'])
           marker.append(i)
     newData=False
