@@ -504,7 +504,11 @@ def convertDisRoleToTeam(team):
                 "color vermont" :  "Vermont",
                 "color maine" :  "Maine",
                 "color wisconsin" : "Wisconsin",
-                "color north dakota" : "North Dakota"}
+                "color north dakota" : "North Dakota",
+                "color michigan state" : "Michigan State",
+                "color michigan tech" : "Michigan Tech",
+                "color lowell" : "UMass Lowell",
+                "color quinnipiac" : "Quinnipiac"}
                 
     if team in teams:
         return teams[team]
@@ -526,6 +530,14 @@ def getCheer(role):
         role = "Wisconsin Badgers"
     elif(role == "color north dakota"):
         role = "North Dakota Fighting Hawks"
+    elif(role == "color michigan state"):
+        role = "Michigan State Spartans"
+    elif(role == "color lowell"):
+        role = "UMass Lowell River Hawk"
+    elif(role == "color michigan tech"):
+        role = "Michigan Tech Huskies"
+    elif(role == "color quinnipiac"):
+        role = "Quinnipiac Bobcats"
     cheerList = { "Boston University Terriers" : ["Go BU!", "Let's Go Terriers!", "BC Sucks!"],
     "Northeastern Huskies" : ["Go NU!", "#HowlinHuskies", "Go Huskies!"],
     "Cornell Big Red" : ["Let's Go Red!", "Go Big Red!", "Fuck Harvard!", "Screw BU!"],
