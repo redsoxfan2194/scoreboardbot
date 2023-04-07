@@ -641,7 +641,7 @@ def getJeer(role):
     "Quinnipiac Bobcats" : ["QU PU!"],
     "Michigan Tech Huskies" : ["Tech Still Sucks!"],
     "Denver Pioneers" : ["Sucks to DU!"],
-    "Ohio State Buckeyes" : ["An Ohio State University"],
+    "Ohio State Buckeyes" : ["An Ohio State University","O-H, OH NO"],
     "Arizona State Sun Devils" : ["Forked", "Fork You!", "Poor Sparky"],
     "Bowling Green Falcons" : ["Boo Ziggy"],
     "American International Yellow Jackets" : ["NO ONE JEERS MR. FUCKING. BEE."],
@@ -3114,7 +3114,7 @@ async def on_message(message):
             await message.channel.send("https://media.giphy.com/media/J5jccTVhlkKhogi6DP/giphy.mp4")
             
     if(message.content.startswith('?harvard')):
-            await message.channel.send("FUCK HARVARD")
+            await message.channel.send("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2JjYzk2OGMwNDZhZjY2YzlhZjFkYWQ3YWM3MWQ1NjEzMGZhM2IxYiZjdD1n/WeN7XLiKI6Gz2Pxrcc/giphy.gif")
         
     if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
             gif="https://m.imgur.com/ZPZUGW0"
