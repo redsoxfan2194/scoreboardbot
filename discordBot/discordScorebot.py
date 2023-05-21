@@ -17,7 +17,7 @@ import itertools
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import imageio
+import imageio.v2 as imageio
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import networkx as nx
 from burecordbook import *
@@ -258,8 +258,10 @@ class MyHTMLParser(HTMLParser):
         global d
         return d
 
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 
-client = discord.Client()
 def displayHelp():
     helpStr = ['''
 ?[mscore / wscore] [team name] - current scoreline for Current Men's/Women's game of team entered
@@ -3195,7 +3197,10 @@ async def on_message(message):
             
     if(message.content.startswith('?gophers')):
             await message.channel.send("https://www.youtube.com/watch?v=X1_x1oo35L0")
-            
+    
+    if(message.content.startswith('?minnesota')):
+            await message.channel.send("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjdmMDdmMDg3YjMyMzY3YTFiZTUxYzMwNzRhZDI1NTgzYjQ4NDM0YSZlcD12MV9pbnRlcm5hbF9naWZzX2dpZklkJmN0PWc/7iFEhJeCsyIqhPIs5G/giphy.gif")
+
     if(message.content.startswith('?miami')):
             await message.channel.send("https://www.youtube.com/watch?v=0bGpREk4Cw4")
             
@@ -3278,8 +3283,11 @@ async def on_message(message):
     if(message.content.startswith('?jdandthemouse') or message.content.startswith('?espn+')):
             await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/1049856269911064627/mickeyerror.png")
     if(message.content.startswith('?portal')):
-            await message.channel.send(random.choice([ "https://tenor.com/view/chosen-toy-story-gif-7936264","https://media.giphy.com/media/ciadMxfm3135m/giphy.gif"]))      
-                
+            await message.channel.send(random.choice([ "https://tenor.com/view/chosen-toy-story-gif-7936264","https://media.giphy.com/media/ciadMxfm3135m/giphy.gif"]))  
+    if(message.content.startswith('?praiseportal')): 
+            await message.channel.send("https://cdn.discordapp.com/attachments/900966889512128533/1108412212592259072/praiseportal.gif")
+    if(message.content.startswith('?transfer') or message.content.startswith('?withthat')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1096641052259143730/ezgif.com-add-text.gif")     
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
             if(len(opt)>1):
@@ -3356,8 +3364,11 @@ async def on_message(message):
         await message.channel.send("Win your games and don’t worry about this!!")
         
     if(message.content.startswith('?adam') or message.content.startswith('?wodon')):
+        await message.channel.send(random.choice(["https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg","https://cdn.discordapp.com/attachments/279689792990740481/1089993668582182953/image.png"]))
+    
+    if(message.content.startswith('?wobey')):
         await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg")
-        
+    
     if(message.content.startswith('?ecac') or message.content.startswith('?ezac')):
         await message.channel.send("https://cdn.discordapp.com/attachments/498885742802632724/937154136900767764/EZAC_Hockey.png")
    
