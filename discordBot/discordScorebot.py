@@ -17,13 +17,17 @@ import itertools
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import imageio.v2 as imageio
+import imageio
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import networkx as nx
 from burecordbook import *
 import burecordbook
+import discordauths
+import requests
+from PIL import Image, ImageDraw, ImageFont
+import json
 
-TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
 season = '2223'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
@@ -261,7 +265,6 @@ class MyHTMLParser(HTMLParser):
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
-
 def displayHelp():
     helpStr = ['''
 ?[mscore / wscore] [team name] - current scoreline for Current Men's/Women's game of team entered
@@ -2890,6 +2893,22 @@ async def on_message(message):
             msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?sriracha')): 
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")    
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateSezStats, 'sriracha')
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?snacc')): 
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")    
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateSezStats, 'snacc')
+            p.shutdown()
+        await message.channel.send(file=discord.File(msg))
   
     if(message.content.startswith('?wpwrplot')):
         gender='Womens'        
@@ -5123,5 +5142,85 @@ def checkForAlaskaTest():
         return "Alaska Test tonight!"
     return "No Alaska Test tonight"
     
-client.run(TOKEN)
+def generateSezStats(type):
+  if(type=='sriracha'):
+
+    # Set up Google Sheet details
+    SHEET_ID = '1lh3Qirs1HxDOeowRrqXvuLFM3iY68UK_toiCxEGfPpo'
+    SHEET_RANGE = 'Sheet1'  # Replace with your desired sheet name or range
+  elif(type=='snacc'):
+      # Set up Google Sheet details
+    SHEET_ID = '1gbNvoRrsMyXcuE3uk6Bnou_LkBzQvXG6rUxzMYHh9J8'
+    SHEET_RANGE = 'Sheet1'  # Replace with your desired sheet name or range
+  else:
+    return ''
+    
+
+  # Set up URL for fetching sheet data
+  url = f'https://sheets.googleapis.com/v4/spreadsheets/{SHEET_ID}/values/{SHEET_RANGE}?key={discordauths.SHEETS_API_KEY}'
+
+  # Fetch sheet data as JSON
+  response = requests.get(url)
+  sheet_data = response.json()
+
+  # Extract values from the response
+  values = sheet_data['values']
+
+  # Check if previously saved data exists
+  if os.path.exists(f'/home/nmemme/discordBot/krachdata/{type}_data.json'):
+      # Read previously saved data
+      with open(f'/home/nmemme/discordBot/krachdata/{type}_data.json', 'r') as file:
+          previous_data = json.load(file)
+
+      # Compare current data with previous data
+      if previous_data == values:
+          return f"/home/nmemme/discordBot/krachdata/{type}.jpg"
+
+  # Save the current data for future comparison
+  with open(f'/home/nmemme/discordBot/krachdata/{type}_data.json', 'w') as file:
+      json.dump(values, file)
+
+
+  # Calculate image size based on sheet dimensions
+  num_rows = len(values)
+  num_cols = max(len(row) for row in values)
+
+  cell_width = 110  # Adjust cell width as needed
+  cell_height = 30  # Adjust cell height as needed
+  image_width = num_cols * cell_width
+  image_height = num_rows * cell_height
+
+  # Create the image with calculated size
+  image = Image.new('RGB', (image_width, image_height))
+  # Set up font and font size for the text
+  font_size = 20  # Adjust font size as needed
+  font_path = '/usr/share/fonts/liberation/LiberationSans-Regular.ttf'
+  # Set up initial coordinates for drawing text
+  x = 10  # X-coordinate
+  y = 10  # Y-coordinate
+
+  # Draw the values on the image
+  draw = ImageDraw.Draw(image)
+  for row in values:
+      counter=0
+      for cell in row:
+          if('Rank' in row[0]):
+              font_size=11
+          else:
+              font_size=20
+          draw.text((x, y), str(cell), font=ImageFont.truetype(font_path, font_size))
+          if((len(row)>3 and counter==1) or (len(row)==2 and counter==0)):
+              x+=70
+          counter+=1
+          x += 100  # Adjust cell width as needed
+      x = 10  # Reset x-coordinate for the next row
+      y += 30  # Adjust row height as needed
+
+  # Save the image as a JPG file
+  image.save(f'/home/nmemme/discordBot/krachdata/{type}.jpg', 'JPEG')
+
+  return f"/home/nmemme/discordBot/krachdata/{type}.jpg"
+
+    
+client.run(discordauths.TOKEN)
 print("Ending... at",datetime.now())
