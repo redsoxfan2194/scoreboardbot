@@ -2793,14 +2793,24 @@ async def on_message(message):
             roleChoice = message.content.split('?roles ')
             if(len(roleChoice)==1):
                     
-                roles = "```"
-                
-                for i in message.guild.roles:
+                roles1 = "```"
+                roles2 = "```"
+                rList= message.guild.roles
+                if(len(rList)>1):
+                  half1 = rList[len(rList)//2:]
+                  half2 = rList[:len(rList)//2]
+                for i in half1:
                     if(i.name not in invalidRoles):
-                        roles+= i.name + "\n"
-                if(roles != "```\n"):
-                    roles += '```'
-                    await message.author.send(roles) 
+                        roles1+= i.name + "\n"
+                if(roles1 != "```\n"):
+                    roles1 += '```'
+                    await message.author.send(roles1) 
+                for i in half2:
+                    if(i.name not in invalidRoles):
+                        roles2+= i.name + "\n"
+                if(roles2 != "```\n"):
+                    roles2 += '```'
+                    await message.author.send(roles2) 
             else:
                 team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
                 if(team==''):
