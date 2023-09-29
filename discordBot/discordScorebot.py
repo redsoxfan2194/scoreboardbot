@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 import json
 
 
-season = '2223'
+season = '2324'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
 
 chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
@@ -108,7 +108,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Massachusetts" : "<:umass:1047721396668739594>",
 "Minnesota Duluth" : "<:umd:666836078019215360>",
 "New Hampshire" : "<:unh:761701513236054027>",
-"Union" : "<:union:761701482030039070>",
+"Union" : "<:union:1157405193521074226>",
 "Vermont" : "<:vermont:761701504691339274>",
 "Western Michigan" : "<:wmu:1048377502638288978>",
 "Wisconsin" : "<:wisconsin:666834959897722900>",
@@ -118,7 +118,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Long Island" : "<:liu:761701500565061655>",
 "Mass.-Lowell" : "<:lowell:761701500397158450>",
 "Nebraska-Omaha": "<:omaha:761701489047371807>",
-"American Int'l": "<:aic:693220791076126760>",
+"American Int'l": "<:aic:1129092540260438036>",
 "Army": "<:army:761701458311381003>",
 "Alabama-Huntsville": "<:uah:716027231700516895>",
 "Alaska-Anchorage" : "<:uaa:761701504376766464>",
@@ -132,6 +132,7 @@ def getLogoDict():
         "Alaska" : "images/logos/akf.png",
         "American Int'l" : "images/logos/aic.png",
         "Arizona State" : "images/logos/asu.png",
+        "Augustana" : "images/logos/aug.png",
         "Army" : "images/logos/arm.png",
         "Bemidji State" : "images/logos/bmj.png",
         "Bentley" : "images/logos/ben.png",
@@ -829,7 +830,7 @@ def getKRACH(opt):
 def getMatchupHistory(team,opp,numGames):
     global chnDiffs
     minSeason=19001901
-    maxSeason=20222023
+    maxSeason=20232024
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
@@ -1588,7 +1589,7 @@ def getWPairwise(opt):
 def getWKRACH(opt):
     global teamDict
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1610,7 +1611,7 @@ def getWKRACH(opt):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -1784,7 +1785,7 @@ def getWOdds(team1,team2):
         return "Team 2 Not Found"
         
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1806,7 +1807,7 @@ def getWOdds(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -1924,7 +1925,7 @@ def getWOdds3(team1,team2):
         return "Team 2 Not Found"
         
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1946,7 +1947,7 @@ def getWOdds3(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -3167,6 +3168,9 @@ async def on_message(message):
     if(message.content.startswith('?northdakota')):
             await message.channel.send("F'IN HAWKS")
             
+    if(message.content.startswith('?lane') or message.content.startswith('?hutson')):
+            await message.channel.send("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaG5nbHh2dW03YmxxaWtoZXE0ZG9jYjFtMjlyYXZ0OHIxbjMxN21zNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pKCnzx7xyJFkQSnOxd/giphy.gif")
+            
     if(message.content.startswith('?jerry')):
             await message.channel.send("https://imgur.com/a/mejC6E2")
             #await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
@@ -3677,6 +3681,7 @@ def getSchedule(team,opt,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
         "Boston College" : "team/Boston-College/9/",
@@ -3843,6 +3848,7 @@ def getResults(team,opt,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
         "Boston College" : "team/Boston-College/9/",
@@ -3997,6 +4003,7 @@ def getStats(team,playerToFind,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
         "Boston College" : "team/Boston-College/9/",
@@ -4700,7 +4707,7 @@ def getWTransitiveWinChain(team1,team2):
             team1='LIU'
     if(team2=="Long Island University"):
             team2='LIU'
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4722,7 +4729,7 @@ def getWTransitiveWinChain(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2022-2023/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -4787,6 +4794,7 @@ def getTeamStats(team,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
         "Boston College" : "team/Boston-College/9/",
@@ -4903,6 +4911,7 @@ def generatePairwisePlot(gender):
         "Mercyhurst" :"AHA",
         "Air Force" :"AHA",
         "Holy Cross" :"AHA",
+        "Robert Morris" : "AHA",
         "Minnesota" :"Big Ten",
         "Michigan" :"Big Ten",
         "Notre Dame" :"Big Ten",
@@ -4910,6 +4919,7 @@ def generatePairwisePlot(gender):
         "Michigan State" :"Big Ten",
         "Wisconsin" :"Big Ten",
         "Penn State" :"Big Ten",
+        "Augustana" : "CCHA",
         "Minnesota State" :"CCHA",
         "Bemidji State" :"CCHA",
         "Bowling Green" :"CCHA",
@@ -5029,6 +5039,7 @@ def generatePairwisePlot(gender):
         "Syracuse" : "CHA",
         "Lindenwood" : "CHA",
         "RIT" : "CHA",
+        "Robert Morris" : "CHA",
         "Harvard" : "ECAC",
         "Quinnipiac" : "ECAC",
         "Yale" : "ECAC",
