@@ -4241,7 +4241,9 @@ def generateFullScoreboard(gender,opt):
             bubble = getPairwise(opt)
             bubble=bubble.replace('```','').rstrip('\n').lstrip('\n')
             bubble=re.sub(r"(\d*\. )","",bubble)
-            opt = "Bubble"            
+            opt = "Bubble" 
+        elif(opt=='active'):
+            opt='Active'
         else:
             opt = 'full'
     elif(gender == "Women"):
@@ -4260,12 +4262,14 @@ def generateFullScoreboard(gender,opt):
             bubble=bubble.replace('```','').rstrip('\n').lstrip('\n')
             bubble=re.sub(r"(\d*\. )","",bubble)
             opt = "Bubble"
+        elif(opt=='active'):
+            opt='Active'
         else:
             opt='full'
     for conf in data:
         conference=conf.find('h2').get_text()
         games=conf.find_all('table',{'id':'mainscore'})
-        if(opt not in conference and (opt != 'full' and opt != 'Bubble')):
+        if(opt not in conference and (opt != 'full' and opt != 'Bubble' and opt!='Active')):
             continue
         for i in games:
             
@@ -4285,9 +4289,14 @@ def generateFullScoreboard(gender,opt):
                 status=gameData[3].get_text(separator=" ")
             if(opt=='Bubble' and not (awayTeam in bubble or homeTeam in bubble)):
                 continue
+            if(opt=='Active'):
+                if('Per' not in status):
+                  continue
             scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore," ".join(status.strip('\r\n').strip().split()))
     scoreline+='```'
     if(scoreline=='```\n```'):
+        if(opt=='Active'):
+          return 'No Active Games'
         return 'No Games Today'
     return scoreline
 
@@ -5017,6 +5026,8 @@ def generatePairwisePlot(gender):
         numTeams=16
         cutLine=numTeams+.5
         for i in cDict:
+            if(i not in pwrDict.keys()):
+              continue
             x=[pwrDict[d] for d in cDict[i]]
             if(min(x)>=numTeams and i != 'Independents'):
                 cutLine-=1
@@ -5134,6 +5145,8 @@ def generatePairwisePlot(gender):
         numTeams=11
         cutLine=numTeams+.5
         for i in cDict:
+            if(i not in pwrDict.keys()):
+              continue
             x=[pwrDict[d] for d in cDict[i]]
             if(min(x)>=numTeams and i != 'Independents'):
                 cutLine-=1
