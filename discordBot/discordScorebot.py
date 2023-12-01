@@ -59,7 +59,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Clarkson" : "<:clarkson:666834128834134017>",
 "Colgate" : "<:colgate:791441084420980746>",
 "Colorado College" : "<:coloradocollege:761701485821689858>",
-"Cornell" : "<:cornell:666832546033827892>",
+"Cornell" : "<:cornell:1167832952131035216>",
 "Dartmouth" : "<:dartmouth:761701466876280893>",
 "Denver" : "<:denver:1047721458798964758>",
 "Ferris State" : "<:ferrisstate:761701516696092702>",
@@ -306,6 +306,8 @@ def displayHelp():
 ?[whatsontv] - displays list of Today's games broadcasted on TV
 ?[burecbook] [query] - displays result from BU Record Book Query
 ?[pdoplot] - displays PDO plot (note may take a few minutes to generate)
+?[pwrplot/wpwrplot] - displays PWR plot (note may take a few minutes to generate)
+?[krachplot/wkrachplot] - displays PWR plot (note may take a few minutes to generate)
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
 ?[chain/whosbetter] [team1],[team2] - displays men's transitive win chain from team 1 to team 2 
 ?[wchain] [team1],[team2] - displays women's transitive win chain from team 1 to team 2 
@@ -558,7 +560,7 @@ def getCheer(role):
     "Michigan Tech Huskies" : ["Go Huskies!"],
     "UMass Lowell River Hawks" : ["Go River Hawks!"],
     "Lake Superior State Lakers" : ["Ringy Dingy!"],
-    "Bemidji State Beavers" : ["Roll Beaves!", "Go Beaves!", "Go Beavers!"],
+    "Bemidji State Beavers" : ["Roll Dam Beavs!", "Go Beavs!", "Go Beavers!"],
     "Omaha Mavericks" : ["Everyone for Omaha!"],
     "Clarkson Golden Knights" : ["Let's Go Tech!"],
     "Vermont Catamounts" : ["Go Catamounts!"],
@@ -650,7 +652,7 @@ def getJeer(role):
     "Denver Pioneers" : ["Sucks to DU!"],
     "Ohio State Buckeyes" : ["An Ohio State University","O-H, OH NO"],
     "Arizona State Sun Devils" : ["Forked", "Fork You!", "Poor Sparky"],
-    "Bowling Green Falcons" : ["Boo Ziggy"],
+    "Bowling Green Falcons" : ["Boo Ziggy", "Big Gross Stinky University"],
     "American International Yellow Jackets" : ["NO ONE JEERS MR. FUCKING. BEE."],
     "Clarkson Golden Knights" : ["It's " + strftime("%H:%M", localtime()) + " and Clarkson still sucks!"],
     "Vermont Catamounts" : ["Elephants Don't Walk That Way", "Dirty Hippies"],
@@ -1779,12 +1781,18 @@ def getWOdds(team1,team2):
         
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
+
     if(not scorebot.isD1(team1,team1,'Women')):
         return "Team 1 Not Found"
     
     if(not scorebot.isD1(team2,team2,'Women')):
         return "Team 2 Not Found"
-        
+    
+    if(team1=="UConn"):
+      team1="Connecticut"
+    if(team2=="UConn"):
+      team2="Connecticut"  
+      
     teamDict = {}
     url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
     f=urllib.request.urlopen(url)
@@ -2464,7 +2472,7 @@ async def on_message(message):
         if(cheer!=""):
             msg="{}".format(cheer)
         else:
-            #msg = "I don't know that cheer."
+            msg = "I don't know that cheer."
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
@@ -2482,7 +2490,7 @@ async def on_message(message):
         if(jeer!=""):
             msg="{}".format(jeer)
         else:
-            #msg = "I don't know that jeer."
+            msg = "I don't know that jeer."
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
@@ -2499,7 +2507,7 @@ async def on_message(message):
         if(jeer!=""):
             msg="{}".format(jeer)
         else:
-            #msg = "I don't know that jeer."
+            msg = "I don't know that jeer."
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
@@ -2552,7 +2560,7 @@ async def on_message(message):
                 await message.channel.send(msg)
  
                 
-    if(message.content.startswith('?krach')):
+    if(message.content.startswith('?krach') and not message.content.startswith('?krachplot')):
         opt = message.content.split('?krach ')
         if(len(opt)==1):
             with cf.ProcessPoolExecutor(1) as p:
@@ -2567,7 +2575,7 @@ async def on_message(message):
             if(len(msg)>0):
                 await message.channel.send(msg)
                 
-    if(message.content.startswith('?wkrach')):
+    if(message.content.startswith('?wkrach') and not message.content.startswith('?wkrachplot')):
         opt = message.content.split('?wkrach ')
         if(len(opt)==1):
             with cf.ProcessPoolExecutor(1) as p:
@@ -2906,21 +2914,37 @@ async def on_message(message):
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
-    if(message.content.startswith('?sriracha')): 
-        if(message.channel.name == 'game-night'):
-            await message.channel.send("Please use #bot-dump")    
+    if(message.content.startswith('?krachplot')):
+        gender='Mens'        
         with cf.ProcessPoolExecutor(1) as p:
-            msg = await loop.run_in_executor(p, generateSezStats, 'sriracha')
+            msg = await loop.run_in_executor(p, generateKrachPlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
-    if(message.content.startswith('?snacc')): 
-        if(message.channel.name == 'game-night'):
-            await message.channel.send("Please use #bot-dump")    
+    if(message.content.startswith('?wkrachplot')):
+        gender='Womens'        
         with cf.ProcessPoolExecutor(1) as p:
-            msg = await loop.run_in_executor(p, generateSezStats, 'snacc')
+            msg = await loop.run_in_executor(p, generateKrachPlot, gender)
             p.shutdown()
         await message.channel.send(file=discord.File(msg))
+        
+    if(message.content.startswith('?sriracha')): 
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump")   
+        else:
+          with cf.ProcessPoolExecutor(1) as p:
+              msg = await loop.run_in_executor(p, generateSezStats, 'sriracha')
+              p.shutdown()
+          await message.channel.send(file=discord.File(msg))
+    
+    if(message.content.startswith('?snacc')): 
+        if(message.channel.name == 'game-night'):
+            await message.channel.send("Please use #bot-dump") 
+        else:
+          with cf.ProcessPoolExecutor(1) as p:
+              msg = await loop.run_in_executor(p, generateSezStats, 'snacc')
+              p.shutdown()
+          await message.channel.send(file=discord.File(msg))
   
     if(message.content.startswith('?wpwrplot')):
         gender='Womens'        
@@ -3132,7 +3156,7 @@ async def on_message(message):
             await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
             
     if(message.content.startswith('?goodgoal')):
-            await message.channel.send("https://gfycat.com/lastingcomplexblackbuck")
+            await message.channel.send("https://tenor.com/view/good-goal-gif-4982175")
             
     if(message.content.startswith('?nogoal')):
             await message.channel.send("https://media.giphy.com/media/q01IxfTXuoP4Y/giphy.mp4")  
@@ -3365,7 +3389,7 @@ async def on_message(message):
         await message.channel.send("https://media.discordapp.net/attachments/519719563294801922/716448834703589397/mascotmadness.png")
         
     if(message.content.startswith('?playoffot') or message.content.startswith('?playoffOT') ):
-        await message.channel.send("https://twitter.com/jon_bois/status/456616952153128960")    
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1169398545456038009/image0.jpg")    
    
     if(message.content.startswith('?merrimack')):
         await message.channel.send("https://www.youtube.com/watch?v=tU-9xtFEuk0")
@@ -3427,6 +3451,12 @@ async def on_message(message):
     if(message.content.startswith('?goodnight') or message.content.startswith('?goodbye')):
             await message.channel.send("https://media.giphy.com/media/yoha0ouKET1h3nMaR2/giphy.gif")
         
+    if(message.content.startswith('?thirdperiod')):
+            await message.channel.send("https://vxtwitter.com/sezenack/status/1723515467640307832")
+    
+    if(message.content.startswith('?botson')):
+            await message.channel.send("https://media.discordapp.net/attachments/530771912910176276/1175406190205878322/rendercombined.jpg?ex=656b1d51&is=6558a851&hm=7502620b8bd449188d57e33e29b24979fd1c140dcfb4a6b8a92a8692250a3717&=&width=2880&height=960")
+            
     if(message.content.startswith('?botscores') or message.content.startswith('?botscore')):
         await message.channel.send("Anyone: hey Dr Bot i want a score\nBot: Sure thing! Here you go buddy!!\nAnyone: This score is wrong! You Suck!\nBot: :sob::sob::sob:")
     
@@ -3435,6 +3465,8 @@ async def on_message(message):
 
     if(message.content.startswith('?redwasright')):
         await message.channel.send("```\nAll hail Red Sox Fan\nWe sing in jubilee (in jubilee)\nAll hail Red Sox Fan\nProud hater of BC (of BC)\nAll hail Red Sox Fan\nAnnoyer of JD\nThrough the years\nWe ever will proclaim\nTop mod of our hockey```") 
+    if(message.content.startswith('?souza') or message.content.startswith('?extendsouza') ):
+        await message.channel.send("https://media.giphy.com/media/fcnwSJo3HP8cDv5FqL/giphy.gif")
     
     if(message.content.startswith('?recruit')):
         teamChoice = message.content.split('?recruit ')
@@ -4332,14 +4364,14 @@ def generatePDOPlot(gender):
                 val=float(val)
                
             teamDict[headers[i]] = val
-        
-        statDict[col[1].get_text()] = teamDict 
+        if(teamDict['GP']!=''):
+          statDict[col[1].get_text()] = teamDict 
 
     sv=[]
     sh=[]
     marker=[]
     for i in statDict.keys():
-        if(statDict[i]['GP']>=10):
+        if(statDict[i]['GP']>=2):
           sv.append(statDict[i]['SV%'])
           sh.append(statDict[i]['Sh%'])
           marker.append(i)
@@ -4370,6 +4402,8 @@ def generatePDOPlot(gender):
         fname.close()
         lDict=logoDict.copy()
         for team in statDict.keys():
+            if(team not in lDict.keys()):
+              continue
             statDict[team]['logo'] = lDict[team]['logo']
             statDict[team]['img'] = lDict[team]['img']
 
@@ -4381,6 +4415,8 @@ def generatePDOPlot(gender):
         fig.patch.set_alpha(1)
         plt.tight_layout()
         for x0, y0, path in zip(sh, sv, marker):
+           if(path not in lDict.keys()):
+              continue
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         #plt.xticks(np.arange(round(min(sh),2)-1,max(sh)+1))
@@ -4436,7 +4472,7 @@ def generateCorsiPlot(gender):
     ca=[]
     marker=[]
     for i in statDict.keys():
-      if(statDict[i]['GP']>=10):
+      if(statDict[i]['GP']>=2):
         cf.append(statDict[i]['SATEV']/statDict[i]['GP'])
         ca.append(statDict[i]['SATAEV']/statDict[i]['GP'])
         marker.append(i)
@@ -4467,6 +4503,8 @@ def generateCorsiPlot(gender):
         fname.close()
         lDict=logoDict.copy()
         for team in statDict.keys():
+            if(team not in lDict.keys()):
+              continue
             statDict[team]['logo'] = lDict[team]['logo']
             statDict[team]['img'] = lDict[team]['img']
 
@@ -4478,6 +4516,8 @@ def generateCorsiPlot(gender):
         fig.patch.set_alpha(1)
         plt.tight_layout()
         for x0, y0, path in zip(cf, ca, marker):
+           if(path not in lDict.keys()):
+              continue
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         plt.xticks(np.arange(round(min(cf))-1,max(cf)+1,5))
@@ -4529,13 +4569,13 @@ def generatePDOCorsi(gender):
                 val=float(val)
 
             teamDict[headers[i]] = val
-
-        statDict[col[1].get_text()] = teamDict 
+        if(teamDict['GP']!=''):
+          statDict[col[1].get_text()] = teamDict 
 
     pdo=[]
     marker=[]
     for i in statDict.keys():
-      if(statDict[i]['GP']>=10):
+      if(statDict[i]['GP']>=2):
         pdo.append((statDict[i]['SV%']*100)+statDict[i]['Sh%'])
         marker.append(i)
 
@@ -4558,7 +4598,7 @@ def generatePDOCorsi(gender):
     cf=[]
     marker=[]
     for i in statDict.keys():
-        if(statDict[i]['GP']>=10):
+        if(statDict[i]['GP']>=2):
           cf.append(statDict[i]['CF%EV'])
           marker.append(i)
     newData=False
@@ -4587,6 +4627,8 @@ def generatePDOCorsi(gender):
         fname.close()
         lDict=logoDict.copy()
         for team in statDict.keys():
+            if(team not in lDict.keys()):
+              continue
             statDict[team]['logo'] = lDict[team]['logo']
             statDict[team]['img'] = lDict[team]['img']
 
@@ -4598,6 +4640,8 @@ def generatePDOCorsi(gender):
         fig.patch.set_alpha(1)
         plt.tight_layout()
         for x0, y0, path in zip(pdo, cf, marker):
+           if(path not in lDict.keys()):
+              continue
            ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
            ax.add_artist(ab)
         plt.ylim([min(cf),max(cf)])
@@ -4994,8 +5038,6 @@ def generatePairwisePlot(gender):
             
         cDict={}
         for team,conf in confDict.items():
-            if(team=='Stonehill'):
-              continue
             if conf not in cDict.keys():
                 cDict[conf]=[]
                 cDict[conf].append(team)
@@ -5164,6 +5206,386 @@ def generatePairwisePlot(gender):
         pwrPlotName='/home/nmemme/discordBot/pdoplotdata/wpwrplot.png'
         plt.savefig(pwrPlotName)
     return pwrPlotName
+    
+def generateKrachPlot(gender):
+    global logoDict
+    if(gender=='Mens'):
+      confDict={"Bentley" :"AHA",
+        "American Int'l" :"AHA",
+        "Canisius" :"AHA",
+        "Army" :"AHA",
+        "Sacred Heart" :"AHA",
+        "RIT" :"AHA",
+        "Niagara" :"AHA",
+        "Mercyhurst" :"AHA",
+        "Air Force" :"AHA",
+        "Holy Cross" :"AHA",
+        "Robert Morris" : "AHA",
+        "Minnesota" :"Big Ten",
+        "Michigan" :"Big Ten",
+        "Notre Dame" :"Big Ten",
+        "Ohio State" :"Big Ten",
+        "Michigan State" :"Big Ten",
+        "Wisconsin" :"Big Ten",
+        "Penn State" :"Big Ten",
+        "Augustana" : "CCHA",
+        "Minnesota State" :"CCHA",
+        "Bemidji State" :"CCHA",
+        "Bowling Green" :"CCHA",
+        "Michigan Tech" :"CCHA",
+        "Lake Superior" :"CCHA",
+        "Northern Michigan" :"CCHA",
+        "Ferris State" :"CCHA",
+        "St. Thomas" :"CCHA",
+        "Harvard" :"ECAC",
+        "Cornell" :"ECAC",
+        "Quinnipiac" :"ECAC",
+        "Clarkson" :"ECAC",
+        "Rensselaer" :"ECAC",
+        "St. Lawrence" :"ECAC",
+        "Brown" :"ECAC",
+        "Colgate" :"ECAC",
+        "Union" :"ECAC",
+        "Dartmouth" :"ECAC",
+        "Princeton" :"ECAC",
+        "Yale" :"ECAC",
+        "Mass.-Lowell" :"Hockey East",
+        "Massachusetts" :"Hockey East",
+        "Northeastern" :"Hockey East",
+        "Providence" :"Hockey East",
+        "Boston College" :"Hockey East",
+        "Connecticut" :"Hockey East",
+        "Boston University" :"Hockey East",
+        "Merrimack" :"Hockey East",
+        "New Hampshire" :"Hockey East",
+        "Vermont" :"Hockey East",
+        "Maine" :"Hockey East",
+        "North Dakota" :"NCHC",
+        "Western Michigan" :"NCHC",
+        "Denver" :"NCHC",
+        "Minnesota-Duluth" :"NCHC",
+        "St. Cloud State" :"NCHC",
+        "Omaha" :"NCHC",
+        "Colorado College" :"NCHC",
+        "Miami" :"NCHC",
+        "Alaska" :"Independents",
+        "Alaska-Anchorage" : "Independents",
+        "Arizona State" :"Independents",
+        "Long Island" :"Independents",
+        "Stonehill" : "Independents",
+        "Lindenwood" : "Independents"}
+        
+        
+      url = "https://www.collegehockeynews.com/ratings/krach.php"
+      f=urllib.request.urlopen(url)
+      html = f.read()
+      f.close()
+      soup = BeautifulSoup(html, 'html.parser')
+      krach = []
+      for i in soup.findChildren('tr'):
+          cells = i.findChildren('td')
+          line = ""
+          for cell in cells:
+           value = cell.string
+           if(value != None):
+              line +=value + "!"
+          if(line and 'RRWP' not in line and 'Ratio' not in line and 'Strength' not in line and 'Winning' not in line):
+              line=line.rstrip('!')
+              krach.append(line.split("!")[1])       
+          
+      counter=1
+      krachDict={}
+      for i in krach:
+          krachDict[i]=counter
+          counter+=1
+          
+      cDict={}
+      for team,conf in confDict.items():
+          if conf not in cDict.keys():
+              cDict[conf]=[]
+              cDict[conf].append(team)
+          else:
+              cDict[conf].append(team)     
+      statDict=logoDict.copy()
+      kr=[]
+      krx=[]
+      ticks=[]
+      marker=[]
+      counter=0
+      
+      fig, ax = plt.subplots(figsize=(9,9))
+      fig.tight_layout()
+      for k in cDict.keys():
+          ticks.append(k)
+          for i in cDict[k]:
+            if(i in krachDict.keys()):
+                kr.append(krachDict[i])
+                krx.append(counter)
+                marker.append(i)
+
+          counter+=1
+      for x0, y0, path in zip(krx, kr, marker):
+         ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+         ax.add_artist(ab)
+      plt.xticks(range(0,7))
+      numTeams=16
+      cutLine=numTeams+.5
+      for i in cDict:
+          if(i not in krachDict.keys()):
+            continue
+          x=[krachDict[d] for d in cDict[i]]
+          if(min(x)>=numTeams and i != 'Independents'):
+              cutLine-=1
+      plt.hlines(cutLine,0,6,linestyle='--',label='Cut Line',colors='black')
+      plt.legend()
+      plt.ylim([len(kr)+2,0])
+      plt.xlabel('Conference')
+      plt.ylabel('KRACH Ranking')
+      plt.title('Conference KRACH')
+      plt.grid(axis='y')
+      gca=plt.gca()
+      fig.patch.set_facecolor('lightgray')
+      fig.patch.set_alpha(1)
+      gca.axes.set_xticklabels(ticks);
+      krachPlotName='/home/nmemme/discordBot/pdoplotdata/mkrachplot.png'
+      plt.savefig(krachPlotName)
+          
+    elif(gender=='Womens'):
+        confDict={"Mercyhurst" : "CHA",
+        "Penn State" : "CHA",
+        "Syracuse" : "CHA",
+        "Lindenwood" : "CHA",
+        "RIT" : "CHA",
+        "Robert Morris" : "CHA",
+        "Harvard" : "ECAC",
+        "Quinnipiac" : "ECAC",
+        "Yale" : "ECAC",
+        "Colgate" : "ECAC",
+        "Clarkson" : "ECAC",
+        "St. Lawrence" : "ECAC",
+        "Cornell" : "ECAC",
+        "Princeton" : "ECAC",
+        "Rensselaer" : "ECAC",
+        "Dartmouth" : "ECAC",
+        "Brown" : "ECAC",
+        "Union" : "ECAC",
+        "Northeastern" : "Hockey East",
+        "Connecticut" : "Hockey East",
+        "Vermont" : "Hockey East",
+        "Boston College" : "Hockey East",
+        "Maine" : "Hockey East",
+        "Providence" : "Hockey East",
+        "Boston University" : "Hockey East",
+        "New Hampshire" : "Hockey East",
+        "Merrimack" : "Hockey East",
+        "Holy Cross" : "Hockey East",
+        "LIU" : "NEWHA",
+        "Franklin Pierce" : "NEWHA",
+        "Post" : "NEWHA",
+        "Saint Anselm" : "NEWHA",
+        "Sacred Heart" : "NEWHA",
+        "Saint Michael's" : "NEWHA",
+        "Minnesota" : "WCHA",
+        "Ohio State" : "WCHA",
+        "Wisconsin" : "WCHA",
+        "Minnesota-Duluth" : "WCHA",
+        "Minnesota State" : "WCHA",
+        "Bemidji State" : "WCHA",
+        "St. Cloud State" : "WCHA",
+        "St. Thomas" : "WCHA"}
+        
+        global teamDict
+        teamDict = {}
+        url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+        f=urllib.request.urlopen(url)
+        html = f.read()
+        f.close()
+        soup = BeautifulSoup(html, 'html.parser')
+        site_json=json.loads(soup.text)
+        gameDayList=site_json['json']['dates']
+        dateFile='/home/nmemme/discordBot/krachdata/latestDate.txt'
+        dataFile='/home/nmemme/discordBot/krachdata/gameData.json'
+        latestData=''
+        if(os.path.exists(dateFile)):
+            fname=open(dateFile,'r')
+            latestData=fname.read().rstrip('\n')
+        LossDict={}
+        gData={}
+        for i in gameDayList:
+            if(date.fromisoformat(i)>date.today()):
+                fname=open(dateFile,'w')
+                print(date.today(),file=fname)
+                fname.close()
+                break
+            if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+                url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+                f=urllib.request.urlopen(url)
+                html = f.read()
+                f.close()
+                soup = BeautifulSoup(html, 'html.parser')
+                site_json=json.loads(soup.text)
+                gData[i]=site_json['json']['data']
+        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
+            with open(dataFile, 'w') as f:
+                json.dump(gData, f)
+        if(os.path.exists(dataFile)):
+          f=open(dataFile,'r')
+          html = f.read()
+          f.close()
+          soup = BeautifulSoup(html, 'html.parser')
+          site_json=json.loads(soup.text)
+          for i in site_json.keys():
+              gameList=site_json[i]
+              for game in gameList:
+                  if(game['vscore']=='' or game['hscore']==''):
+                      continue
+                  pattern = r'[0-9]'
+                  game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
+                  game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
+                  game['home_name'] = game['home_name'].lstrip(' ')
+                  game['vis_name'] = game['vis_name'].lstrip(' ')
+                  aTeam=game['vis_name']
+                  aScore=int(game['vscore'])
+                  hTeam=game['home_name']
+                  hScore=int(game['hscore'])
+                  if(game['type']=='ex'):
+                      continue
+
+                  pwrGameDict = {'awayTeam' : aTeam,
+                      'awayScore': aScore,
+                      'homeTeam' : hTeam,
+                      'homeScore': hScore}
+                  if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
+                      continue
+                      
+                  if(pwrGameDict['homeTeam'] not in teamDict):
+                      teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
+                  if(pwrGameDict['awayTeam'] not in teamDict):
+                      teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
+
+
+                  if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
+                      teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
+                      teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
+
+                  elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
+                      teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
+                      teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
+                  else:
+                      teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
+                      teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
+                  teamDict[pwrGameDict['homeTeam']]['GP'] += 1
+                  teamDict[pwrGameDict['awayTeam']]['GP'] += 1
+                  teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
+                  teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
+
+          for team in teamDict.keys():
+              try:
+                  teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
+              except:
+                  teamDict[team]['Ratio'] = float('inf')
+                  continue
+
+          converged = False
+          while(not converged):
+              for team in teamDict.keys():
+                  tWFactor = 0
+                  sumKrach = 0
+                  for oppo in set(teamDict[team]['teamsPlayed']):
+                      sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
+                  try:
+                      newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
+                  except:
+                      newRating=0
+                      teamDict[team]['Rating']=1
+                  ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
+
+                  if(ratio <= 0.00001):
+                      converged=True
+                  teamDict[team]['Rating']= newRating
+              if(converged):
+                  break
+
+          for i in range(10):
+              scale_wins = 0
+              for team in teamDict.keys():
+                  scale_wins += 100/(100 + teamDict[team]['Rating'])
+              scale = scale_wins/20
+
+              for team in teamDict.keys():
+                  teamDict[team]['Rating'] *= scale
+
+          krachDict ={}
+          for i in teamDict.keys():
+              if(scorebot.isD1(i,i,'Women')):
+                  krachDict[i] = teamDict[i]['Rating']
+
+          sorted_krach = sorted(krachDict.items(), key=operator.itemgetter(1), reverse=True)
+          krach = []
+          for i in sorted_krach:
+              krach.append(i[0])
+ 
+        counter=1
+        krachDict={}
+        for i in krach:
+            krachDict[i]=counter
+            counter+=1
+           
+        cDict={}
+        for team,conf in confDict.items():
+            if conf not in cDict.keys():
+                cDict[conf]=[]
+                cDict[conf].append(team)
+            else:
+                cDict[conf].append(team)
+                       
+        statDict=logoDict.copy()
+        kr=[]
+        krx=[]
+        ticks=[]
+        marker=[]
+        counter=0
+        
+        fig, ax = plt.subplots(figsize=(9,9))
+        fig.tight_layout()
+        for k in cDict.keys():
+            ticks.append(k)
+            for i in cDict[k]:
+                if(i not in krachDict):
+                  continue
+                kr.append(krachDict[i])
+                krx.append(counter)
+                marker.append(i)
+
+            counter+=1
+        for x0, y0, path in zip(krx, kr, marker):
+           if(path=='LIU'):
+            path='Long Island'
+           ab = AnnotationBbox(OffsetImage(statDict[path]['img'], zoom=.1), (x0, y0), frameon=False)
+           ax.add_artist(ab)
+        plt.xticks(range(0,5))
+        numTeams=11
+        cutLine=numTeams+.5
+        for i in cDict:
+            if(i not in krachDict.keys()):
+              continue
+            x=[krachDict[d] for d in cDict[i]]
+            if(min(x)>=numTeams and i != 'Independents'):
+                cutLine-=1
+        plt.hlines(cutLine,0,4,linestyle='--',label='Cut Line',colors='black')
+        #plt.legend()
+        plt.ylim([len(kr)+2,0])
+        plt.xlabel('Conference')
+        plt.ylabel('KRACH Ranking')
+        plt.title('Conference KRACH')
+        plt.grid(axis='y')
+        gca=plt.gca()
+        fig.patch.set_facecolor('lightgray')
+        fig.patch.set_alpha(1)
+        gca.axes.set_xticklabels(ticks);
+        krachPlotName='/home/nmemme/discordBot/pdoplotdata/wkrachplot.png'
+        plt.savefig(krachPlotName)
+    return krachPlotName
         
 def checkForAlaskaTest():
     uafCheck=generateScoreline('Alaska','Men')
