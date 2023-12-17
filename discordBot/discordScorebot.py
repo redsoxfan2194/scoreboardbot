@@ -134,6 +134,7 @@ def getLogoDict():
         "American Int'l" : "images/logos/aic.png",
         "Arizona State" : "images/logos/asu.png",
         "Augustana" : "images/logos/aug.png",
+        "Assumption" : "images/logos/amp.png",
         "Army" : "images/logos/arm.png",
         "Bemidji State" : "images/logos/bmj.png",
         "Bentley" : "images/logos/ben.png",
@@ -334,6 +335,7 @@ def convertTeamtoDisRole(team):
                 "Alaska Anchorage" : "Alaska-Anchorage Seawolves",
                 "American International" : "American International Yellow Jackets",
                 "Augustana" : "Augustana Vikings",
+                "Assumption" : "Assumption Greyhounds",
                 "Arizona State" : "Arizona State Sun Devils",
                 "Army West Point" : "Army Black Knights",
                 "Bemidji State" : "Bemidji State Beavers",
@@ -348,6 +350,7 @@ def convertTeamtoDisRole(team):
                 "Colorado College" : "Colorado College Tigers",
                 "Cornell" : "Cornell Big Red",
                 "Dartmouth" : "Dartmouth Big Green",
+                "Delaware" : "Delaware Fightin' Blue Hens",
                 "Denver" : "Denver Pioneers",
                 "Ferris State" : "Ferris State Bulldogs",
                 "Franklin Pierce" : "Franklin Pierce Ravens",
@@ -429,6 +432,7 @@ def convertDisRoleToTeam(team):
                 "American International Yellow Jackets" : "American International",
                 "Arizona State Sun Devils" : "Arizona State",
                 "Army Black Knights" : "Army West Point",
+                "Assumption Greyhounds" : "Assumption",
                 "Augustana Vikings" : "Augustana",
                 "Bemidji State Beavers" : "Bemidji State",
                 "Bentley Falcons" : "Bentley",
@@ -442,6 +446,7 @@ def convertDisRoleToTeam(team):
                 "Colorado College Tigers" : "Colorado College",
                 "Cornell Big Red" : "Cornell",
                 "Dartmouth Big Green" : "Dartmouth",
+                "Delaware Fightin' Blue Hens" : "Delaware",
                 "Denver Pioneers" : "Denver",
                 "Ferris State Bulldogs" : "Ferris State",
                 "Franklin Pierce Ravens" : "Franklin Pierce",
@@ -2476,7 +2481,7 @@ async def on_message(message):
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
-            msg = "Go {}!".format(teamName)
+                msg = "Go {}!".format(teamName)
             
         await message.channel.send(msg)
         
@@ -2494,7 +2499,7 @@ async def on_message(message):
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
-            msg = "Boo {}".format(teamName)
+                msg = "Boo {}".format(teamName)
         await message.channel.send(msg)
         
     if message.content.startswith('?boo '):
@@ -2511,7 +2516,7 @@ async def on_message(message):
             teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
-            msg = "Boo {}".format(teamName)
+                msg = "Boo {}".format(teamName)
         await message.channel.send(msg)
         
     if(message.content.startswith('?pwr') and not message.content.startswith('?pwrplot')):
@@ -2997,7 +3002,7 @@ async def on_message(message):
         await message.channel.send(msg)                   
         
         
-    if(message.content.startswith('?scoreboard') or message.content.startswith('?mscoreboard')):
+    if(message.content.startswith('?scoreboard') and not message.content.startswith('?mscoreboard')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
@@ -3559,6 +3564,7 @@ def decodeTeam(team):
         "cor" : "Cornell",
         "cuse" : "Syracuse",
         "darty" : "Dartmouth",
+        "ud" : "Delaware",
         "du" : "Denver",
         "duluth" : "Minnesota Duluth",
         "ferris" : "Ferris State",
@@ -3714,6 +3720,7 @@ def getSchedule(team,opt,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Assumption": "team/Assumption/401/",
         "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
@@ -3881,6 +3888,7 @@ def getResults(team,opt,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Assumption": "team/Assumption/401/",
         "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
@@ -4036,6 +4044,7 @@ def getStats(team,playerToFind,gender):
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
         "Army" : "team/Army/6/",
+        "Assumption": "team/Assumption/401/",
         "Augustana" : "team/Augustana/64/",
         "Bemidji State" : "team/Bemidji-State/7/",
         "Bentley" : "team/Bentley/8/",
@@ -5068,8 +5077,6 @@ def generatePairwisePlot(gender):
         numTeams=16
         cutLine=numTeams+.5
         for i in cDict:
-            if(i not in pwrDict.keys()):
-              continue
             x=[pwrDict[d] for d in cDict[i]]
             if(min(x)>=numTeams and i != 'Independents'):
                 cutLine-=1
@@ -5119,9 +5126,11 @@ def generatePairwisePlot(gender):
         "Long Island" : "NEWHA",
         "Franklin Pierce" : "NEWHA",
         "Post" : "NEWHA",
+        "Assumption" : "NEWHA",
         "Saint Anselm" : "NEWHA",
         "Sacred Heart" : "NEWHA",
         "Saint Michael's" : "NEWHA",
+        "Stonehill" : "NEWHA",
         "Minnesota" : "WCHA",
         "Ohio State" : "WCHA",
         "Wisconsin" : "WCHA",
@@ -5187,8 +5196,6 @@ def generatePairwisePlot(gender):
         numTeams=11
         cutLine=numTeams+.5
         for i in cDict:
-            if(i not in pwrDict.keys()):
-              continue
             x=[pwrDict[d] for d in cDict[i]]
             if(min(x)>=numTeams and i != 'Independents'):
                 cutLine-=1
