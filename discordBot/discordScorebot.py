@@ -24,12 +24,13 @@ from burecordbook import *
 import burecordbook
 import discordauths
 import requests
-from PIL import Image, ImageDraw, ImageFont
+
 import json
+import html as html_lib
 
 
-season = '2324'
-invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot']
+season = '2526'
+invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot','color moderator']
 
 chnDiffs={"Minnesota Duluth":"Minnesota-Duluth",
     "Lake Superior State" : "Lake Superior",
@@ -62,6 +63,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Cornell" : "<:cornell:1167832952131035216>",
 "Dartmouth" : "<:dartmouth:761701466876280893>",
 "Denver" : "<:denver:1047721458798964758>",
+"Delaware" : "<:delaware:1180212380672720939>",
 "Ferris State" : "<:ferrisstate:761701516696092702>",
 "Franklin Pierce" : "<:franklinpierce:761701546223599657>",
 "Harvard" : "<:harvard:1047721524859244544>",
@@ -79,7 +81,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Michigan Tech" : "<:michigantech:761701513663742022>",
 "Michigan State" : "<:michiganstate:761734569871147039>",
 "Minnesota" : "<:minnesota:666834959142617088>",
-"Niagara" : "<:niagara:761701505681457162>",
+"Niagara" : "<:niagara:1302345599051628666>",
 "North Dakota" : "<:northdakota:666836576675823628>",
 "Northeastern" : "<:northeastern:666837132488474675>",
 "Northern Michigan" : "<:northernmichigan:761701501642866689>",
@@ -96,7 +98,7 @@ flairlist = {"American International" : "<:aic:693220791076126760>",
 "Rensselaer" : "<:rpi:761701489587912744>",
 "Sacred Heart" : "<:sacredheart:761701502100176908>",
 "St. Cloud State" : "<:scsu:761701498178502689>",
-"Saint Anselm" : "<:stanselm:761701537214889994>",
+"Saint Anselm" : "<:stanselm:1340412559228014702>",
 "St. Lawrence" : "<:stlawrence:761701547754389514>",
 "Saint Michael's" : "<:stmichaels:761701516331450368>",
 "Stonehill " : "<:stonehill:761701509595136060>",
@@ -227,9 +229,10 @@ def regenerateRecBookData():
   updateCareerStats(dfSkate,dfGoalie,dfSeasSkate,dfSeasGoalie)
   
 logoDict=getLogoDict()
+'''
 lastUpdateDate=date.today()
 regenerateRecBookData()
-
+'''
 # create a subclass and override the handler methods
 class MyHTMLParser(HTMLParser):
     global d, startParse, eol
@@ -269,7 +272,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 def displayHelp():
-    helpStr = ['''
+    helpStr = [r'''
 ?[mscore / wscore] [team name] - current scoreline for Current Men's/Women's game of team entered
 ?[mstand / wstand] [conference name] - current standings for conference entered
 ?[cheer / jeer / boo] [team name] - sends random cheers for / jeers against team entered (Suggestions welcome in #suggestion-box)
@@ -279,13 +282,13 @@ def displayHelp():
 ?[pwr / krach] bottom - displays current Bottom 5 Pairwise Ranking / KRACH
 ?[pwr / krach] bubble - displays the Pairwise Ranking Bubble / KRACH
 ?[pwr / krach] <number> - displays Top <number\> Pairwise Ranking / KRACH
-?[pwr / krach] <number>,<number2> - displays <number\> to <number2\> Pairwise Ranking / KRACH
+?[pwr / krach] <number>,<number2> - displays <number> to <number2> Pairwise Ranking / KRACH
 ?[wpwr / wkrach] - displays current Top 8 Pairwise Ranking / KRACH
 ?[wpwr / wkrach] top - displays current Top 4 Pairwise Ranking / KRACH
 ?[wpwr / wkrach] bottom - displays current Bottom 5 Pairwise Ranking / KRACH
 ?[wpwr / wkrach] bubble - displays the Pairwise Ranking Bubble / KRACH
 ?[wpwr / wkrach] <number> - displays Top <number> Pairwise Ranking / KRACH
-?[wpwr / wkrach] <number>,<number2> - displays <number\> to <number2\> Pairwise Ranking / KRACH
+?[wpwr / wkrach] <number>,<number2> - displays <number> to <number2> Pairwise Ranking / KRACH
 ?[wpwr / wkrach] [team name] - displays Pairwise Ranking of team entered plus 2 teams above and 2 teams below
 ?[pwc] [team1],[team2] - display Pairwise Comparison between two teams
     ''',
@@ -312,6 +315,7 @@ def displayHelp():
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
 ?[chain/whosbetter] [team1],[team2] - displays men's transitive win chain from team 1 to team 2 
 ?[wchain] [team1],[team2] - displays women's transitive win chain from team 1 to team 2 
+?[mpoll/wpoll] - displays respective USCHO.com Poll
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of available roles
 ?[roles] [role/team name] - adds role to user
@@ -390,12 +394,16 @@ def convertTeamtoDisRole(team):
                 "Stonehill" : "Stonehill Skyhawks",
                 "Sieve" : "Sieve",
                 "Craig" : "Craig",
+                "Politics" : "Political Discussion",
+                "Gambling" : "Gambling Chat",
                 "Voter" : "/r/collegehockey Poll Voter",
                 "St. Anselm" : "St. Anselm Hawks",
                 "St. Cloud State" : "St. Cloud State Huskies",
                 "St. Lawrence" : "St. Lawrence Saints",
                 "St. Michael's" : "St. Michael's Purple Knights",
+                "Saint Michael's" : "St. Michael's Purple Knights",
                 "Syracuse" : "Syracuse Orange",
+                "Tennessee State" : "Tennessee State Tigers",
                 "UConn" : "UConn Huskies",
                 "UMass Lowell" : "UMass Lowell River Hawks",
                 "Massachusetts" : "UMass Minutemen",
@@ -411,8 +419,6 @@ def convertTeamtoDisRole(team):
                 "Ref" : "Ref",
                 "Meteor" : "Meteor",
                 "Portal" : "Portal",
-                "Red Sox" : "Red Sox",
-                "Yankees" : "Yankees",
                 "Jackbox" : "Jackbox Game Night",
                 "USA" : "USA",
                 "Chaos" : "TEAM CHAOS"}
@@ -492,6 +498,7 @@ def convertDisRoleToTeam(team):
                 "St. Lawrence Saints" : "St. Lawrence",
                 "St. Michael's Purple Knights" : "St. Michael's",
                 "Syracuse Orange" : "Syracuse",
+                "Tennessee State Tigers" : "Tennessee State",
                 "UConn Huskies" : "UConn",
                 "UMass Lowell River Hawks" : "UMass Lowell",
                 "UMass Minutemen" : "Massachusetts",
@@ -507,8 +514,6 @@ def convertDisRoleToTeam(team):
                 "Ref" : "Ref",
                 "Meteor" : "Meteor",
                 "Portal" : "Portal",
-                "Red Sox" : "Red Sox",
-                "Yankees" : "Yankees",
                 "Jackbox Game Night" : "Jackbox",
                 "USA" : "USA",
                 "TEAM CHAOS" : "Chaos",
@@ -562,7 +567,7 @@ def getCheer(role):
     "UMass Minutemen" : ["Go Amherst!", "Go U Mass!"],
     "UConn Huskies" : ["Go Huskies!", "U-C-O-N-N UCONN UCONN UCONN", "Ice Bus"],
     "Union Garnet Chargers" : ["Let's Go U!"],
-    "Michigan Tech Huskies" : ["Go Huskies!"],
+    "Michigan Tech Huskies" : ["Go Huskies!","Hecc Yeah Tecc!"],
     "UMass Lowell River Hawks" : ["Go River Hawks!"],
     "Lake Superior State Lakers" : ["Ringy Dingy!"],
     "Bemidji State Beavers" : ["Roll Dam Beavs!", "Go Beavs!", "Go Beavers!"],
@@ -603,7 +608,6 @@ def getCheer(role):
     "Western Michigan Broncos" : ["Go Broncos!", "Let's Ride", "#StanHorsies"],
     "TEAM CHAOS": ["CHAOS REIGNS"],
     "Meteor" : ["https://media.tenor.com/images/892268e557475c225acebe707c85bffc/tenor.gif"],
-    "Red Sox" : ["Go Red Sox!", "Yankees Suck!"],
     "Portal" : ["PRAISE PORTAL"],
     "Craig" : ["https://media.discordapp.net/attachments/279688498485919744/1028033049260216370/Screenshot_20221007-155607_Twitter.jpg"],
     "Louisiana Ragin' Cajuns": ["Geaux Cajuns!"]}
@@ -649,13 +653,14 @@ def getJeer(role):
     "Notre Dame Fighting Irish" : ["Blinded by the Light", "Notre Lame!", "Rudy was offsides!", "https://youtu.be/OCbuRA_D3KU"],
     "St. Cloud State Huskies" : ["Go back to Montreal!", "St. Cloud Sucks!", "St. Cloud is not a state"],
     "RPI Engineers" : ["KRACH is Better!"],
+    "St. Lawrence Saints" : ["Sluzer"],
     "Minnesota State Mavericks" : ["Mankatno", "Mankato Sucks!"],
     "Minnesota Duluth Bulldogs" : ["Duluth Sucks!"],
     "Minnesota Golden Gophers" : ["Golden Goofs"],
     "Quinnipiac Bobcats" : ["QU PU!"],
     "Michigan Tech Huskies" : ["Tech Still Sucks!"],
     "Denver Pioneers" : ["Sucks to DU!"],
-    "Ohio State Buckeyes" : ["An Ohio State University","O-H, OH NO"],
+    "Ohio State Buckeyes" : ["An Ohio State University","O-H, OH NO","Another Loss for Transfer Portal U!"],
     "Arizona State Sun Devils" : ["Forked", "Fork You!", "Poor Sparky"],
     "Bowling Green Falcons" : ["Boo Ziggy", "Big Gross Stinky University"],
     "American International Yellow Jackets" : ["NO ONE JEERS MR. FUCKING. BEE."],
@@ -671,7 +676,7 @@ def getJeer(role):
     "Western Michigan Broncos" : ["Broncnos"],
     "Sieve": ["Sieve, You Suck!", "Sieve! Sieve! Sieve! Sieve!", "It's All Your Fault!"],
     "Craig" : ["Imagine being named Craig"],
-    "Yankees" : ["Yankees Suck!"],
+    "Portal" : ["Get ready for the blue bloods to purge all the talent in the game. I guarantee the next few years big schools like BC, BU, UCONN, UMASS, Michigan, Minnesota will get a boat load of talent from players who went to a smaller school and played well. These smaller schools will not be able to compete anymore because they won’t be able to offer anything these big schools can."],
     "Ref": ["I'm Blind! I'm Deaf! I wanna be a ref!", "Hey Ref, check your phone, you missed a few calls.", "BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", ":regional_indicator_b: :regional_indicator_u: :regional_indicator_l: :regional_indicator_l: :regional_indicator_s: :regional_indicator_h: :regional_indicator_i: :regional_indicator_t:"]}
     if role in jeerList:
             return random.choice(jeerList[role])
@@ -838,7 +843,7 @@ def getKRACH(opt):
 def getMatchupHistory(team,opp,numGames):
     global chnDiffs
     minSeason=19001901
-    maxSeason=20232024
+    maxSeason=20242025
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
@@ -885,7 +890,7 @@ def getMatchupHistory(team,opp,numGames):
     for link in soup.find_all('a',{'class':'team'}):
             #print(link['href'],repr(link.get_text()),repr(opp))
             #print(link['href'])
-            res=re.search('.*\/(.*)\/(\d*)',link['href'])
+            res=re.search(r'.*/(.*)/(\d*)',link['href'])
             idNum=res.group(2)
             teamName=res.group(1)
             teamName=teamName.replace('-',' ')
@@ -1249,6 +1254,56 @@ def getPWRComp(team1,team2):
     pwrComp+='```'
     return pwrComp
     
+def getWPWRComp(team1,team2):
+    if(team1 == '' or team2 == ''):
+            return "Enter Two Teams!"
+    team1=decodeTeam(team1)
+    if(not scorebot.isD1(team1,team1,'Women')):
+      return "Team 1 Not Found"
+    if(team1=='UConn'):
+        team1='Connecticut'
+    if(team1=="Long Island University"):
+        team1='LIU'
+    if(team1=="Saint Michael's"):
+        team1="St. Michael's"
+    team2=decodeTeam(team2)
+    if(not scorebot.isD1(team2,team2,'Women')):
+      return "Team 2 Not Found"
+    if(team2=='UConn'):
+        team2='Connecticut'
+    if(team2=="Long Island University"):
+        team2='LIU'
+    if(team2=="Saint Michael's"):
+        team2="St. Michael's"
+    url = "https://www.uscho.com/rankings/pairwise-rankings/d-i-women/grid/"
+    req = urllib.request.Request(
+        url, 
+        data=None, 
+        headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+        }
+    )
+
+    f = urllib.request.urlopen(req)
+    html = f.read()
+    f.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    tableVal=(team1+team2).replace(' ','').replace('.','').replace("'","'")
+    if(soup.find('div',{'id':tableVal.strip()}) is None):
+        tableVal=(team2+team1).replace(' ','').replace('.','').replace("'","'")                                                     
+    if(soup.find('div',{'id':tableVal}) is None):
+        return "Teams Not Found"
+    table=soup.find('div',{'id':tableVal}).find('table')
+    pwc="```\n"
+    for row in table.find_all('tr'):
+        col=row.find_all('td')
+        if(len(col)==0):
+            head=row.find_all('th')
+            pwc+=f"{head[0].get_text()}: {head[1].get_text()}-{head[3].get_text()}\n"
+        if(len(col)>1):
+            pwc+=f"{col[0].get_text()} | {col[1].get_text()} | {col[2].get_text()} | {col[3].get_text()} |\n"
+    pwc+="```"
+    return pwc   
 def getStandings(conf, m_w):
     
     global season
@@ -1280,7 +1335,7 @@ def getStandings(conf, m_w):
             conference = 1
         elif(conf == "ivy"):
             conference = 0
-        elif(conf == "cha"):
+        elif(conf == "cha" or conf=='aha'):
             conference = 3
         elif(conf == "wcha"):
             conference = 2
@@ -1597,7 +1652,7 @@ def getWPairwise(opt):
 def getWKRACH(opt):
     global teamDict
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1619,7 +1674,7 @@ def getWKRACH(opt):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -1731,7 +1786,7 @@ def getWKRACH(opt):
       if(opt.isnumeric()):
           end = int(opt)
       elif(opt.lower()=='full'):
-          end = 41
+          end = 44
       elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
 
           teamIdx=krach.index(decodedTeam)
@@ -1739,8 +1794,8 @@ def getWKRACH(opt):
               start=0
           else:
               start = teamIdx-2
-          if(teamIdx+3>41):
-              end=41
+          if(teamIdx+3>44):
+              end=44
           else:
               end = teamIdx+3
       elif(opt.lower() == 'bubble'):
@@ -1749,8 +1804,8 @@ def getWKRACH(opt):
       elif(opt.lower() == 'top'):
           end = 4
       elif(opt.lower() == 'bottom'):
-          start = 35
-          end = 41
+          start = 39
+          end = 44
       elif(len(splitopt)==2):
           if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
               sOpt=int(splitopt[0])
@@ -1760,10 +1815,10 @@ def getWKRACH(opt):
               else:
                   start=0
 
-              if(eOpt<=41):
+              if(eOpt<=44):
                   end = eOpt
               else:
-                  end=41
+                  end=44
 
               if(sOpt>eOpt):
                   swap=start
@@ -1799,7 +1854,7 @@ def getWOdds(team1,team2):
       team2="Connecticut"  
       
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1821,7 +1876,7 @@ def getWOdds(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -1939,7 +1994,7 @@ def getWOdds3(team1,team2):
         return "Team 2 Not Found"
         
     teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1961,7 +2016,7 @@ def getWOdds3(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -2145,12 +2200,18 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if message.author.name != 'memmdog':
+        pass
+       # return
     if message.content.startswith('!help') or message.content.startswith('?help'):
        helpStr = displayHelp()
        for i in helpStr:
            await message.author.send(i)
     if not message.content.startswith('?'):
-        return
+        if(message.content.startswith('!')):
+          message.content = message.content.replace('!','?')
+        else:
+          return
                 
     loop = asyncio.get_event_loop()
     
@@ -2478,12 +2539,11 @@ async def on_message(message):
             msg="{}".format(cheer)
         else:
             msg = "I don't know that cheer."
-            teamName=team
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
                 msg = "Go {}!".format(teamName)
-            
-        await message.channel.send(msg)
+        if(msg!="I don't know that cheer."): 
+          await message.channel.send(msg)
         
     if message.content.startswith('?jeer '):
         teamChoice = message.content.split('?jeer ')
@@ -2500,7 +2560,8 @@ async def on_message(message):
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
                 msg = "Boo {}".format(teamName)
-        await message.channel.send(msg)
+        if(msg!="I don't know that jeer."):
+          await message.channel.send(msg)
         
     if message.content.startswith('?boo '):
         teamChoice = message.content.split('?boo ')
@@ -2517,7 +2578,8 @@ async def on_message(message):
             if(convertTeamtoDisRole(team) != ""):
                 teamName = convertTeamtoDisRole(team)
                 msg = "Boo {}".format(teamName)
-        await message.channel.send(msg)
+        if(msg != "I don't know that jeer."):
+          await message.channel.send(msg)
         
     if(message.content.startswith('?pwr') and not message.content.startswith('?pwrplot')):
         opt = message.content.split('?pwr ')
@@ -2600,6 +2662,7 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
+            message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?stand ')
             if(len(conf)>1):
                 with cf.ProcessPoolExecutor(1) as p:
@@ -2614,6 +2677,7 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
+            message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?mstand ')
             if(len(conf)>1):
                 with cf.ProcessPoolExecutor(1) as p:
@@ -2628,6 +2692,7 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
+            message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?wstand ')
             if(len(conf)>1):
                 with cf.ProcessPoolExecutor(1) as p:
@@ -2637,7 +2702,19 @@ async def on_message(message):
                     await message.channel.send(msg)
             else:
                     await message.channel.send("I don't know that conference.")
-                    
+    
+    if(message.content == '?mpoll' or message.content == '?poll'):
+        with cf.ProcessPoolExecutor(1) as p:
+          msg = await loop.run_in_executor(p, getPoll, "mens")
+          p.shutdown()
+        if(len(msg)>0):
+          await message.channel.send(msg)
+    if(message.content == '?wpoll'):
+        with cf.ProcessPoolExecutor(1) as p:
+          msg = await loop.run_in_executor(p, getPoll, "womens")
+          p.shutdown()
+        if(len(msg)>0):
+          await message.channel.send(msg)
     '''                
     if(message.content.startswith('?mhepi')):
         if(message.channel.name == 'game-night'):
@@ -2803,6 +2880,24 @@ async def on_message(message):
         else:
              await message.channel.send("Invalid number of teams, enter two comma separated teams")   
     
+    if(message.content.startswith('?wpwc ')):
+        team1= ''
+        team2= ''
+        teams = message.content.split('?wpwc ')
+
+        if(len(teams)>1 and teams[1].count(',')==1): 
+            team1,team2 = teams[1].split(",")
+            team1=team1.rstrip(" ")
+            team2=team2.lstrip(' ')
+                
+            with cf.ProcessPoolExecutor(1) as p:
+                msg = await loop.run_in_executor(p, getWPWRComp,  team1, team2)
+                p.shutdown()
+            if(len(msg)>0):
+                await message.channel.send(msg)
+        else:
+             await message.channel.send("Invalid number of teams, enter two comma separated teams")   
+    
     if(message.content.startswith('?roles')):
         try:
             roleChoice = message.content.split('?roles ')
@@ -2827,6 +2922,12 @@ async def on_message(message):
                     roles2 += '```'
                     await message.author.send(roles2) 
             else:
+                for i in message.guild.roles:
+                  if(roleChoice[1] == i.name and roleChoice[1] not in invalidRoles):
+                    user=message.author
+                    await user.add_roles(i)
+                    await message.channel.send("{} added to {}".format(i.name, message.author.mention))
+                    return
                 team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
                 if(team==''):
                     team=roleChoice[1]
@@ -2851,6 +2952,12 @@ async def on_message(message):
             if(len(roleChoice)==1):
                 await message.channel.send("Enter a Role to Remove")
             else:
+                for i in message.guild.roles:
+                  if(roleChoice[1] == i.name and roleChoice[1] not in invalidRoles):
+                    user=message.author
+                    await user.remove_roles(i)
+                    await message.channel.send("{} removed from {}".format(i.name, message.author.mention))
+                    return
                 team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
                 if(team==''):
                     team=roleChoice[1]
@@ -3064,7 +3171,7 @@ async def on_message(message):
       query,gender=determineGender(query)
       query=query.lstrip(' ')
       if(date.today()>lastUpdateDate):
-        regenerateRecBookData()
+        #regenerateRecBookData()
         lastUpdateDate=date.today()
       if(gender=='Womens'):
           query=cleanupQuery(query,'bean')
@@ -3157,7 +3264,7 @@ async def on_message(message):
         await message.channel.send("```\n" + result + "```")
         
     # gifs and stuff
-    if(message.content.startswith('?bu') and not (message.content.startswith('?burecbook ') or message.content.startswith('?burecordbook '))):
+    if(message.content.strip() == '?bu' and not (message.content.startswith('?burecbook ') or message.content.startswith('?burecordbook '))):
             await message.channel.send("https://media.giphy.com/media/mACM98U3XELWlpDxEO/giphy.mp4")
             
     if(message.content.startswith('?goodgoal')):
@@ -3178,14 +3285,15 @@ async def on_message(message):
     if(message.content.startswith('?harvard')):
             await message.channel.send("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2JjYzk2OGMwNDZhZjY2YzlhZjFkYWQ3YWM3MWQ1NjEzMGZhM2IxYiZjdD1n/WeN7XLiKI6Gz2Pxrcc/giphy.gif")
         
-    if(message.content.startswith('?boston') and not message.content.startswith('?bostoncollege')):
+    if(message.content=='?boston'):
             gif="https://m.imgur.com/ZPZUGW0"
 #            random.seed(datetime.now())
 #            if(random.randint(0,100)<=10):
 #                gif="https://media.giphy.com/media/W2zqB99rxiTxDNT1Ci/giphy.gif"
             
             await message.channel.send(gif)
-            
+    if(message.content=='?terriers'):       
+            await message.channel.send("https://imgur.com/7HQK5kU")
     if(message.content.startswith('?nuboston')):
             await message.channel.send("https://media.giphy.com/media/WU0oTNSciD83BUDfYR/giphy.gif")
             
@@ -3206,28 +3314,52 @@ async def on_message(message):
             #await message.channel.send("https://cdn.discordapp.com/attachments/279688498485919744/691772255306514552/hyW6VMD.png")
            # await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918644377524523008/jerry.png")
             #await message.channel.send("https://cdn.discordapp.com/attachments/523161681484972062/918854291228336148/jerry2.png") #❌❌
-            
+    
+    if(message.content.startswith('?sharks') or message.content.startswith('?shorks')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279688619906826250/1312253934596788244/SHORK.png?ex=674c7bf6&is=674b2a76&hm=930afd69763f6a4c814d9af59f8b20bca06ffd73f7965e1a46dd5b3c7419b615&")
     #if(message.content.startswith('?bcot') or message.content.startswith('?❌❌ot')):
     if(message.content.startswith('?bcot')):
             await message.channel.send('"free" "hockey" in "Boston"')  
-            
+    
+    if(message.content.startswith('?osutransfer')):
+            await message.channel.send('ANOTHER WIN FOR TRANSFER PORTAL U')     
+        
     if((message.content.startswith('?ot') and not message.content.startswith('?oti')) or message.content.startswith('?3v3ot') or message.content.startswith('?rsot') or message.content.startswith('?regularseasonot')):
             await message.channel.send('"free" "hockey"')  
 
     if(message.content.startswith('?oti')):
-            await message.channel.send('**ON THE ICE**')             
+            await message.channel.send('**ON THE ICE**')    
+    
+    if(message.content == '?omd' or message.content == '?ea'):
+            await message.channel.send('**ONE MORE DUDE**') 
 
     #if((message.content.startswith('?bc') and not message.content.startswith('?bcot')) or (message.content.startswith('?❌❌') and not message.content.startswith('?❌❌ot'))):
-    if(message.content.startswith('?bc') and not message.content.startswith('?bcot')):
+    if(message.content.startswith('?bcumass') and not message.content.startswith('?bcot')):
      
             await message.channel.send("https://media.giphy.com/media/E327kKMf0RKHAB1jpu/giphy.gif")
+            
+    if(message.content ==  '?bc'):
+     
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1228870122672885770/lolfowler.gif?ex=662d9d7c&is=661b287c&hm=1e6a3a09f3350aca4097ae58ff1956c112cda91e6b810f009b03e5dbd1987fbd&")
+
+    if(message.content ==  '?wbc'):
+     
+            await message.channel.send("https://imgur.com/sYQ27iG")
+            
+    if(message.content ==  '?notredame'):
+     
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1219463440150827120/IMG_1270.gif?ex=66304ed4&is=661dd9d4&hm=1ff545c73c9ad66a5d297eadfa8015e25b7f685bfe9fbdf002896f34118ca09b&")
+   
+    if(message.content ==  '?quinnipiac'):
+     
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1224470573099384852/Vinnyno.gif?ex=6622e216&is=66219096&hm=0f4d35f37ee6f339d6508171e5af843d6b422a36fb5537fa7ffcb94cd969c51a&")
 
     if(message.content.startswith('?eagles') or message.content.startswith('?eags')):
     
             await message.channel.send("https://imgur.com/nupbiii")
     
-    if(message.content.startswith('?uconn')):
-            await message.channel.send("https://imgur.com/a/gWy8Ifj")
+    if(message.content == '?uconn' ):
+            await message.channel.send("https://cdn.discordapp.com/attachments/498885742802632724/1195807828544331856/EFb4oFuh.png")
             
     if(message.content.startswith('?unh')):
             await message.channel.send("https://imgur.com/a/mq8brow")
@@ -3235,6 +3367,9 @@ async def on_message(message):
     if(message.content.startswith('?mankato')):
     #        await message.channel.send("https://i.imgur.com/2B2iSkt.jpg")
             await message.channel.send(" https://media.giphy.com/media/66nOBbUf0MqbOU4DYR/giphy.gif")
+    
+    if(message.content.startswith('?mankatdoh')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1219042206300770354/Tech_Hockey__Minnesota_State_Highlights__031624.gif?ex=6609dc86&is=65f76786&hm=c685c71ce8200ac3d9603d19753a2d2e00706d82ac2da91345c6864c712c2e27&")
    
             
     if(message.content.startswith('?ivyleague')):
@@ -3243,6 +3378,8 @@ async def on_message(message):
     if(message.content.startswith('?union')):
             await message.channel.send("https://imgur.com/a/ez3Pi5Q")
             
+    if(message.content.startswith('?denver')):
+            await message.channel.send("https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTNvdGZkMW1kNHU1ZHE2eWpxMXk0dmQzeXJsY2kxODd1Y2wyamoweCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/08n3hlPLRrlsBAlhfz/giphy.gif")
     if(message.content.startswith('?northeasternwins')):
             await message.channel.send("https://www.youtube.com/watch?v=RRVPTeL5udc")
             
@@ -3293,7 +3430,7 @@ async def on_message(message):
     if(message.content.startswith('?newhampshire')):
             await message.channel.send("https://i.imgur.com/jWX20zw.gifv")
    
-    if(message.content.startswith('?connecticut')):
+    if(message.content == '?connecticut'):
             await message.channel.send("https://imgur.com/a/cJLxgm2")
         
     if(message.content.startswith('?eng') or message.content.startswith('?emptynet')):
@@ -3404,6 +3541,11 @@ async def on_message(message):
 
     if(message.content.startswith('?btn+')):
         await message.channel.send("There are no non-paid streams for BTN+ games available, might I suggest locating the team's radio broadcast")  
+    if(message.content.startswith('?bigten')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/1044333097895858276/1324921765847240805/realb1gmaps.mp4")  
+
+    if(message.content == '?slu'):
+        await message.channel.send("the SLU are so fucking good")
     
     if(message.content.startswith('?huskyalliance')):
         await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/821574872290295849/image0.jpg")  
@@ -3426,8 +3568,8 @@ async def on_message(message):
     if(message.content.startswith('?metcalf')):
         await message.channel.send("Win your games and don’t worry about this!!")
         
-    if(message.content.startswith('?adam') or message.content.startswith('?wodon')):
-        await message.channel.send(random.choice(["https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg","https://cdn.discordapp.com/attachments/279689792990740481/1089993668582182953/image.png"]))
+    #if(message.content.startswith('?adam') or message.content.startswith('?wodon')):
+    #    await message.channel.send(random.choice(["https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg","https://cdn.discordapp.com/attachments/279689792990740481/1089993668582182953/image.png"]))
     
     if(message.content.startswith('?wobey')):
         await message.channel.send("https://media.discordapp.net/attachments/279689792990740481/934507690980425758/Screenshot_20220122-125938_Twitter.jpg")
@@ -3440,6 +3582,9 @@ async def on_message(message):
     
     if(message.content.startswith('?levi')):
         await message.channel.send("https://media.giphy.com/media/jnLhnGcoErH5bQFcJI/giphy.gif")
+        
+    if(message.content.startswith('?hrabal')):
+        await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1220851013343248534/lolMass.gif?ex=6610711b&is=65fdfc1b&hm=f51d1e21de7f755d733c063717fdef67cc496772cc3cf74ab55bfb871562f028&")
         
     if(message.content.startswith('?mattbrown')):
         await message.channel.send("https://media.giphy.com/media/lEHjkEAz9rGgnUheLC/giphy.gif")
@@ -3457,7 +3602,11 @@ async def on_message(message):
             await message.channel.send("https://media.giphy.com/media/yoha0ouKET1h3nMaR2/giphy.gif")
         
     if(message.content.startswith('?thirdperiod')):
-            await message.channel.send("https://vxtwitter.com/sezenack/status/1723515467640307832")
+            #await message.channel.send("https://vxtwitter.com/sezenack/status/1723515467640307832")
+            pas 
+ 
+    if(message.content.startswith('?bentley')):
+            await message.channel.send("https://cdn.discordapp.com/attachments/279689792990740481/1213925589170389052/535B4C92-B993-4C75-A4F8-FE34D794C3B2.gif?ex=65f73f4e&is=65e4ca4e&hm=c7ebd1f6a95f0dcd609405cb5cb8f2f2cc024ecff196989b75499f52262c0bf6&")
     
     if(message.content.startswith('?botson')):
             await message.channel.send("https://media.discordapp.net/attachments/530771912910176276/1175406190205878322/rendercombined.jpg?ex=656b1d51&is=6558a851&hm=7502620b8bd449188d57e33e29b24979fd1c140dcfb4a6b8a92a8692250a3717&=&width=2880&height=960")
@@ -3471,7 +3620,20 @@ async def on_message(message):
     if(message.content.startswith('?redwasright')):
         await message.channel.send("```\nAll hail Red Sox Fan\nWe sing in jubilee (in jubilee)\nAll hail Red Sox Fan\nProud hater of BC (of BC)\nAll hail Red Sox Fan\nAnnoyer of JD\nThrough the years\nWe ever will proclaim\nTop mod of our hockey```") 
     if(message.content.startswith('?souza') or message.content.startswith('?extendsouza') ):
-        await message.channel.send("https://media.giphy.com/media/fcnwSJo3HP8cDv5FqL/giphy.gif")
+        await message.channel.send("https://cdn.discordapp.com/attachments/579830085708677120/1219466289685336184/2Q.png?ex=660b677c&is=65f8f27c&hm=fc96c1d231c8cf982d1aa67e8f035806b6b50c707e325839f7346349cbfdfade&")
+    
+    if(message.content.startswith('?randomplayer')):
+        teamChoice = message.content.split('?randomplayer ')
+        if(len(teamChoice)>1):
+            teamName=decodeTeam(teamChoice[1])
+            if(teamName in chnDiffs.keys()):
+                teamName=chnDiffs[teamName]
+        elif(len(teamChoice)==1):
+            teamName=''
+        with cf.ProcessPoolExecutor(1) as p:
+            msg = await loop.run_in_executor(p, generateRandomPlayer,teamName)
+            p.shutdown()
+        await message.channel.send(msg)
     
     if(message.content.startswith('?recruit')):
         teamChoice = message.content.split('?recruit ')
@@ -3479,7 +3641,9 @@ async def on_message(message):
             team=decodeTeam(teamChoice[1])
             if(team=='Rensselaer'):
                 team='RPI'
-            
+            cheer = getCheer(convertTeamtoDisRole(team))
+            if(cheer==""):
+                team="NO TEAM"
         elif(len(teamChoice)==1):
             for i in range(len(message.author.roles)):
                 if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
@@ -3488,7 +3652,8 @@ async def on_message(message):
         else:
             team='[Insert Team Rooting For Here]'    
             
-        await message.channel.send("This is a good option for {} to pursue.  They should target him.".format(team))
+        if(team!="NO TEAM"):
+          await message.channel.send("This is a good option for {} to pursue.  They should target him.".format(team))
     
     if(message.content.startswith('?wrecruit')):
         teamChoice = message.content.split('?wrecruit ')
@@ -3496,7 +3661,9 @@ async def on_message(message):
             team=decodeTeam(teamChoice[1])
             if(team=='Rensselaer'):
                 team='RPI'
-            
+            cheer = getCheer(convertTeamtoDisRole(team))
+            if(cheer==""):
+                team="NO TEAM"
         elif(len(teamChoice)==1):
             for i in range(len(message.author.roles)):
                 if(message.author.roles[-1-i].name !=  "Mods" and message.author.roles[-1-i].name !=  "Admin" and message.author.roles[-1-i].name !=  "Georgia Tech Yellow Jackets" and message.author.roles[-1-i].name !=  "TEAM CHAOS" and message.author.roles[-1-i].name !=  "bot witch" and message.author.roles[-1-i].name !=  "Craig"):
@@ -3504,8 +3671,8 @@ async def on_message(message):
                     break
         else:
             team='[Insert Team Rooting For Here]'    
-            
-        await message.channel.send("This is a good option for {} to pursue.  They should target her.".format(team))
+        if(team!="NO TEAM"):
+          await message.channel.send("This is a good option for {} to pursue.  They should target her.".format(team))
         
     if message.content.startswith('?alaskatest'):
       with cf.ProcessPoolExecutor(1) as p:
@@ -3536,12 +3703,14 @@ def decodeTeam(team):
         "alabamahuntsville" : "Alabama Huntsville",
         "americanintl" : "American International",
         "au" : "Augustana",
+        "augie" : "Augustana",
         "amworst" : "Massachusetts",
         "amwurst" : "Massachusetts",
         "anosu" : "Ohio State",
         "army" : "Army West Point",
         "asu" : "Arizona State",
         "bama" : "Alabama Huntsville",
+        "babyshark":"Long Island",
         "bc" : "Boston College",
         "bemidji" : "Bemidji State",
         "bgsu" : "Bowling Green",
@@ -3633,6 +3802,8 @@ def decodeTeam(team):
         "su" : "Syracuse",
         "syracuse" : "Syracuse",
         "toothpaste" : "Colgate",
+        "tecc" : "Michigan Tech",
+        "tsu" : "Tennessee State",
         "uaa" : "Alaska Anchorage",
         "uaf" : "Alaska",
         "uah" : "Alabama Huntsville",
@@ -4040,6 +4211,7 @@ def getStats(team,playerToFind,gender):
 
     global chnDiffs
     teamDict = {"Air Force" : "team/Air-Force/1/",
+        "Alaska-Anchorage" : "team/Alaska-Anchorage/3",
         "Alaska":"team/Alaska/4",
         "American Int'l" : "team/American-Intl/5/",
         "Arizona State" : "team/Arizona-State/61/",
@@ -4148,7 +4320,10 @@ def getStats(team,playerToFind,gender):
     skaterDict={}
     for skater in skrows:
         col=skater.find_all('td')
-        name,pos,yr=col[0].get_text().lstrip('\n').rstrip('\t\t').split(', ')
+        tempstr=col[0].get_text().lstrip('\n').rstrip('\t\t')
+        if("Jr." in tempstr):
+          tempstr=tempstr.replace(", Jr.", " Jr.")
+        name,pos,yr=tempstr.split(', ')
         gp=col[1].get_text()
         g=col[2].get_text()
         a=col[3].get_text()
@@ -4290,8 +4465,8 @@ def generateFullScoreboard(gender,opt):
     elif(gender == "Women"):
         if(opt=="hea" or opt == "he" or opt == 'hockeyeast'):
             opt = "Hockey East"
-        elif(opt == "cha"):
-            opt = "CHA"
+        elif(opt == "cha" or opt == "aha"):
+            opt = "AHA"
         elif(opt == "wcha"):
             opt = "WCHA"
         elif(opt == "ecac"):
@@ -4331,7 +4506,7 @@ def generateFullScoreboard(gender,opt):
             if(opt=='Bubble' and not (awayTeam in bubble or homeTeam in bubble)):
                 continue
             if(opt=='Active'):
-                if('Per' not in status):
+                if(('Per' not in status and 'OT' not in status) or 'Final' in status):
                   continue
             scoreline+= "{} {} {} {} {}\n".format(awayTeam,awayScore,homeTeam,homeScore," ".join(status.strip('\r\n').strip().split()))
     scoreline+='```'
@@ -4770,7 +4945,7 @@ def getWTransitiveWinChain(team1,team2):
             team1='LIU'
     if(team2=="Long Island University"):
             team2='LIU'
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -4792,7 +4967,7 @@ def getWTransitiveWinChain(team1,team2):
             fname.close()
             break
         if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
             f=urllib.request.urlopen(url)
             html = f.read()
             f.close()
@@ -5024,7 +5199,7 @@ def generatePairwisePlot(gender):
         "Miami" :"NCHC",
         "Alaska" :"Independents",
         "Alaska-Anchorage" : "Independents",
-        "Arizona State" :"Independents",
+        "Arizona State" :"NCHC",
         "Long Island" :"Independents",
         "Stonehill" : "Independents",
         "Lindenwood" : "Independents"}
@@ -5047,6 +5222,8 @@ def generatePairwisePlot(gender):
             
         cDict={}
         for team,conf in confDict.items():
+            if(team not in pwrDict.keys()):
+              continue
             if conf not in cDict.keys():
                 cDict[conf]=[]
                 cDict[conf].append(team)
@@ -5095,12 +5272,12 @@ def generatePairwisePlot(gender):
         plt.savefig(pwrPlotName)
         
     elif(gender=='Womens'):
-        confDict={"Mercyhurst" : "CHA",
-        "Penn State" : "CHA",
-        "Syracuse" : "CHA",
-        "Lindenwood" : "CHA",
-        "RIT" : "CHA",
-        "Robert Morris" : "CHA",
+        confDict={"Mercyhurst" : "AHA",
+        "Penn State" : "AHA",
+        "Syracuse" : "AHA",
+        "Lindenwood" : "AHA",
+        "RIT" : "AHA",
+        "Robert Morris" : "AHA",
         "Harvard" : "ECAC",
         "Quinnipiac" : "ECAC",
         "Yale" : "ECAC",
@@ -5109,7 +5286,7 @@ def generatePairwisePlot(gender):
         "St. Lawrence" : "ECAC",
         "Cornell" : "ECAC",
         "Princeton" : "ECAC",
-        "Rensselaer" : "ECAC",
+        "RPI" : "ECAC",
         "Dartmouth" : "ECAC",
         "Brown" : "ECAC",
         "Union" : "ECAC",
@@ -5184,9 +5361,10 @@ def generatePairwisePlot(gender):
         for k in cDict.keys():
             ticks.append(k)
             for i in cDict[k]:
-                pw.append(pwrDict[i])
-                pwx.append(counter)
-                marker.append(i)
+                if(i in pwrDict.keys()):
+                  pw.append(pwrDict[i])
+                  pwx.append(counter)
+                  marker.append(i)
 
             counter+=1
         for x0, y0, path in zip(pwx, pw, marker):
@@ -5372,7 +5550,7 @@ def generateKrachPlot(gender):
         "St. Lawrence" : "ECAC",
         "Cornell" : "ECAC",
         "Princeton" : "ECAC",
-        "Rensselaer" : "ECAC",
+        "RPI" : "ECAC",
         "Dartmouth" : "ECAC",
         "Brown" : "ECAC",
         "Union" : "ECAC",
@@ -5403,7 +5581,7 @@ def generateKrachPlot(gender):
         
         global teamDict
         teamDict = {}
-        url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/"
+        url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
         f=urllib.request.urlopen(url)
         html = f.read()
         f.close()
@@ -5425,7 +5603,7 @@ def generateKrachPlot(gender):
                 fname.close()
                 break
             if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-                url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2023-2024/gameday/{}/0".format(i)
+                url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
                 f=urllib.request.urlopen(url)
                 html = f.read()
                 f.close()
@@ -5684,6 +5862,254 @@ def generateSezStats(type):
 
   return f"/home/nmemme/discordBot/krachdata/{type}.jpg"
 
-    
+def getPoll(gender):
+  url = f"https://json-b.uscho.com/json/rankings/d-i-{gender}-poll"
+  f=urllib.request.urlopen(url)
+  html = f.read()
+  f.close()
+  soup = BeautifulSoup(html, 'html.parser')
+  tsoup=html_lib.unescape(str(soup)).replace(r"\/", "/")
+  new_soup=BeautifulSoup(tsoup, 'html.parser')
+  if(new_soup.find('h1') is None):
+    return ''
+  elif(new_soup.find('table') is None):
+    return ''
+  title=new_soup.find('h1').get_text()
+  table_soup=new_soup.find('table')
+  pollStr='```\n'+title+'\n'
+  for row in table_soup.find_all('tr'):
+      col=row.find_all('td')
+      if(len(col)>1):
+          pollStr+=col[0].get_text()+ " " + col[1].get_text() + " " + col[2].get_text()+'\n'
+  pattern = r"(Others receiving votes.*?)<div"
+  match = re.search(pattern, str(new_soup), re.DOTALL)
+  if match:
+    result = match.group(1).strip()
+    pollStr+=result+'\n'
+  pollStr+='```'
+  return pollStr
+'''  
+def generateRandomPlayer(team):
+    teamDict = {"Air Force" : "/Air-Force/1/",
+        "Alaska":"/Alaska/4",
+        "American Int'l" : "/American-Intl/5/",
+        "Arizona State" : "/Arizona-State/61/",
+        "Army" : "/Army/6/",
+        "Assumption": "/Assumption/401/",
+        "Augustana" : "/Augustana/64/",
+        "Bemidji State" : "/Bemidji-State/7/",
+        "Bentley" : "/Bentley/8/",
+        "Boston College" : "/Boston-College/9/",
+        "Boston University" : "/Boston-University/10/",
+        "Bowling Green" : "/Bowling-Green/11/",
+        "Brown" : "/Brown/12/",
+        "Canisius" : "/Canisius/13/",
+        "Clarkson" : "/Clarkson/14/",
+        "Colgate" : "/Colgate/15/",
+        "Colorado College" : "/Colorado-College/16/",
+        "Connecticut" : "/Connecticut/17/",
+        "Cornell" : "/Cornell/18/",
+        "Dartmouth" : "/Dartmouth/19/",
+        "Denver" : "/Denver/20/",
+        "Ferris State" : "/Ferris-State/21/",
+        "Franklin Pierce" : "/Franklin-Pierce/406/",
+        "Harvard" : "/Harvard/22/",
+        "Holy Cross" : "/Holy-Cross/23/",
+        "Lake Superior" : "/Lake-Superior/24/",
+        "Lindenwood" : "/Lindenwood/433/",
+        "Long Island" : "/Long-Island/62/",
+        "Maine" : "/Maine/25/",
+        "Mass.-Lowell" : "/Mass-Lowell/26/",
+        "Massachusetts" : "/Massachusetts/27/",
+        "Mercyhurst" : "/Mercyhurst/28/",
+        "Merrimack" : "/Merrimack/29/",
+        "Miami" : "/Miami/30/",
+        "Michigan State" : "/Michigan-State/32/",
+        "Michigan Tech" : "/Michigan-Tech/33/",
+        "Michigan" : "/Michigan/31/",
+        "Minnesota State" : "/Minnesota-State/35/",
+        "Minnesota" : "/Minnesota/34/",
+        "Minnesota-Duluth" : "/Minnesota-Duluth/36/",
+        "New Hampshire" : "/New-Hampshire/38/",
+        "Niagara" : "/Niagara/39/",
+        "North Dakota" : "/North-Dakota/40/",
+        "Northeastern" : "/Northeastern/41/",
+        "Northern Michigan" : "/Northern-Michigan/42/",
+        "Notre Dame" : "/Notre-Dame/43/",
+        "Ohio State" : "/Ohio-State/44/",
+        "Omaha" : "/Omaha/37/",
+        "Penn State" : "/Penn-State/60/",
+        "Princeton" : "/Princeton/45/",
+        "Providence" : "/Providence/46/",
+        "Quinnipiac" : "/Quinnipiac/47/",
+        "RIT" : "/RIT/49/",
+        "Rensselaer" : "/Rensselaer/48/",
+        "Robert Morris" : "/Robert-Morris/50/",
+        "Sacred Heart" : "/Sacred-Heart/51/",
+        "St. Cloud State" : "/St-Cloud-State/52/",
+        "St. Lawrence" : "/St-Lawrence/53/",
+        "St. Thomas" : "/St-Thomas/63/",
+        "Union" : "/Union/54/",
+        "Vermont" : "/Vermont/55/",
+        "Western Michigan" : "/Western-Michigan/57/",
+        "Wisconsin" : "/Wisconsin/58/",
+        "Yale" : "/Yale/59/"}
+    if(team==""):
+        team=random.choice(list(teamDict.keys()))
+    elif(team not in teamDict.keys()):
+        return "Invalid Team"   
+    isValid=False
+    while(not isValid):
+        year=random.randint(1897,2024)
+        try:
+            url = f"https://www.collegehockeynews.com/reports/roster/{teamDict[team]}/{str(year)+str(year+1)}"
+            f=urllib.request.urlopen(url)
+            isValid=True
+        except:
+            continue
+        playerList=[]
+        if(isValid):
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            table=soup.find('table',{'id':'players'})
+            for row in table.find_all('tr'):
+                col=row.find_all('td')
+                if(len(col)>4):
+                    name=col[2].get_text().strip().replace(' (C)','')
+                    name=name.split(', ',1)
+                    pDict={'last':name[0],'first':name[1],'team':team,'year':year}
+                    fName=f"{name[1]} {name[0]}".strip()
+                    playerList.append(fName)
+        if(playerList==[]):
+            isValid=False
+            continue
+        player=random.choice(playerList)
+        yearStr=f"{str(year)}-{str(year+1)[2:]}"
+        return f"{player}, {team} ({yearStr})"
+'''        
+def generateRandomPlayer(team):
+    teamDict = {"Air Force" : "/Air-Force/1/",
+            "Alaska":"/Alaska/4",
+            "Alaska-Anchorage" : "/Alaska-Anchorage/3",
+            "American Int'l" : "/American-Intl/5/",
+            "Arizona State" : "/Arizona-State/61/",
+            "Army" : "/Army/6/",
+            "Assumption": "/Assumption/401/",
+            "Augustana" : "/Augustana/64/",
+            "Bemidji State" : "/Bemidji-State/7/",
+            "Bentley" : "/Bentley/8/",
+            "Boston College" : "/Boston-College/9/",
+            "Boston University" : "/Boston-University/10/",
+            "Bowling Green" : "/Bowling-Green/11/",
+            "Brown" : "/Brown/12/",
+            "Canisius" : "/Canisius/13/",
+            "Clarkson" : "/Clarkson/14/",
+            "Colgate" : "/Colgate/15/",
+            "Colorado College" : "/Colorado-College/16/",
+            "Connecticut" : "/Connecticut/17/",
+            "Cornell" : "/Cornell/18/",
+            "Dartmouth" : "/Dartmouth/19/",
+            "Denver" : "/Denver/20/",
+            "Ferris State" : "/Ferris-State/21/",
+            "Franklin Pierce" : "/Franklin-Pierce/406/",
+            "Harvard" : "/Harvard/22/",
+            "Holy Cross" : "/Holy-Cross/23/",
+            "Lake Superior" : "/Lake-Superior/24/",
+            "Lindenwood" : "/Lindenwood/433/",
+            "Long Island" : "/Long-Island/62/",
+            "Maine" : "/Maine/25/",
+            "Mass.-Lowell" : "/Mass-Lowell/26/",
+            "Massachusetts" : "/Massachusetts/27/",
+            "Mercyhurst" : "/Mercyhurst/28/",
+            "Merrimack" : "/Merrimack/29/",
+            "Miami" : "/Miami/30/",
+            "Michigan State" : "/Michigan-State/32/",
+            "Michigan Tech" : "/Michigan-Tech/33/",
+            "Michigan" : "/Michigan/31/",
+            "Minnesota State" : "/Minnesota-State/35/",
+            "Minnesota" : "/Minnesota/34/",
+            "Minnesota-Duluth" : "/Minnesota-Duluth/36/",
+            "New Hampshire" : "/New-Hampshire/38/",
+            "Niagara" : "/Niagara/39/",
+            "North Dakota" : "/North-Dakota/40/",
+            "Northeastern" : "/Northeastern/41/",
+            "Northern Michigan" : "/Northern-Michigan/42/",
+            "Notre Dame" : "/Notre-Dame/43/",
+            "Ohio State" : "/Ohio-State/44/",
+            "Omaha" : "/Omaha/37/",
+            "Penn State" : "/Penn-State/60/",
+            "Princeton" : "/Princeton/45/",
+            "Providence" : "/Providence/46/",
+            "Quinnipiac" : "/Quinnipiac/47/",
+            "RIT" : "/RIT/49/",
+            "Rensselaer" : "/Rensselaer/48/",
+            "Robert Morris" : "/Robert-Morris/50/",
+            "Sacred Heart" : "/Sacred-Heart/51/",
+            "St. Cloud State" : "/St-Cloud-State/52/",
+            "St. Lawrence" : "/St-Lawrence/53/",
+            "St. Thomas" : "/St-Thomas/63/",
+            "Stonehill" : "/Stonehill/422/",
+            "Union" : "/Union/54/",
+            "Vermont" : "/Vermont/55/",
+            "Western Michigan" : "/Western-Michigan/57/",
+            "Wisconsin" : "/Wisconsin/58/",
+            "Yale" : "/Yale/59/"}
+    year=0
+    isYear=False
+    if(team==""):
+        team=random.choice(list(teamDict.keys()))
+    elif(team not in teamDict.keys()):
+        if(team.isnumeric()):
+          year=int(team)
+          isYear=True
+          if(year<1897 or year>2024):
+            year=2024
+          elif(year<1910):
+            team=random.choice(['Harvard','Yale','Brown'])
+          else:
+            team=random.choice(list(teamDict.keys()))
+        else:
+          return "Invalid Team"
+    isValid=False
+    counter=0
+    while(not isValid):
+        if(isYear and counter>0):
+          team=random.choice(list(teamDict.keys()))
+        if(not isYear):
+          year=random.randint(1897,2024)    
+        if(counter>=100):
+          team='Boston University'
+          year=1977
+        try:
+            url = f"https://www.collegehockeynews.com/reports/roster/{teamDict[team]}/{str(year)+str(year+1)}"
+            f=urllib.request.urlopen(url)
+            isValid=True
+        except:
+            counter+=1  
+            continue
+        playerList=[]
+        pDict={}
+        if(isValid):
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            table=soup.find('table',{'id':'players'})
+            for row in table.find_all('tr'):
+                col=row.find_all('td')
+                if(len(col)>4):
+                    pUrl="https://www.collegehockeynews.com"+col[2].find('a')['href']
+                    name=col[2].get_text().strip().replace(' (C)','')
+                    name=name.split(', ',1)
+                    fName=f"{name[1]} {name[0]}".strip()
+                    pDict[fName]=pUrl
+                    playerList.append(fName)
+        if(playerList==[]):
+            isValid=False
+            counter+=1
+            continue
+        player=random.choice(playerList)
+        yearStr=f"{str(year)}-{str(year+1)[2:]}"
+        return f"[{player}](<{pDict[player]}>), {team} ({yearStr})"
 client.run(discordauths.TOKEN)
 print("Ending... at",datetime.now())
