@@ -178,6 +178,7 @@ def decodeTeam(team):
 def rCollegeHockeyAdmin(message):
 
   if(message.content.startswith('?roles')):
+        ret = []
         try:
             roleChoice = message.content.split('?roles ')
             if(len(roleChoice)==1):
@@ -193,68 +194,79 @@ def rCollegeHockeyAdmin(message):
                         roles1+= i.name + "\n"
                 if(roles1 != "```\n"):
                     roles1 += '```'
-                    return message.author.send(roles1) 
+                    ret.append(message.author.send(roles1))
                 for i in half2:
                     if(i.name not in invalidRoles):
                         roles2+= i.name + "\n"
                 if(roles2 != "```\n"):
                     roles2 += '```'
-                    return message.author.send(roles2) 
+                    ret.append(message.author.send(roles2))
             else:
                 for i in message.guild.roles:
                   if(roleChoice[1] == i.name and roleChoice[1] not in invalidRoles):
                     user=message.author
-                    return user.add_roles(i)
-                    return message.channel.send("{} added to {}".format(i.name, message.author.mention))
-                    return
+                    ret.append(user.add_roles(i))
+                    ret.append(message.channel.send("{} added to {}".format(i.name, message.author.mention)))
+                    return ret
                 team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
                 if(team==''):
                     team=roleChoice[1]
                 if(team not in invalidRoles):
                     roleFound=False
+                    ret = []
                     for i in message.guild.roles:
                         if(team == i.name):   
                             user=message.author
-                            return user.add_roles(i)
-                            return message.channel.send("{} added to {}".format(team, message.author.mention))
+                            ret.append(user.add_roles(i))
+                            ret.append(message.channel.send("{} added to {}".format(team, message.author.mention)))
                             roleFound=True
                             break
+                    
                     if(not roleFound):
-                        return message.channel.send("Invalid Role")
+                        ret.append(message.channel.send("Invalid Role"))
+                    return ret
                 else:
-                    return message.channel.send("Invalid Role")
+                    ret.append(message.channel.send("Invalid Role"))
+            return ret
         except discord.errors.Forbidden:
-            return message.channel.send("Invalid Role")         
+            ret.append(message.channel.send("Invalid Role"))
+            return ret
   if(message.content.startswith('?rroles')):
         roleChoice = message.content.split('?rroles ')
+        ret = []
         try:
             if(len(roleChoice)==1):
-                return message.channel.send("Enter a Role to Remove")
+                ret.append(message.channel.send("Enter a Role to Remove"))
             else:
                 for i in message.guild.roles:
                   if(roleChoice[1] == i.name and roleChoice[1] not in invalidRoles):
                     user=message.author
-                    return user.remove_roles(i)
-                    return message.channel.send("{} removed from {}".format(i.name, message.author.mention))
-                    return
+                    ret.append(user.remove_roles(i))
+                    ret.append(message.channel.send("{} removed from {}".format(i.name, message.author.mention)))
+                    return ret
                 team=convertTeamtoDisRole(decodeTeam(roleChoice[1]))
                 if(team==''):
                     team=roleChoice[1]
                 if(team not in invalidRoles):
                     roleFound=False
                     for i in message.guild.roles:
+                        ret = []
                         if(team == i.name):   
                             user=message.author
-                            return user.remove_roles(i)
-                            return message.channel.send("{} removed from {}".format(team, message.author.mention))
+                            ret.append(user.remove_roles(i))
+                            ret.append(message.channel.send("{} removed from {}".format(team, message.author.mention)))
                             roleFound=True
                             break
+                            
                     if(not roleFound):
-                        return message.channel.send("Invalid Role")
+                        ret.append(message.channel.send("Invalid Role"))
+                    return ret
                 else:
-                    return message.channel.send("Invalid Role")
+                    ret.append(message.channel.send("Invalid Role"))
+                    return ret
         except discord.errors.Forbidden:
-            return message.channel.send("Invalid Role")
+            ret.append(message.channel.send("Invalid Role"))
+            return ret
   
 def rCollegeHockeyMemesAndGifs(message):
 

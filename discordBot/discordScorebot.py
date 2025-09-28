@@ -2801,7 +2801,8 @@ async def on_message(message):
     # check for rCollegeHockeyAdmin Stuff
     ret = rCollegeHockeyAdmin(message)
     if(ret is not None):
-      await ret
+      for r in ret:
+        await r
     
     # check for rCollegeMemeStuff
     ret = rCollegeHockeyMemesAndGifs(message)
