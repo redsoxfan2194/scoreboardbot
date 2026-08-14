@@ -17,18 +17,20 @@ import itertools
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import imageio
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import networkx as nx
 from burecordbook import *
 import burecordbook
 import discordauths
 import requests
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 from rCollegeHockeyAdmin import *
 
 import json
 import html as html_lib
 
+ctx=multiprocessing.get_context('fork')
 
 season = '2526'
 invalidRoles = ['@everyone', 'Mods', 'Admin', 'bot witch', 'Dyno', 'CH_Scorebot','color moderator']
@@ -150,6 +152,7 @@ def getLogoDict():
         "Colgate" : "images/logos/clg.png",
         "Colorado College" : "images/logos/cc_.png",
         "Cornell" : "images/logos/cor.png",
+        "Delaware" : "images/logos/del.png",
         "Dartmouth" : "images/logos/dar.png",
         "Denver" : "images/logos/den.png",
         "Ferris State" : "images/logos/fsu.png",
@@ -205,8 +208,14 @@ def getLogoDict():
     logoDict={}
     for team in logoLocDict.keys():
         logoDict[team]={}
-        logoDict[team]['logo'] = "https://www.collegehockeynews.com/"+logoLocDict[team]
-        logoDict[team]['img'] = imageio.imread(urllib.request.urlopen(logoDict[team]['logo']).read())
+        url = "https://www.collegehockeynews.com/" + logoLocDict[team]
+        response = requests.get(url)
+        img = Image.open(BytesIO(response.content)).convert("RGBA")
+
+        logoDict[team] = {
+            "logo": url,
+            "img": np.array(img)
+        }
     return logoDict
     
 
@@ -315,7 +324,6 @@ def displayHelp():
 ?[krachplot/wkrachplot] - displays PWR plot (note may take a few minutes to generate)
 ?[corsi] - displays PDO plot (note may take a few minutes to generate)
 ?[chain/whosbetter] [team1],[team2] - displays men's transitive win chain from team 1 to team 2 
-?[wchain] [team1],[team2] - displays women's transitive win chain from team 1 to team 2 
 ?[mpoll/wpoll] - displays respective USCHO.com Poll
 ?[thanksbot] - Thanks Bot
 ?[roles] - display list of available roles
@@ -337,16 +345,16 @@ Bot courtesy of redsoxfan2194
 def getPairwise(opt):
     global chnDiffs
     #return "Pairwise is currently unavailable for the 2020-21 Season, use ?mpwr for an approximation"
-    url = "https://www.collegehockeynews.com/ratings/m/pairwise.php"
+    url = "https://www.collegehockeynews.com/ratings/npi"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    data =soup.get_text()
     pairwise = []
-    for link in soup.find_all('a'):
-        if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
-            pairwise.append(link.get_text())       
+    for row in soup.find('table').find_all('tr'):
+        col = row.find_all('td')
+        if(len(col)>1):
+            pairwise.append(col[1].get_text())     
 
     teams = []
     start = 0
@@ -413,9 +421,13 @@ def getPairwise(opt):
         rankings+="{}. {}\n".format(i+1,pairwise[i])
     rankings += "```"
     return rankings
-def getKRACH(opt):
+def getKRACH(opt, gender='Men'):
     global chnDiffs
-    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    if(gender=='Men'):
+      url = "https://www.collegehockeynews.com/ratings/krach.php"
+    else:
+      url = "https://www.collegehockeynews.com/women/krach.php"
+      
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -443,7 +455,7 @@ def getKRACH(opt):
             end=maxTeams
     elif(opt.lower()=='full'):
         end = maxTeams
-    elif(scorebot.isD1(decodedTeam,decodedTeam,'Men') or decodedTeam in chnDiffs.keys()):
+    elif(scorebot.isD1(decodedTeam,decodedTeam,gender) or decodedTeam in chnDiffs.keys()):
         if(decodedTeam in chnDiffs.keys()):        
             teamIdx=krach.index(chnDiffs[decodedTeam])
         else:
@@ -482,6 +494,8 @@ def getKRACH(opt):
                 swap=start
                 start=end-1
                 end=swap+1
+    elif(gender=="Women"):
+        end=12
     else:
         end = 16
 
@@ -494,7 +508,7 @@ def getKRACH(opt):
 def getMatchupHistory(team,opp,numGames):
     global chnDiffs
     minSeason=19001901
-    maxSeason=20242025
+    maxSeason=20252026
     if(numGames.isnumeric()):
         numGames=int(numGames)
         if(numGames>15):
@@ -744,7 +758,7 @@ def getWinProb(aTeam, aScore, hTeam, hScore, status):
         winProb = float(winLookup[str(secTime)][gd])
         return "{} {}%".format(aTeam,round(aOdds*(1-secTime/3600)+winProb*100,1))
     
-def getKOdds(team1,team2):
+def getKOdds(team1,team2,gender='Men'):
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"
     
@@ -752,18 +766,22 @@ def getKOdds(team1,team2):
         
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
-    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+    if(scorebot.isD1(team1,team1,gender) or team1 in chnDiffs.keys()):
         if(team1 in chnDiffs.keys()):       
             team1=chnDiffs[team1]
     else:
         return "Team 1 Not Found"
     
-    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+    if(scorebot.isD1(team2,team2,gender) or team2 in chnDiffs.keys()):
         if(team2 in chnDiffs.keys()):       
             team2=chnDiffs[team2]
     else:
         return "Team 2 Not Found"
-    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    if(gender=='Men'):
+      url = "https://www.collegehockeynews.com/ratings/krach.php"
+    else:
+      url = "https://www.collegehockeynews.com/women/krach.php"
+      
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -788,25 +806,29 @@ def getKOdds(team1,team2):
     
     return "{} {}%\n{} {}%".format(team1,round(team1Odds*100,1), team2, round(team2Odds*100,1))
 
-def getKOdds3(team1,team2):
+def getKOdds3(team1,team2,gender='Men'):
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"
     global chnDiffs
        
     team1 = decodeTeam(team1)
     team2 = decodeTeam(team2)
-    if(scorebot.isD1(team1,team1,'Men') or team1 in chnDiffs.keys()):
+    if(scorebot.isD1(team1,team1,gender) or team1 in chnDiffs.keys()):
         if(team1 in chnDiffs.keys()):       
             team1=chnDiffs[team1]
     else:
         return "Team 1 Not Found"
     
-    if(scorebot.isD1(team2,team2,'Men') or team2 in chnDiffs.keys()):
+    if(scorebot.isD1(team2,team2,gender) or team2 in chnDiffs.keys()):
         if(team2 in chnDiffs.keys()):       
             team2=chnDiffs[team2]
     else:
         return "Team 2 Not Found"
-    url = "https://www.collegehockeynews.com/ratings/krach.php"
+    if(gender=='Men'):
+      url = "https://www.collegehockeynews.com/ratings/krach.php"
+    else:
+      url = "https://www.collegehockeynews.com/women/krach.php"
+      
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
@@ -1032,12 +1054,28 @@ def getStandings(conf, m_w):
     
 def getGamesOnTV():
     gameList = []
+    tvGames=""
     for gender in ["Men","Women"]:
-        if gender=='Men':
+        if gender == 'Women':
+            continue
+            url = "https://www.uscho.com/gameday/division-i-women/"
+            f=urllib.request.urlopen(url)
+            html = f.read()
+            f.close()
+            soup = BeautifulSoup(html, 'html.parser')
+            res=json.loads(soup.find('div',{'id':'app'})['data-page'])['props']['games']['res']
+            for game in res[list(res.keys())[0]]:
+                if (game['tv']!=''):
+                    if('pd' in game.keys()):
+                        starttime='On Now'
+                        if('pd' == 'F'):
+                            continue
+                    else:
+                        starttime=game['starttime']
+                    tvGames+=(f'Women: {game["vis_name"]} @ {game["home_name"]} - {starttime} ({game["tv"]})\n')
+            continue
+        elif gender=='Men':
             url = "https://www.collegehockeynews.com/schedules/scoreboard.php"
-        elif gender == 'Women':
-            url = "https://www.collegehockeynews.com/women/scoreboard.php"
-            
         f=urllib.request.urlopen(url,timeout=10)
         html = f.read()
         f.close()
@@ -1068,8 +1106,11 @@ def getGamesOnTV():
                 
                     text=para[0].get_text()
                     if('TV' in text):
-                        m=re.search('TV: (.*)',text)
-                        tvList.append(m.group(1))
+                        m=re.search(r"TV: (\S*) ",text)
+                        if(m is not None):
+                          tvList.append(m.group(1))
+                        else:
+                          tvList.append(' ')
                     else:
                         tvList.append(' ')
 
@@ -1103,7 +1144,6 @@ def getGamesOnTV():
                         
                     gameList.append(gameDict)
                 gCount+=1
-    tvGames = ""
     for game in gameList:
         if(game['channel'] != ''):
             if("a.m." not in game['status'] and "p.m." not in game['status'] and ('T' not in game['status'] or 'OT' in game['status'])):
@@ -1113,6 +1153,7 @@ def getGamesOnTV():
                     game['startTime'] = 'On Now'
                 
             tvGames += game['m_w'] + ": " + game['awayTeam'] + " @ " + game['homeTeam'] + " - " + " ".join(game['startTime'].strip('\r\n').strip().split()) + " (" + game['channel'] + ')\n'
+    
     return tvGames
 def calcUWP():
     global teamDict
@@ -1231,16 +1272,15 @@ def compareTeams(team1,team2):
     
 def getWPairwise(opt):
     
-    url = "https://json-b.uscho.com/json/rankings/pairwise-rankings/d-i-women"
+    url = "https://www.uscho.com/rankings/npi/d-i-women"
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
-    site_json=json.loads(soup.text)
-    table=site_json['json']['dt1']['data']
+    npiData=json.loads(soup.find('div',{'id':'app'})['data-page'])['props']['content']['data']
     pwr=[]
-    for row in table:
-        pwr.append(row[1])
+    for entry in npiData:
+        pwr.append(entry['team'])
         
     start = 0
     maxTeams=len(pwr)
@@ -1300,192 +1340,9 @@ def getWPairwise(opt):
     rankings += "```"
     return rankings
         
-def getWKRACH(opt):
-    global teamDict
-    teamDict = {}
-    url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/"
-    f=urllib.request.urlopen(url)
-    html = f.read()
-    f.close()
-    soup = BeautifulSoup(html, 'html.parser')
-    site_json=json.loads(soup.text)
-    gameDayList=site_json['json']['dates']
-    dateFile='/home/nmemme/discordBot/krachdata/latestDate.txt'
-    dataFile='/home/nmemme/discordBot/krachdata/gameData.json'
-    latestData=''
-    if(os.path.exists(dateFile)):
-        fname=open(dateFile,'r')
-        latestData=fname.read().rstrip('\n')
-    LossDict={}
-    gData={}
-    for i in gameDayList:
-        if(date.fromisoformat(i)>date.today()):
-            fname=open(dateFile,'w')
-            print(date.today(),file=fname)
-            fname.close()
-            break
-        if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-            url = "https://json-b.uscho.com/json/scoreboard/division-i-women/2024-2025/gameday/{}/0".format(i)
-            f=urllib.request.urlopen(url)
-            html = f.read()
-            f.close()
-            soup = BeautifulSoup(html, 'html.parser')
-            site_json=json.loads(soup.text)
-            gData[i]=site_json['json']['data']
-    if(not os.path.exists(dataFile) or date.fromisoformat(latestData)<date.today()):
-        with open(dataFile, 'w') as f:
-            json.dump(gData, f)
-    if(os.path.exists(dataFile)):
-      f=open(dataFile,'r')
-      html = f.read()
-      f.close()
-      soup = BeautifulSoup(html, 'html.parser')
-      site_json=json.loads(soup.text)
-      for i in site_json.keys():
-          gameList=site_json[i]
-          for game in gameList:
-              if(game['vscore']=='' or game['hscore']==''):
-                  continue
-              pattern = r'[0-9]'
-              game['home_name'] = re.sub(pattern, '', game['home_name']).replace("</span>",'')
-              game['vis_name']  = re.sub(pattern, '', game['vis_name']).replace("</span>",'')
-              game['home_name'] = game['home_name'].lstrip(' ')
-              game['vis_name'] = game['vis_name'].lstrip(' ')
-              aTeam=game['vis_name']
-              aScore=int(game['vscore'])
-              hTeam=game['home_name']
-              hScore=int(game['hscore'])
-              if(game['type']=='ex'):
-                  continue
-
-              pwrGameDict = {'awayTeam' : aTeam,
-                  'awayScore': aScore,
-                  'homeTeam' : hTeam,
-                  'homeScore': hScore}
-              if(not scorebot.isD1(pwrGameDict['homeTeam'],pwrGameDict['homeTeam'],'Women') or not scorebot.isD1(pwrGameDict['awayTeam'],pwrGameDict['awayTeam'],'Women')):
-                  continue
-                  
-              if(pwrGameDict['homeTeam'] not in teamDict):
-                  teamDict.update({pwrGameDict['homeTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0 ,'teamsPlayed': [], "Rating" : 100}})
-              if(pwrGameDict['awayTeam'] not in teamDict):
-                  teamDict.update({pwrGameDict['awayTeam']: {"Wins":[], "Losses" : [], "Ties": [], "GP": 0, "WP" : 0, "RRWP": 0, "Ratio": 0, 'SOS' : 0, 'teamsPlayed': [], "Rating" : 100}})
-
-
-              if(int(pwrGameDict['homeScore']) > int(pwrGameDict['awayScore'])):
-                  teamDict[pwrGameDict['homeTeam']]['Wins'].append(pwrGameDict['awayTeam'])
-                  teamDict[pwrGameDict['awayTeam']]['Losses'].append(pwrGameDict['homeTeam'])
-
-              elif(int(pwrGameDict['homeScore']) == int(pwrGameDict['awayScore'])):
-                  teamDict[pwrGameDict['homeTeam']]['Ties'].append(pwrGameDict['awayTeam'])
-                  teamDict[pwrGameDict['awayTeam']]['Ties'].append(pwrGameDict['homeTeam'])
-              else:
-                  teamDict[pwrGameDict['homeTeam']]['Losses'].append(pwrGameDict['awayTeam'])
-                  teamDict[pwrGameDict['awayTeam']]['Wins'].append(pwrGameDict['homeTeam'])
-              teamDict[pwrGameDict['homeTeam']]['GP'] += 1
-              teamDict[pwrGameDict['awayTeam']]['GP'] += 1
-              teamDict[pwrGameDict['awayTeam']]['teamsPlayed'].append(pwrGameDict['homeTeam'])
-              teamDict[pwrGameDict['homeTeam']]['teamsPlayed'].append(pwrGameDict['awayTeam'])  
-
-      for team in teamDict.keys():
-          try:
-              teamDict[team]['Ratio'] = (len(teamDict[team]["Wins"])+len(teamDict[team]["Ties"])*.5)/(len(teamDict[team]["Losses"])+len(teamDict[team]["Ties"])*.5)
-          except:
-              teamDict[team]['Ratio'] = float('inf')
-              continue
-
-      converged = False
-      while(not converged):
-          for team in teamDict.keys():
-              tWFactor = 0
-              sumKrach = 0
-              for oppo in set(teamDict[team]['teamsPlayed']):
-                  sumKrach += (teamDict[team]['Rating']*teamDict[team]['teamsPlayed'].count(oppo))/(teamDict[team]['Rating']+teamDict[oppo]['Rating'])
-              try:
-                  newRating = ((len(teamDict[team]['Wins'])+len(teamDict[team]['Ties'])*.5)/sumKrach)*teamDict[team]['Rating']
-              except:
-                  newRating=0
-                  teamDict[team]['Rating']=1
-              ratio = math.fabs(1-(newRating/ teamDict[team]['Rating']))
-
-              if(ratio <= 0.00001):
-                  converged=True
-              teamDict[team]['Rating']= newRating
-          if(converged):
-              break
-
-      for i in range(10):
-          scale_wins = 0
-          for team in teamDict.keys():
-              scale_wins += 100/(100 + teamDict[team]['Rating'])
-          scale = scale_wins/20
-
-          for team in teamDict.keys():
-              teamDict[team]['Rating'] *= scale
-
-      krachDict ={}
-      for i in teamDict.keys():
-          if(scorebot.isD1(i,i,'Women')):
-              krachDict[i] = teamDict[i]['Rating']
-
-      sorted_krach = sorted(krachDict.items(), key=operator.itemgetter(1), reverse=True)
-      krach = []
-      for i in sorted_krach:
-          krach.append(i[0])
-      start = 0
-      splitopt = opt.split(',')
-      decodedTeam = decodeTeam(opt)
-      if(opt.isnumeric()):
-          end = int(opt)
-      elif(opt.lower()=='full'):
-          end = 44
-      elif(scorebot.isD1(decodedTeam,decodedTeam,'Women')):
-
-          teamIdx=krach.index(decodedTeam)
-          if(teamIdx-2<0):
-              start=0
-          else:
-              start = teamIdx-2
-          if(teamIdx+3>44):
-              end=44
-          else:
-              end = teamIdx+3
-      elif(opt.lower() == 'bubble'):
-          start = 5
-          end = 12
-      elif(opt.lower() == 'top'):
-          end = 4
-      elif(opt.lower() == 'bottom'):
-          start = 39
-          end = 44
-      elif(len(splitopt)==2):
-          if(splitopt[0].isnumeric() and splitopt[1].isnumeric()):
-              sOpt=int(splitopt[0])
-              eOpt=int(splitopt[1])
-              if(sOpt>0):
-                  start=sOpt-1
-              else:
-                  start=0
-
-              if(eOpt<=44):
-                  end = eOpt
-              else:
-                  end=44
-
-              if(sOpt>eOpt):
-                  swap=start
-                  start=end-1
-                  end=swap+1   
-      else:
-          end = 8
-      if(end>len(krach)):
-          end = len(krach)
-      rankings = "```\n"
-      for i in range(start,end):
-          rankings+="{}. {}\n".format(i+1,krach[i])
-      rankings += "```"
-      return rankings
 
 def getWOdds(team1,team2):
+    return "Not Available"
     global teamDict
     if(team1 == '' or team2 == ''):
         return "Enter Two Teams!"                
@@ -1863,86 +1720,88 @@ async def on_message(message):
           message.content = message.content.replace('!','?')
         else:
           return
-                
-    loop = asyncio.get_event_loop()
+    if (message.channel.name == 'honeypot'):
+      return
+    loop = asyncio.get_running_loop()
     
     if message.content.startswith('?getgttitle') and message.author.name == 'memmdog':
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getGTTitle)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
     if message.content.startswith('?setgttitle ') and message.author.name == 'memmdog':
         title = message.content.split('?setgttitle ')[1]
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, setGTTitle,title)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
     if message.content.startswith('?getgtvid') and message.author.name == 'memmdog':
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getGTVid)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
     if message.content.startswith('?setgtvid ') and message.author.name == 'memmdog':
         vid = message.content.split('?setgtvid ')[1]
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, setGTVid,vid)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     
     if message.content.startswith('?resetgtvid') and message.author.name == 'memmdog':
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, resetGTVid)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     
     if message.content.startswith('?gettrashtitle') and message.author.name == 'memmdog':
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getTrashTitle)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
     if message.content.startswith('?settrashtitle ') and message.author.name == 'memmdog':
         title = message.content.split('?settrashtitle ')[1]
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, setTrashTitle,title)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
    
     # everything after this is case insensitive
-    message.content = message.content.lower()   
+    if('addcmd' not in message.content):
+      message.content = message.content.lower()   
     
     if message.content.startswith('?score '):
         team = decodeTeam(message.content.split('?score ')[1])
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateScoreline, team, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
     if message.content.startswith('?mscore '):
         team = decodeTeam(message.content.split('?mscore ')[1])
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateScoreline, team, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
        
             
     if message.content.startswith('?wscore '):
         team = decodeTeam(message.content.split('?wscore ')[1])
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateScoreline, team, "Women")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
@@ -1956,9 +1815,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
@@ -1971,9 +1830,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     
@@ -1986,9 +1845,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getSchedule, team, opt,"Women")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
           
@@ -2001,9 +1860,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
@@ -2016,9 +1875,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     
@@ -2031,9 +1890,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg) 
 
@@ -2046,9 +1905,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
@@ -2061,9 +1920,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     
@@ -2076,9 +1935,9 @@ async def on_message(message):
             team=split[0]
         else:
             opt = '5'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getResults, team, opt,"Women")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)              
       
@@ -2091,9 +1950,9 @@ async def on_message(message):
             team=split[0]
         else:
             player='N/A'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getStats, team, player, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
 
@@ -2106,9 +1965,9 @@ async def on_message(message):
             team=split[0]
         else:
             player='N/A'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getStats, team, player, "Men")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
             
@@ -2122,9 +1981,9 @@ async def on_message(message):
             team=split[0]
         else:
             player='N/A'
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getStats, team, player, "Women")
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
     if message.content.startswith('?teamstats '):
@@ -2132,9 +1991,9 @@ async def on_message(message):
             await message.channel.send("Please use #bot-dump")
         else:
             team = message.content.split('?teamstats ')[1]
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getTeamStats, team, "Men")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
             
@@ -2143,9 +2002,9 @@ async def on_message(message):
             await message.channel.send("Please use #bot-dump")
         else:
             team = message.content.split('?mteamstats ')[1]
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getTeamStats, team, "Men")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
     
@@ -2154,9 +2013,9 @@ async def on_message(message):
             await message.channel.send("Please use #bot-dump")
         else:
             team = message.content.split('?wteamstats ')[1]
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getTeamStats, team, "Women")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
 
@@ -2172,48 +2031,57 @@ async def on_message(message):
             msg+="\n{}".format(cheer)
         await message.channel.send(msg)
     
-    if(message.content.startswith('?pwr') and not message.content.startswith('?pwrplot')):
-        opt = message.content.split('?pwr ')
+    if((message.content.startswith('?pwr') and not message.content.startswith('?pwrplot')) or (message.content.startswith('?npi') and not message.content.startswith('?npiplot'))):
+        if('pwr' in message.content):
+          opt = message.content.split('?pwr ')
+        else:
+          opt = message.content.split('?npi ')
         if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getPairwise, '')
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getPairwise, opt[1])
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
                 
-    if(message.content.startswith('?mpwr')):
-        opt = message.content.split('?mpwr ')
+    if(message.content.startswith('?mpwr') or message.content.startswith('?mnpi')):
+        if('pwr' in message.content):
+          opt = message.content.split('?mpwr ')
+        else:
+          opt = message.content.split('?mnpi ')
         if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getPairwise, '')
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getPairwise, opt[1])
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
                
-    if(message.content.startswith('?wpwr') and not message.content.startswith('?wpwrplot')):
-        opt = message.content.split('?wpwr ')
+    if((message.content.startswith('?wpwr') and not message.content.startswith('?wpwrplot')) or (message.content.startswith('?wnpi') and not message.content.startswith('?wnpiplot'))):
+        if('pwr' in message.content):
+          opt = message.content.split('?wpwr ')
+        else:
+          opt = message.content.split('?wnpi ')
         if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getWPairwise, '')
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getWPairwise, opt[1])
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
  
@@ -2221,30 +2089,30 @@ async def on_message(message):
     if(message.content.startswith('?krach') and not message.content.startswith('?krachplot')):
         opt = message.content.split('?krach ')
         if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getKRACH, '')
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getKRACH, opt[1])
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
                 
     if(message.content.startswith('?wkrach') and not message.content.startswith('?wkrachplot')):
         opt = message.content.split('?wkrach ')
         if(len(opt)==1):
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getWKRACH, '')
-                p.shutdown()
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
+                msg = await loop.run_in_executor(p, getKRACH, '','Women')
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getWKRACH, opt[1])
-                p.shutdown()
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
+                msg = await loop.run_in_executor(p, getKRACH, opt[1],'Women')
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg) 
                  
@@ -2256,9 +2124,9 @@ async def on_message(message):
             message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?stand ')
             if(len(conf)>1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
@@ -2271,9 +2139,9 @@ async def on_message(message):
             message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?mstand ')
             if(len(conf)>1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, getStandings, conf[1], "Men")
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
@@ -2286,24 +2154,24 @@ async def on_message(message):
             message.content = message.content.replace('ings','').replace('ing','')
             conf = message.content.split('?wstand ')
             if(len(conf)>1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, getStandings, conf[1], "Women")
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
                     await message.channel.send("I don't know that conference.")
     
     if(message.content == '?mpoll' or message.content == '?poll'):
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
           msg = await loop.run_in_executor(p, getPoll, "mens")
-          p.shutdown()
+          #p.shutdown()
         if(len(msg)>0):
           await message.channel.send(msg)
     if(message.content == '?wpoll'):
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
           msg = await loop.run_in_executor(p, getPoll, "womens")
-          p.shutdown()
+          #p.shutdown()
         if(len(msg)>0):
           await message.channel.send(msg)
     '''                
@@ -2311,9 +2179,9 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getHEPI, "men")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
            
@@ -2321,9 +2189,9 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getHEPI, "men")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
  
@@ -2331,21 +2199,21 @@ async def on_message(message):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getHEPI, "women")
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
     '''            
     if(message.content.startswith('?whatsontv')):
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getGamesOnTV)
-            p.shutdown()
+            #p.shutdown()
         if(len(msg)>0):
             await message.channel.send(msg)
         else:
              await message.channel.send("No Games on TV Today")
-    if(message.content.startswith('?odds ')):
+    if(message.content.startswith('?odds ') and message.author.name != 'mikeypiff.'):
         team1= ''
         team2= ''
         teams = message.content.split('?odds ')
@@ -2355,14 +2223,17 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getKOdds,  team1, team2)
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
              await message.channel.send("Invalid number of teams, enter two comma separated teams")
-             
+    
+    if(message.content.startswith('?whistory ')):
+      await message.channel.send("Not Available")
+            
     if(message.content.startswith('?history ')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
@@ -2377,9 +2248,9 @@ async def on_message(message):
                   team1=team1.rstrip(" ")
                   team2=team2.lstrip(' ')
                   numGames='5'
-                  with cf.ProcessPoolExecutor(1) as p:
+                  with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                       msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
-                      p.shutdown()
+                      #p.shutdown()
                   if(len(msg)>0):
                       await message.channel.send(msg)
                   
@@ -2388,9 +2259,9 @@ async def on_message(message):
                   team1=team1.rstrip(" ")
                   team2=team2.lstrip(' ')
 
-                  with cf.ProcessPoolExecutor(1) as p:
+                  with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                       msg = await loop.run_in_executor(p, getMatchupHistory,  team1, team2,numGames)
-                      p.shutdown()
+                      #p.shutdown()
                   if(len(msg)>0):
                       await message.channel.send(msg)
               else:
@@ -2408,9 +2279,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getWOdds,  team1, team2)
-                p.shutdown()
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
+                msg = await loop.run_in_executor(p, getKOdds, team1, team2, 'Women')
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
@@ -2426,9 +2297,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getKOdds3,  team1, team2)
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
@@ -2444,9 +2315,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
-                msg = await loop.run_in_executor(p, getWOdds3,  team1, team2)
-                p.shutdown()
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
+                msg = await loop.run_in_executor(p, getKOdds3, team1, team2,'Women')
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
@@ -2463,9 +2334,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getPWRComp,  team1, team2)
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
@@ -2481,9 +2352,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
                 
-            with cf.ProcessPoolExecutor(1) as p:
+            with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                 msg = await loop.run_in_executor(p, getWPWRComp,  team1, team2)
-                p.shutdown()
+                #p.shutdown()
             if(len(msg)>0):
                 await message.channel.send(msg)
         else:
@@ -2491,90 +2362,93 @@ async def on_message(message):
     
     if(message.content.startswith('?pdoplot') or (message.content.startswith('?pdo') and not message.content.startswith('?pdocorsi'))):
         gender='Mens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePDOPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?pdwoplot') or message.content.startswith('?pdwo') or (message.content.startswith('?wpdo') and not message.content.startswith('?wpdocorsi')) or message.content.startswith('?wpdoplot')):
         gender='Womens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePDOPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?corsiplot') or message.content.startswith('?corsi')):
         gender='Mens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
     if(message.content.startswith('?wcorsiplot') or message.content.startswith('?wcorsi')):
         gender='Womens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateCorsiPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?pdocorsiplot') or message.content.startswith('?pdocorsi')):
         gender='Mens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePDOCorsi, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
     if(message.content.startswith('?wpdocorsiplot') or message.content.startswith('?wpdocorsi')):
         gender='Womens'       
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePDOCorsi, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
-    if(message.content.startswith('?pwrplot')):
+    if(message.content.startswith('?pwrplot') or message.content.startswith('?npiplot')):
         gender='Mens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
-            p.shutdown()
-        await message.channel.send(file=discord.File(msg))
+            #p.shutdown()
+        if(msg=="No"):
+          await message.channel.send(msg)
+        else:
+          await message.channel.send(file=discord.File(msg))
     
     if(message.content.startswith('?krachplot')):
         gender='Mens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateKrachPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
     
     if(message.content.startswith('?wkrachplot')):
         gender='Womens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateKrachPlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))
         
     if(message.content.startswith('?sriracha')): 
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")   
         else:
-          with cf.ProcessPoolExecutor(1) as p:
+          with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
               msg = await loop.run_in_executor(p, generateSezStats, 'sriracha')
-              p.shutdown()
+              #p.shutdown()
           await message.channel.send(file=discord.File(msg))
     
     if(message.content.startswith('?snacc')): 
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump") 
         else:
-          with cf.ProcessPoolExecutor(1) as p:
+          with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
               msg = await loop.run_in_executor(p, generateSezStats, 'snacc')
-              p.shutdown()
+              #p.shutdown()
           await message.channel.send(file=discord.File(msg))
   
-    if(message.content.startswith('?wpwrplot')):
+    if(message.content.startswith('?wpwrplot') or message.content.startswith('?wnpiplot')):
         gender='Womens'        
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generatePairwisePlot, gender)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(file=discord.File(msg))  
     if(message.content.startswith('?chain')):
         team1= ''
@@ -2586,9 +2460,9 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
             
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getTransitiveWinChain, team1,team2)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(msg)
         
     if(message.content.startswith('?whosbetter')):
@@ -2601,10 +2475,11 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
             
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getTransitiveWinChain, team1,team2)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(msg)                   
+    '''
     if(message.content.startswith('?wchain')):
         team1= ''
         team2= ''
@@ -2615,27 +2490,27 @@ async def on_message(message):
             team1=team1.rstrip(" ")
             team2=team2.lstrip(' ')
             
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, getWTransitiveWinChain, team1,team2)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(msg)                   
         
-        
+    '''    
     if(message.content.startswith('?scoreboard') and not message.content.startswith('?mscoreboard')):
         if(message.channel.name == 'game-night'):
             await message.channel.send("Please use #bot-dump")
         else:
             opt = message.content.split('?scoreboard ')
             if(len(opt)==1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", 'full')
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", opt[1])
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
         
@@ -2646,15 +2521,15 @@ async def on_message(message):
         
             opt = message.content.split('?mscoreboard ')
             if(len(opt)==1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", 'full')
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Men", opt[1])
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
                                
@@ -2666,15 +2541,15 @@ async def on_message(message):
         
             opt = message.content.split('?wscoreboard ')
             if(len(opt)==1):
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Women", 'full')
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
             else:
-                with cf.ProcessPoolExecutor(1) as p:
+                with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
                     msg = await loop.run_in_executor(p, generateFullScoreboard, "Women", opt[1])
-                    p.shutdown()
+                    #p.shutdown()
                 if(len(msg)>0):
                     await message.channel.send(msg)
     
@@ -2784,9 +2659,9 @@ async def on_message(message):
                 teamName=chnDiffs[teamName]
         elif(len(teamChoice)==1):
             teamName=''
-        with cf.ProcessPoolExecutor(1) as p:
+        with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
             msg = await loop.run_in_executor(p, generateRandomPlayer,teamName)
-            p.shutdown()
+            #p.shutdown()
         await message.channel.send(msg)
     if(message.content.startswith('?dog') or message.content.startswith('?doggo') or message.content.startswith('?doggy')):
             opt = message.content.split(' ')
@@ -2811,11 +2686,11 @@ async def on_message(message):
     
     
     if message.content.startswith('?alaskatest'):
-      with cf.ProcessPoolExecutor(1) as p:
+      with cf.ProcessPoolExecutor(max_workers=1,mp_context=ctx) as p:
           msg = await loop.run_in_executor(p, checkForAlaskaTest)
-          p.shutdown()
+          #p.shutdown()
       if(len(msg)>0):
-          return message.channel.send(msg)
+          await message.channel.send(msg)
           
         
 
@@ -2869,6 +2744,7 @@ def getSchedule(team,opt,gender):
         "Colorado College" : "team/Colorado-College/16/",
         "Connecticut" : "team/Connecticut/17/",
         "Cornell" : "team/Cornell/18/",
+        "Delaware" : "team/Delaware/447",
         "Dartmouth" : "team/Dartmouth/19/",
         "Denver" : "team/Denver/20/",
         "Ferris State" : "team/Ferris-State/21/",
@@ -3038,6 +2914,7 @@ def getResults(team,opt,gender):
         "Connecticut" : "team/Connecticut/17/",
         "Cornell" : "team/Cornell/18/",
         "Dartmouth" : "team/Dartmouth/19/",
+        "Delaware" : "team/Delaware/447",
         "Denver" : "team/Denver/20/",
         "Ferris State" : "team/Ferris-State/21/",
         "Franklin Pierce" : "team/Franklin-Pierce/406/",
@@ -3195,6 +3072,7 @@ def getStats(team,playerToFind,gender):
         "Connecticut" : "team/Connecticut/17/",
         "Cornell" : "team/Cornell/18/",
         "Dartmouth" : "team/Dartmouth/19/",
+        "Delaware" : "team/Delaware/447",
         "Denver" : "team/Denver/20/",
         "Ferris State" : "team/Ferris-State/21/",
         "Franklin Pierce" : "team/Franklin-Pierce/406/",
@@ -3252,6 +3130,8 @@ def getStats(team,playerToFind,gender):
           stats='stats'
        elif(gender=="Women"):
           stats='women/stats'
+          if(team=="RPI"):
+            teamDict[team]=teamDict[team].replace("RPI","Rensselaer")
        url = "https://www.collegehockeynews.com/{}/{}".format(stats,teamDict[team])
     else:
         return ":regional_indicator_x: Team Not Found"
@@ -4010,6 +3890,7 @@ def getTeamStats(team,gender):
         "Connecticut" : "team/Connecticut/17/",
         "Cornell" : "team/Cornell/18/",
         "Dartmouth" : "team/Dartmouth/19/",
+        "Delaware" : "team/Delaware/447",
         "Denver" : "team/Denver/20/",
         "Ferris State" : "team/Ferris-State/21/",
         "Franklin Pierce" : "team/Franklin-Pierce/406/",
@@ -4068,17 +3949,19 @@ def getTeamStats(team,gender):
           stats='stats'
        elif(gender=="Women"):
           stats='women/stats'
+          if(team=="RPI"):
+            teamDict[team]=teamDict[team].replace("RPI","Rensselaer")
        url = "https://www.collegehockeynews.com/{}/{}/details".format(stats,teamDict[team])
     else:
         return ":regional_indicator_x: Team Not Found"
-        
+    
     f=urllib.request.urlopen(url)
     html = f.read()
     f.close()
     soup = BeautifulSoup(html, 'html.parser')
     tables = soup.find_all('table',{'class':'data'})
-    records=tables[0]
-    specialTeams=tables[1]
+    records=tables[2]
+    specialTeams=tables[0]
     recordStr='```\n{}\nSituation Records\n'.format(team)
     for i in records.find_all('tr'):
         extra=False
@@ -4129,7 +4012,7 @@ def generatePairwisePlot(gender):
         "Lake Superior" :"CCHA",
         "Northern Michigan" :"CCHA",
         "Ferris State" :"CCHA",
-        "St. Thomas" :"CCHA",
+        "St. Thomas" :"NCHC",
         "Harvard" :"ECAC",
         "Cornell" :"ECAC",
         "Quinnipiac" :"ECAC",
@@ -4174,9 +4057,10 @@ def generatePairwisePlot(gender):
         soup = BeautifulSoup(html, 'html.parser')
         data =soup.get_text()
         pairwise = []
-        for link in soup.find_all('a'):
-            if("\n" not in link.get_text() and '' != link.get_text() and 'Customizer' != link.get_text() and 'Primer' != link.get_text() and 'Glossary' != link.get_text()):
-                pairwise.append(link.get_text())
+        for row in soup.find('table').find_all('tr'):
+            col = row.find_all('td')
+            if(len(col)>1):
+                pairwise.append(col[1].get_text())  
         
         counter=1
         pwrDict={}
@@ -4225,8 +4109,8 @@ def generatePairwisePlot(gender):
         plt.legend()
         plt.ylim([len(pw)+2,0])
         plt.xlabel('Conference')
-        plt.ylabel('Pairwise Ranking')
-        plt.title('Conference Pairwise')
+        plt.ylabel('NPI Ranking')
+        plt.title('Conference NPI')
         plt.grid(axis='y')
         gca=plt.gca()
         fig.patch.set_facecolor('lightgray')
@@ -4234,7 +4118,6 @@ def generatePairwisePlot(gender):
         gca.axes.set_xticklabels(ticks);
         pwrPlotName='/home/nmemme/discordBot/pdoplotdata/mpwrplot.png'
         plt.savefig(pwrPlotName)
-        
     elif(gender=='Womens'):
         confDict={"Mercyhurst" : "AHA",
         "Penn State" : "AHA",
@@ -4242,6 +4125,7 @@ def generatePairwisePlot(gender):
         "Lindenwood" : "AHA",
         "RIT" : "AHA",
         "Robert Morris" : "AHA",
+        "Delaware" : "AHA",
         "Harvard" : "ECAC",
         "Quinnipiac" : "ECAC",
         "Yale" : "ECAC",
@@ -4280,24 +4164,23 @@ def generatePairwisePlot(gender):
         "Bemidji State" : "WCHA",
         "St. Cloud State" : "WCHA",
         "St. Thomas" : "WCHA"}
-        url = "https://json-b.uscho.com/json/rankings/pairwise-rankings/d-i-women"
+        url = "https://www.uscho.com/rankings/npi/d-i-women"
         f=urllib.request.urlopen(url)
         html = f.read()
         f.close()
         soup = BeautifulSoup(html, 'html.parser')
-        site_json=json.loads(soup.text)
-        table=site_json['json']['dt1']['data']
+        npiData=json.loads(soup.find('div',{'id':'app'})['data-page'])['props']['content']['data']
         pairwise=[]
-        for row in table:
-            if(row[1]=='LIU'):
-                row[1]="Long Island"
-            if(row[1]=='St. Anselm'):
-                row[1]="Saint Anselm" 
-            if(row[1]=="St. Michael's"):
-                row[1]="Saint Michael's" 
-            if(row[1]=="Minnesota Duluth"):
-                row[1]="Minnesota-Duluth" 
-            pairwise.append(row[1])
+        for row in npiData:
+            if(row['team']=='LIU'):
+                row['team']="Long Island"
+            if(row['team']=='St. Anselm'):
+                row['team']="Saint Anselm" 
+            if(row['team']=="St. Michael's"):
+                row['team']="Saint Michael's" 
+            if(row['team']=="Minnesota Duluth"):
+                row['team']="Minnesota-Duluth" 
+            pairwise.append(row['team'])
             
         counter=1
         pwrDict={}
@@ -4338,15 +4221,19 @@ def generatePairwisePlot(gender):
         numTeams=11
         cutLine=numTeams+.5
         for i in cDict:
-            x=[pwrDict[d] for d in cDict[i]]
+            x=[]
+            for d in cDict[i]:
+              if(d in pwrDict.keys()):
+                x.append(pwrDict[d])
+            #x=[pwrDict[d] for d in cDict[i]]
             if(min(x)>=numTeams and i != 'Independents'):
                 cutLine-=1
         plt.hlines(cutLine,0,4,linestyle='--',label='Cut Line',colors='black')
         #plt.legend()
         plt.ylim([len(pw)+2,0])
         plt.xlabel('Conference')
-        plt.ylabel('Pairwise Ranking')
-        plt.title('Conference Pairwise')
+        plt.ylabel('NPI Ranking')
+        plt.title('Conference NPI')
         plt.grid(axis='y')
         gca=plt.gca()
         fig.patch.set_facecolor('lightgray')
@@ -4500,12 +4387,13 @@ def generateKrachPlot(gender):
       plt.savefig(krachPlotName)
           
     elif(gender=='Womens'):
-        confDict={"Mercyhurst" : "CHA",
-        "Penn State" : "CHA",
-        "Syracuse" : "CHA",
-        "Lindenwood" : "CHA",
-        "RIT" : "CHA",
-        "Robert Morris" : "CHA",
+        confDict={"Mercyhurst" : "AHA",
+        "Penn State" : "AHA",
+        "Syracuse" : "AHA",
+        "Lindenwood" : "AHA",
+        "RIT" : "AHA",
+        "Robert Morris" : "AHA",
+        "Delaware" : "AHA",
         "Harvard" : "ECAC",
         "Quinnipiac" : "ECAC",
         "Yale" : "ECAC",
@@ -4816,29 +4704,24 @@ def generateSezStats(type):
   return f"/home/nmemme/discordBot/krachdata/{type}.jpg"
 
 def getPoll(gender):
-  url = f"https://json-b.uscho.com/json/rankings/d-i-{gender}-poll"
+  url = f"https://www.uscho.com/rankings/d-i-{gender}-poll"
   f=urllib.request.urlopen(url)
   html = f.read()
   f.close()
   soup = BeautifulSoup(html, 'html.parser')
-  tsoup=html_lib.unescape(str(soup)).replace(r"\/", "/")
-  new_soup=BeautifulSoup(tsoup, 'html.parser')
-  if(new_soup.find('h1') is None):
-    return ''
-  elif(new_soup.find('table') is None):
-    return ''
-  title=new_soup.find('h1').get_text()
-  table_soup=new_soup.find('table')
-  pollStr='```\n'+title+'\n'
-  for row in table_soup.find_all('tr'):
-      col=row.find_all('td')
-      if(len(col)>1):
-          pollStr+=col[0].get_text()+ " " + col[1].get_text() + " " + col[2].get_text()+'\n'
-  pattern = r"(Others receiving votes.*?)<div"
-  match = re.search(pattern, str(new_soup), re.DOTALL)
-  if match:
-    result = match.group(1).strip()
-    pollStr+=result+'\n'
+  pollData=json.loads(soup.find('div',{'id':'app'})['data-page'])['props']['content']['data']
+  pDate=pollData[0]['PollDate']
+  pName=pollData[0]['PollName']
+  pollStr = "```\n" + pName + " - " + datetime.strptime(pDate, "%Y-%m-%d").strftime("%B %d, %Y") + "\n"
+  for entry in pollData:
+      fpv=str(entry['first_pv'])
+      if(fpv!='0'):
+          fpv="("+fpv+")"
+      else:
+          fpv=''
+      pollStr+=f"{entry['PollPlace']} {entry['shortname']} {fpv}\n"
+  rv=json.loads(soup.find('div',{'id':'app'})['data-page'])['props']['content']['other']
+  pollStr+="Others receiving votes: " + rv + "\n"
   pollStr+='```'
   return pollStr
 
@@ -4917,8 +4800,8 @@ def generateRandomPlayer(team):
         if(team.isnumeric()):
           year=int(team)
           isYear=True
-          if(year<1897 or year>2024):
-            year=2024
+          if(year<1897 or year>2026):
+            year=2026
           elif(year<1910):
             team=random.choice(['Harvard','Yale','Brown'])
           else:
@@ -4931,7 +4814,7 @@ def generateRandomPlayer(team):
         if(isYear and counter>0):
           team=random.choice(list(teamDict.keys()))
         if(not isYear):
-          year=random.randint(1897,2024)    
+          year=random.randint(1897,2026)    
         if(counter>=100):
           team='Boston University'
           year=1977
@@ -4949,6 +4832,10 @@ def generateRandomPlayer(team):
             f.close()
             soup = BeautifulSoup(html, 'html.parser')
             table=soup.find('table',{'id':'players'})
+            if(table is None):
+              isValid=False
+              counter+=1
+              continue
             for row in table.find_all('tr'):
                 col=row.find_all('td')
                 if(len(col)>4):
@@ -4964,6 +4851,7 @@ def generateRandomPlayer(team):
             continue
         player=random.choice(playerList)
         yearStr=f"{str(year)}-{str(year+1)[2:]}"
+        #print( f"[{player}](<{pDict[player]}>), {team} ({yearStr})")
         return f"[{player}](<{pDict[player]}>), {team} ({yearStr})"
         
 def checkForAlaskaTest():
@@ -4976,6 +4864,7 @@ def checkForAlaskaTest():
     if(len(uaaGame)>1 and ('Alaska' in uaaGame[1] or 'Alaska' in uaaGame[2])):
         return "Alaska Test tonight!"
     return "No Alaska Test tonight"
-    
-client.run(discordauths.TOKEN)
-print("Ending... at",datetime.now())
+  
+if __name__=="__main__":
+  client.run(discordauths.TOKEN)
+  print("Ending... at",datetime.now())

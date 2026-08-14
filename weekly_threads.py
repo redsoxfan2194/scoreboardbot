@@ -9,9 +9,20 @@ subreddit = reddit.subreddit('collegehockey')
 est = pytz.timezone('US/Eastern')
 DOW=calendar.day_name[date.today().weekday()]
 title=''
+# Get today's date
+today = datetime.today()
+
+# Define the cutoff date for the season
+cutoff_date = datetime(today.year, 9, 19)
+
+# Set isOffSeason based on the date comparison
+isOffSeason = today <= cutoff_date
+
+# If the date is after September 20, isOffSeason will be False
 isOffSeason = True
+
 def getTrashTitle():
-    comment='SOMEONE FORGOT TO MAKE A WITTY TITLE'
+    comment='COLLEGE HOCKEY IS BACK'
     upTrashFilePath = '/home/nmemme/ch_scorebot/titles/upcomingTrashTitle.txt'
     currTrashFilePath = '/home/nmemme/ch_scorebot/titles/currentTrashTitle.txt'
     if(os.path.exists(upTrashFilePath)):
@@ -27,6 +38,7 @@ def getTrashTitle():
     return comment
                 
 if DOW=='Sunday' and not isOffSeason:
+    exit()
     title='Sidebar Submission Sunday'
     text='''Please submit your pic for the sidebar this week.
 
@@ -46,7 +58,7 @@ elif DOW=='Sunday' and isOffSeason:
 
 elif DOW=='Monday':
     exit()
-    title='TRASH TALK MONDAY: "ALL THE BEANS" EDITION'
+    title='TRASH TALK MONDAY: "BATTLE FOR THE BEANS" EDITION'
     text = '''
 ITS MIDNIGHT, ITS MONDAY, ITS FEBRUARY AND THAT MEANS ONE THING...IT IS TIME FOR SOME BEANPOT TRASH TALK!
 
@@ -62,7 +74,6 @@ ITS MIDNIGHT, ITS MONDAY, ITS FEBRUARY AND THAT MEANS ONE THING...IT IS TIME FOR
 
 **IF YOU WOULDN'T SAY IT AT A GAME DON'T POST IT HERE!**'''
     #exit()
-    
 elif DOW=='Tuesday':
     exit()
     
